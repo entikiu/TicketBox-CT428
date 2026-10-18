@@ -1,0 +1,148 @@
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+}
+
+.auth-card {
+    background: #ffffff;
+    color: #333333;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header {
+    background-color: #21b561;
+    color: #ffffff;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.auth-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.auth-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: #21b561;
+}
+
+.btn-primary-auth {
+    width: 100%;
+    background-color: #e2e4e8;
+    color: #888;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.btn-primary-auth.active {
+    background-color: #21b561;
+    color: #fff;
+}
+
+.divider {
+    text-align: center;
+    margin: 15px 0;
+    position: relative;
+    color: #888;
+    font-size: 13px;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background: #eee;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.btn-google {
+    width: 100%;
+    background: #1a73e8;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.auth-links a {
+    color: #21b561;
+    font-weight: 600;
+}
+
+/* Khung kiểm tra điều kiện mật khẩu (Đăng ký) */
+.password-rules {
+    border: 1px solid #f8d7da;
+    background: #fff5f5;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.password-rules h4 {
+    color: #dc3545;
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rule-item {
+    font-size: 12px;
+    color: #dc3545;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.rule-item.valid {
+    color: #28a745;
+}
