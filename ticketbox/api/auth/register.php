@@ -1,4 +1,6 @@
+
 <?php
+
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/config.php';
@@ -14,47 +16,53 @@ function respond(int $status, array $data): void
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Allow: POST');
-    respond(405, ['error' => 'Phương thức không hợp lệ.']);
+    respond(405, ['message' => 'Phương thức không hợp lệ.']);
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
 
-if(!is_array($data)) {
+if (!is_array($data)) {
     $data = $_POST;
 }
 
-$hoten = trim($data['ho_ten'] ?? '');
+$hoTen = trim($data['ho_ten'] ?? '');
 $email = trim($data['email'] ?? '');
-$matKhau = trim($data['mat_khau'] ?? '');
+$matKhau = $data['mat_khau'] ?? '';
 
-if(
-    $hoten === '' ||
-    strlen($hoten) > 100 ||
+if (
+    $hoTen === '' ||
+    strlen($hoTen) > 100 ||
     !filter_var($email, FILTER_VALIDATE_EMAIL) ||
-    strlen($email) > 100 ||
+    strlen($email) > 150 ||
     !is_string($matKhau) ||
     strlen($matKhau) < 8 ||
-    strlen($matKhau) > 100
-){
-    respond(400, ['message' => 'Dữ liệu không hợp lệ. Mật khẩu phải có ít nhất 8 ký tự và không quá 100 ký tự.']);
+    strlen($matKhau) > 72
+) {
+    respond(422, [
+        'message' => 'Dữ liệu không hợp lệ. Mật khẩu cần ít nhất 8 ký tự.'
+    ]);
 }
 
-$user = new User($db);
+$user = new User($pdo);
 
 if ($user->findByEmail($email)) {
     respond(409, ['message' => 'Email đã được sử dụng.']);
 }
 
-try{
-    $id = $user->create($hoten, $email, $matKhau);
+$hash = password_hash($matKhau, PASSWORD_DEFAULT);
 
-    respond(201, ['message' => 'Đăng ký thành công.', 'user_id' => $id]);
-}catch (PDOException $e){
+try {
+    $id = $user->create($hoTen, $email, $hash);
+
+    respond(201, [
+        'message' => 'Đăng ký thành công.',
+        'user_id' => $id
+    ]);
+} catch (PDOException $e) {
     if ($e->getCode() === '23000') {
         respond(409, ['message' => 'Email đã được sử dụng.']);
-    } else {
-        respond(500, ['message' => 'Lỗi hệ thống.']);
     }
+
     error_log($e->getMessage());
     respond(500, ['message' => 'Lỗi hệ thống.']);
 }

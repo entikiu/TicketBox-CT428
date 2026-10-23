@@ -1,6 +1,6 @@
 <?php
 
-data_default_timezone_set('Asia/Ho_Chi_Minh');
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.use_strict_mode', '1');
@@ -15,5 +15,4 @@ if (session_status() === PHP_SESSION_NONE) {
     ]);
 
     session_start();
-    
 }

@@ -1,9 +1,10 @@
+
 <?php
 
 $host = 'localhost';
 $dbname = 'ticketbox';
 $username = 'root';
-$password = '';
+$password = ''; // XAMPP mặc định thường để trống
 
 try {
     $pdo = new PDO(
@@ -19,5 +20,5 @@ try {
 } catch (PDOException $e) {
     error_log($e->getMessage());
     http_response_code(500);
-    exit('Database connection failed');
+    exit('Không thể kết nối cơ sở dữ liệu.');
 }

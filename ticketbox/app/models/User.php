@@ -1,3 +1,4 @@
+
 <?php
 
 class User
@@ -8,7 +9,8 @@ class User
 
     public function findByEmail(string $email): array|false
     {
-        $sql = "SELECT id, ho_ten, email, mat_khau, vai_tro FROM NguoiDung
+        $sql = "SELECT id, ho_ten, email, mat_khau, vai_tro
+                FROM NguoiDung
                 WHERE email = :email
                 LIMIT 1";
 
@@ -17,23 +19,23 @@ class User
 
         return $stmt->fetch();
     }
-    
+
     public function create(
-        string $ho_ten,
+        string $hoTen,
         string $email,
-        string $matKhauHash,
+        string $matKhauHash
     ): int {
-        $sql = "INSERT INTO NguoiDung (ho_ten, email, mat_khau)
+        $sql = "INSERT INTO NguoiDung
+                    (ho_ten, email, mat_khau)
                 VALUES (:ho_ten, :email, :mat_khau)";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'ho_ten' => $ho_ten,
+            'ho_ten' => $hoTen,
             'email' => $email,
             'mat_khau' => $matKhauHash
         ]);
 
-        return $this->pdo->lastInsertId();
+        return (int) $this->pdo->lastInsertId();
     }
-
 }

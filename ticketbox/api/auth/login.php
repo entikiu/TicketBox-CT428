@@ -1,4 +1,6 @@
+
 <?php
+
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/config.php';
@@ -14,43 +16,44 @@ function respond(int $status, array $data): void
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Allow: POST');
-    respond(405, ['error' => 'Method Not Allowed']);
+    respond(405, ['message' => 'Phương thức không hợp lệ.']);
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
 
-if(!is_array($data)) {
+if (!is_array($data)) {
     $data = $_POST;
 }
 
 $email = trim($data['email'] ?? '');
-$matKhau = trim($data['mat_khau'] ?? '');
+$matKhau = $data['mat_khau'] ?? '';
 
-if(
+if (
     !filter_var($email, FILTER_VALIDATE_EMAIL) ||
     !is_string($matKhau) ||
-    $matKhau === '' ||
-    strlen($matKhau) < 8 ||
-    strlen($matKhau) > 100
-){
-    respond(422, ['message' => 'Vui lòng cung cấp email hợp lệ và mật khẩu hợp lệ.']);
+    $matKhau === ''
+) {
+    respond(422, ['message' => 'Vui lòng nhập email và mật khẩu hợp lệ.']);
 }
 
-$userModel = new User($db);
+$userModel = new User($pdo);
 $user = $userModel->findByEmail($email);
 
 if (!$user || !password_verify($matKhau, $user['mat_khau'])) {
-    respond(401, ['message' => 'Email hoặc mật khẩu không đúng.']);
+    respond(401, ['message' => 'Email hoặc mật khẩu không chính xác.']);
 }
 
+// Đổi ID Session sau khi xác thực thành công
 session_regenerate_id(true);
 
-$_SESSION['user_'] = [
+$_SESSION['user'] = [
     'id' => (int) $user['id'],
     'ho_ten' => $user['ho_ten'],
     'email' => $user['email'],
-    'vai_tro' => $user['vai_tro'],
+    'vai_tro' => $user['vai_tro']
 ];
 
-respond(200, ['message' => 'Đăng nhập thành công.', 'user' => $_SESSION['user']]);
-
+respond(200, [
+    'message' => 'Đăng nhập thành công.',
+    'user' => $_SESSION['user']
+]);
