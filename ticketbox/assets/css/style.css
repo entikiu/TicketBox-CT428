@@ -1,4 +1,6 @@
-/* Reset & Base Styles */
+/* ==========================================
+   1. RESET & SYSTEM VARIABLES
+   ========================================== */
 * {
     margin: 0;
     padding: 0;
@@ -29,7 +31,23 @@ a {
     text-decoration: none;
 }
 
-/* Header & Navbar */
+.container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.section-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ==========================================
+   2. HEADER & NAVIGATION
+   ========================================== */
 .main-header {
     background-color: var(--primary-color);
     padding: 12px 5%;
@@ -47,8 +65,21 @@ a {
     margin: 0 auto;
 }
 
-.logo img {
-    height: 36px;
+.logo-text {
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff !important;
+    text-transform: lowercase;
+    letter-spacing: -0.8px;
+    line-height: 1;
+    display: inline-block;
+    transition: opacity 0.2s ease;
+    user-select: none;
+}
+
+.logo-text:hover {
+    opacity: 0.85;
 }
 
 .search-bar {
@@ -86,9 +117,86 @@ a {
     opacity: 0.8;
 }
 
-.auth-btn a {
+/* Account Dropdown */
+.user-account-dropdown {
+    position: relative;
+}
+
+.account-btn {
+    background: #00b14f;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     color: #fff;
-    font-weight: bold;
+    padding: 6px 14px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.user-avatar-sm {
+    width: 24px;
+    height: 24px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background: #ffffff;
+    color: #333333;
+    width: 200px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    padding: 10px 0;
+    display: none;
+    z-index: 2000;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    color: #333;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.dropdown-menu a:hover {
+    background: #f4f5f7;
+}
+
+.btn-create-event {
+    background: #000;
+    color: #fff !important;
+    border-radius: 20px;
+    margin: 5px 12px 10px;
+    justify-content: center;
+    font-weight: bold !important;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #eee;
+    margin: 6px 0;
+}
+
+.logout-link {
+    color: #dc3545 !important;
 }
 
 /* Category Menu Bar */
@@ -117,29 +225,51 @@ a {
     transition: 0.3s;
 }
 
-.category-btn:hover, .category-btn.active {
+.category-btn:hover,
+.category-btn.active {
     background: #333;
     border-color: #666;
 }
 
-/* Banner Slider */
-.hero-slider {
-    max-width: 1200px;
+/* ==========================================
+   3. HERO BANNER SLIDER & CAROUSEL
+   ========================================== */
+.hero-slider-wrapper {
+    position: relative;
     margin: 20px auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
     padding: 0 15px;
 }
 
-.banner-item {
+.hero-slider {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 5px 0;
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.hero-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.hero-slider .banner-item {
+    flex: 0 0 calc(50% - 10px);
     border-radius: 12px;
     overflow: hidden;
     position: relative;
     background: #000;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease;
 }
 
-.banner-item img {
+.hero-slider .banner-item:hover {
+    transform: translateY(-4px);
+}
+
+.hero-slider .banner-item img {
     width: 100%;
     height: 260px;
     object-fit: cover;
@@ -150,36 +280,99 @@ a {
     position: absolute;
     bottom: 15px;
     left: 15px;
-    background: #fff;
-    color: #000;
-    padding: 6px 16px;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1a1a24;
+    padding: 8px 18px;
+    border-radius: 6px;
     font-size: 13px;
-    font-weight: bold;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: background 0.2s;
 }
 
-/* Event Grid Section */
-.container {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 0 15px;
+.banner-item .btn-detail:hover {
+    background: #ffffff;
+    color: var(--primary-color);
 }
 
-.section-title {
-    font-size: 20px;
-    margin-bottom: 20px;
+/* Generic Slider Controls (Trái/Phải) */
+.slider-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
 }
 
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: rgba(35, 37, 48, 0.9);
+    color: #ffffff;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: all 0.25s ease;
+}
+
+.slider-btn:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #ffffff;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.prev-btn {
+    left: -18px;
+}
+
+.next-btn {
+    right: -18px;
+}
+
+.hero-slider-wrapper .prev-btn {
+    left: -5px;
+}
+
+.hero-slider-wrapper .next-btn {
+    right: -5px;
+}
+
+/* ==========================================
+   4. EVENT CARDS & EVENT SLIDER
+   ========================================== */
 .event-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
 }
 
-/* Event Card (templates/event-card.php) */
+.event-slider {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 5px;
+    width: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.event-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.event-slider .event-card {
+    flex: 0 0 270px;
+}
+
 .event-card {
     background: var(--card-bg);
     border-radius: 10px;
@@ -231,7 +424,545 @@ a {
     margin-bottom: 4px;
 }
 
-/* Footer (templates/footer.php) */
+/* ==========================================
+   5. TRENDING SECTION
+   ========================================== */
+.trending-section {
+    margin: 35px auto;
+}
+
+.trending-scroll {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding: 15px 10px 20px 25px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.trending-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.trending-scroll::-webkit-scrollbar-track {
+    background: #252733;
+    border-radius: 10px;
+}
+
+.trending-scroll::-webkit-scrollbar-thumb {
+    background: #00b14f;
+    border-radius: 10px;
+}
+
+.trending-card {
+    position: relative;
+    flex: 0 0 310px;
+    scroll-snap-align: start;
+    margin-left: 15px;
+}
+
+.trending-rank {
+    position: absolute;
+    left: -22px;
+    bottom: -5px;
+    font-size: 85px;
+    font-weight: 900;
+    font-family: 'Impact', 'Montserrat', sans-serif;
+    color: #00b14f;
+    text-shadow:
+        2px 2px 0px #094722,
+        -1px -1px 0px #2be072,
+        4px 6px 12px rgba(0, 0, 0, 0.9);
+    z-index: 2;
+    line-height: 0.8;
+    pointer-events: none;
+    user-select: none;
+}
+
+.trending-img-link {
+    display: block;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.trending-img-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 177, 79, 0.3);
+}
+
+.trending-img-link img {
+    width: 100%;
+    height: 175px;
+    object-fit: cover;
+    display: block;
+}
+
+/* ==========================================
+   6. FEATURED STARS & MEMBERSHIP
+   ========================================== */
+.stars-scroll {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: none;
+}
+
+.stars-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.star-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 90px;
+    cursor: pointer;
+}
+
+.star-circle {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 2px solid #00b14f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #fff;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.star-item span {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.membership-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.membership-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.membership-card.highlight {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 177, 79, 0.2);
+}
+
+.membership-price {
+    color: var(--primary-color);
+    font-size: 18px;
+    font-weight: bold;
+    margin: 12px 0 18px;
+}
+
+.btn-join {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.badge-status {
+    display: inline-block;
+    background: #4b5563;
+    color: #d1d5db;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+/* ==========================================
+   7. EVENT DETAIL PAGE
+   ========================================== */
+.ticket-stub-card {
+    background: #252733;
+    border-radius: 16px;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.stub-left {
+    flex: 1;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stub-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.stub-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 15px;
+    color: #e2e4e8;
+    font-size: 14px;
+}
+
+.stub-info i {
+    color: var(--primary-color);
+    font-size: 16px;
+    margin-top: 3px;
+}
+
+.stub-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 20px 0;
+}
+
+.stub-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stub-price-link {
+    color: var(--text-muted);
+    font-size: 15px;
+}
+
+.stub-price-link span {
+    color: var(--primary-color);
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.btn-buy-primary {
+    background: var(--primary-color);
+    color: #fff;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn-buy-primary:hover {
+    background: var(--primary-hover);
+}
+
+.notch {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: var(--bg-dark);
+    border-radius: 50%;
+    left: 45%;
+    z-index: 5;
+}
+
+.notch-top {
+    top: -12px;
+}
+
+.notch-bottom {
+    bottom: -12px;
+}
+
+.stub-right {
+    width: 55%;
+}
+
+.stub-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.detail-block {
+    background: #252733;
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.view-toggle button {
+    background: #1a1a24;
+    border: 1px solid var(--border-color);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.view-toggle button.active {
+    border-color: #fff;
+}
+
+.schedule-accordion {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.accordion-head {
+    background: #1e2029;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-buy-sm {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ticket-sub-title {
+    padding: 12px 20px;
+    background: #282a36;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.cat-item {
+    padding: 14px 20px;
+    border-top: 1px solid #34374c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.price-green {
+    color: var(--primary-color);
+}
+
+.badge-soldout {
+    background: #ff4d4f;
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+
+.terms-box {
+    background: #1e2029;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #ccc;
+}
+
+.terms-box ul {
+    padding-left: 20px;
+}
+
+.terms-box li {
+    margin-bottom: 10px;
+}
+
+.organizer-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #1e2029;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.org-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 1px solid #ff3366;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+/* ==========================================
+   8. ACCOUNT & MY TICKETS PAGE
+   ========================================== */
+.breadcrumb {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 25px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.account-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+}
+
+.user-profile-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.avatar-circle {
+    width: 42px;
+    height: 42px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.menu-item {
+    color: var(--text-muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sub-menu {
+    margin-left: 28px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sub-item {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.sub-item.active {
+    color: var(--primary-color);
+}
+
+.page-title-text {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+}
+
+.pill-btn {
+    background: #34374c;
+    color: #fff;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.pill-btn.active {
+    background: var(--primary-color);
+}
+
+.sub-filter-tabs {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.tab-link {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    padding-bottom: 6px;
+    cursor: pointer;
+}
+
+.tab-link.active {
+    color: #fff;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.empty-state-box {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.sunset-illustration {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #d97736, #eab308, #e5e5e5);
+    margin: 0 auto 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sunset-illustration .sun {
+    width: 60px;
+    height: 60px;
+    background: #fef08a;
+    border-radius: 50%;
+    position: absolute;
+    top: 30px;
+    left: 60px;
+}
+
+.empty-text {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* ==========================================
+   9. FOOTER
+   ========================================== */
 .main-footer {
     background-color: var(--footer-bg);
     padding: 40px 5% 20px;
@@ -287,7 +1018,6 @@ a {
 
 .footer-bottom {
     border-top: 1px solid var(--border-color);
-    padding-top: 20px;
     background: var(--footer-bottom);
     margin: 0 -5% -20px;
     padding: 20px 5%;
@@ -303,390 +1033,403 @@ a {
     gap: 15px;
 }
 
-/* Responsive Mobile */
+/* ==========================================
+   10. MEDIA QUERIES (RESPONSIVE MOBILE)
+   ========================================== */
 @media (max-width: 768px) {
     .header-container {
         flex-wrap: wrap;
     }
+
     .search-bar {
         order: 3;
         max-width: 100%;
         width: 100%;
     }
+
     .nav-links {
-        display: none; /* Cần dùng toggle JS trên điện thoại */
+        display: none;
     }
-    .hero-slider {
-        grid-template-columns: 1fr;
-    }
-}
-/* Styling cho Logo dạng Chữ (Ticketbox Text Logo) */
-.logo-text {
-    font-family: 'Montserrat', 'Segoe UI', sans-serif;
-    font-size: 28px;
-    font-weight: 800;             /* Chữ cực đậm theo phong cách logo gốc */
-    color: #ffffff !important;     /* Chữ màu trắng trên nền xanh */
-    text-decoration: none;
-    text-transform: lowercase;    /* Viết thường toàn bộ chữ ticketbox */
-    letter-spacing: -0.8px;       /* Cắt giảm khoảng cách chữ cho khít chuẩn logo */
-    line-height: 1;
-    display: inline-block;
-    transition: opacity 0.2s ease;
-    user-select: none;            /* Tránh bôi đen chữ khi click nhiều lần */
-}
 
-.logo-text:hover {
-    opacity: 0.85;                /* Hiệu ứng mờ nhẹ khi di chuột vào */
-    color: #ffffff !important;
-}
-/*banner*/
-/* Tối ưu hiển thị Banner Slider lớn */
-.banner-item img {
-    width: 100%;
-    height: 260px;
-    object-fit: cover; /* Giúp ảnh tự động cắt vừa khung mà không bị méo */
-    border-radius: 12px;
-    display: block;
-}
-
-/* Tối ưu hiển thị ảnh trong thẻ sự kiện (Event Card) */
-.card-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Giữ tỷ lệ ảnh nét đẹp */
-}
-/* ==========================================
-   BANNER SLIDER - DẠNG CUỘN NGANG (HORIZONTAL SCROLL)
-   ========================================== */
-
-.hero-slider {
-    display: flex;                  /* Xếp các banner nằm trên 1 hàng ngang */
-    gap: 20px;                      /* Khoảng cách giữa các banner */
-    overflow-x: auto;               /* Bật tính năng cuộn ngang */
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;  /* Tự động dính (snap) vào khung khi dừng cuộn */
-    scroll-behavior: smooth;        /* Hiệu ứng cuộn mượt */
-    padding: 10px 15px 20px 15px;   /* Padding dưới để chừa chỗ cho thanh cuộn */
-    max-width: 1200px;
-    margin: 10px auto;
-    -webkit-overflow-scrolling: touch; /* Cuộn mượt trên thiết bị iOS/iPhone */
-}
-
-.banner-item {
-    /* Mặc định trên Desktop: Hiển thị khoảng 2 banner rưỡi để người dùng biết là cuộn được */
-    flex: 0 0 580px;                /* Cố định chiều rộng banner, không bị bóp nghẹt */
-    scroll-snap-align: start;       /* Điểm dính khi cuộn tới banner */
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    background: #000;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease;
-}
-
-.banner-item:hover {
-    transform: translateY(-4px);    /* Hiệu ứng nhô nhẹ lên khi di chuột */
-}
-
-.banner-item img {
-    width: 100%;
-    height: 260px;
-    object-fit: cover;              /* Giữ đúng tỷ lệ ảnh không bị móp */
-    display: block;
-}
-
-/* Nút "Xem chi tiết" đè lên banner */
-.banner-item .btn-detail {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    background: rgba(255, 255, 255, 0.95);
-    color: #1a1a24;
-    padding: 8px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    transition: background 0.2s;
-}
-
-.banner-item .btn-detail:hover {
-    background: #ffffff;
-    color: var(--primary-color);
-}
-
-/* ------------------------------------------
-   TÙY CHỈNH THANH CUỘN NGANG (SCROLLBAR STYLING)
-   ------------------------------------------ */
-
-/* Tùy chỉnh độ dày thanh cuộn */
-.hero-slider::-webkit-scrollbar {
-    height: 6px;
-}
-
-/* Nền đường rãnh cuộn */
-.hero-slider::-webkit-scrollbar-track {
-    background: #252733;
-    border-radius: 10px;
-}
-
-/* Cục con trượt màu xanh Ticketbox */
-.hero-slider::-webkit-scrollbar-thumb {
-    background: #00b14f;
-    border-radius: 10px;
-}
-
-.hero-slider::-webkit-scrollbar-thumb:hover {
-    background: #009643;
-}
-
-/* ------------------------------------------
-   RESPONSIVE CHO ĐIỆN THOẠI (MOBILE)
-   ------------------------------------------ */
-@media (max-width: 768px) {
-    .banner-item {
-        /* Trên Mobile: Mỗi banner chiếm 85% màn hình để thò ra 1 phần banner tiếp theo */
+    .hero-slider .banner-item {
         flex: 0 0 85%;
     }
-    
-    .banner-item img {
-        height: 180px;             /* Thu nhỏ chiều cao ảnh cho vừa màn hình điện thoại */
+
+    .hero-slider .banner-item img {
+        height: 180px;
     }
-}
-/* ==========================================
-   SỰ KIỆN XU HƯỚNG (TRENDING HORIZONTAL SECTION)
-   ========================================== */
 
-.trending-section {
-    margin: 35px auto;
-}
+    .slider-btn {
+        display: none;
+    }
 
-/* Khung cuộn ngang */
-.trending-scroll {
-    display: flex;
-    gap: 30px;                       /* Khoảng cách giữa các thẻ */
-    overflow-x: auto;                /* Bật cuộn ngang */
-    scroll-snap-type: x mandatory;   /* Tự động hít khung khi vuốt */
-    scroll-behavior: smooth;
-    padding: 15px 10px 20px 25px;    /* Chừa chỗ bên trái cho số 1,2,3 thò ra */
-    -webkit-overflow-scrolling: touch;
-}
-
-/* Tùy chỉnh thanh cuộn ngang */
-.trending-scroll::-webkit-scrollbar {
-    height: 6px;
-}
-.trending-scroll::-webkit-scrollbar-track {
-    background: #252733;
-    border-radius: 10px;
-}
-.trending-scroll::-webkit-scrollbar-thumb {
-    background: #00b14f;
-    border-radius: 10px;
-}
-
-/* Thẻ sự kiện xu hướng */
-.trending-card {
-    position: relative;
-    flex: 0 0 310px;                 /* Kích thước chiều rộng mỗi card */
-    scroll-snap-align: start;
-    margin-left: 15px;               /* Chừa khoảng trống cho số đè lên */
-}
-
-/* Số thứ tự 1, 2, 3, 4 dạng 3D Xanh lá */
-.trending-rank {
-    position: absolute;
-    left: -22px;
-    bottom: -5px;
-    font-size: 85px;
-    font-weight: 900;
-    font-family: 'Impact', 'Montserrat', sans-serif;
-    color: #00b14f;                  /* Màu xanh lá Ticketbox */
-    /* Hiệu ứng viền 3D khối nổi bóng đổ */
-    text-shadow: 
-        2px 2px 0px #094722,
-        -1px -1px 0px #2be072,
-        4px 6px 12px rgba(0, 0, 0, 0.9);
-    z-index: 2;                      /* Đảm bảo số nổi đè lên trên ảnh */
-    line-height: 0.8;
-    pointer-events: none;            /* Không cản trở click vào ảnh */
-    user-select: none;
-}
-
-/* Ảnh poster sự kiện */
-.trending-img-link {
-    display: block;
-    border-radius: 14px;             /* Bo tròn góc ảnh */
-    overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-    z-index: 1;
-}
-
-.trending-img-link:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 177, 79, 0.3);
-}
-
-.trending-img-link img {
-    width: 100%;
-    height: 175px;
-    object-fit: cover;
-    display: block;
-}
-
-/* Responsive cho màn hình điện thoại nhỏ */
-@media (max-width: 768px) {
     .trending-card {
         flex: 0 0 250px;
     }
+
     .trending-img-link img {
         height: 140px;
     }
+
     .trending-rank {
         font-size: 68px;
         left: -18px;
     }
-}
-/* Khung bọc Slider */
-.slider-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
 
-/* Khung cuộn sự kiện */
-.event-slider {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 10px 5px;
-    width: 100%;
-    
-    /* Ẩn thanh cuộn trình duyệt */
-    scrollbar-width: none;            /* Firefox */
-    -ms-overflow-style: none;         /* IE / Edge */
-}
+    .ticket-stub-card {
+        flex-direction: column-reverse;
+    }
 
-/* Ẩn thanh cuộn trên Chrome / Safari / Opera */
-.event-slider::-webkit-scrollbar {
-    display: none;
-}
+    .stub-right {
+        width: 100%;
+        height: 200px;
+    }
 
-/* Định dạng kích thước cố định cho mỗi thẻ sự kiện trong slider */
-.event-slider .event-card {
-    flex: 0 0 270px;                  /* Chiều rộng cố định cho từng thẻ */
-}
-
-/* Nút bấm điều hướng Trái / Phải */
-.slider-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background-color: rgba(35, 37, 48, 0.9);
-    color: #ffffff;
-    border: 1px solid var(--border-color, #34374c);
-    cursor: pointer;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    transition: all 0.25s ease;
-}
-
-.slider-btn:hover {
-    background-color: var(--primary-color, #00b14f);
-    border-color: var(--primary-color, #00b14f);
-    color: #ffffff;
-    scale: 1.08;
-}
-
-.prev-btn {
-    left: -18px;
-}
-
-.next-btn {
-    right: -18px;
-}
-
-@media (max-width: 768px) {
-    .slider-btn {
-        display: none; /* Trên điện thoại ưu tiên vuốt bằng tay */
+    .account-layout {
+        grid-template-columns: 1fr;
     }
 }
+
+/* Đảm bảo Header không cắt đứt menu xổ xuống */
+.main-header {
+    background-color: var(--primary-color);
+    padding: 12px 5%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    overflow: visible !important;
+    /* Giúp menu thả xuống không bị đứt đoạn */
+}
+
+.user-account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.account-btn {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Menu xổ xuống */
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    /* Hiển thị ngay phía dưới nút tài khoản */
+    background: #ffffff !important;
+    color: #333333 !important;
+    width: 210px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    padding: 10px 0;
+    display: none;
+    /* Mặc định ẩn */
+    z-index: 9999 !important;
+    /* Đảm bảo menu nổi lên trên cùng */
+}
+
+/* Class kích hoạt hiển thị khi bấm nút */
+.dropdown-menu.show {
+    display: block !important;
+}
+
 /* ==========================================
-   HERO BANNER SLIDER - NÚT BẤM ĐIỀU HƯỚNG
+   STYLE VÉ CÁ NHÂN (MY TICKETS LIST)
+   ========================================== */
+.tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ticket-item-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ticket-item-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.ticket-item-img {
+    width: 140px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.ticket-item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ticket-item-details {
+    flex: 1;
+}
+
+.ticket-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.ticket-code {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.ticket-event-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #ffffff;
+}
+
+.ticket-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+
+.ticket-meta i {
+    color: var(--primary-color);
+    width: 16px;
+}
+
+/* Badges Nhãn Trạng Thái */
+.badge-status-tag {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-success {
+    background: rgba(0, 177, 79, 0.15);
+    color: #00b14f;
+}
+
+.status-processing {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+}
+
+.status-cancelled {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* ==========================================
+   HEADER ROW CHO MỖI SECTION SỰ KIỆN
+   ========================================== */
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.section-header-row .section-title {
+    margin: 0;
+}
+
+.view-all-link {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.2s ease;
+}
+
+.view-all-link:hover {
+    opacity: 0.8;
+}
+
+/* ==========================================
+   NÚT XEM THÊM SỰ KIỆN SẮP DIỄN RA
+   ========================================== */
+.load-more-wrapper {
+    text-align: center;
+    margin-top: 35px;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.btn-load-more {
+    background-color: #26c973;
+    /* Màu xanh lục đặc trưng */
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 12px 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-load-more:hover {
+    background-color: #20b364;
+    transform: translateY(-2px);
+}
+
+.btn-load-more:active {
+    transform: translateY(0);
+}
+
+/* ==========================================
+   GIAO DIỆN TRANG VÉ CỦA TÔI (MY TICKETS)
    ========================================== */
 
-/* Khung bọc tổng thể Banner */
-.hero-slider-wrapper {
-    position: relative;
-    margin: 20px auto;
-    padding: 0 15px;
-}
-
-/* Khung chứa các banner */
-.hero-slider {
+/* 1. Hàng nút dạng Pill Tabs */
+.ticket-status-tabs {
     display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 5px 0;
-    width: 100%;
-    
-    /* Ẩn thanh cuộn trên mọi trình duyệt */
-    scrollbar-width: none;            /* Firefox */
-    -ms-overflow-style: none;         /* IE / Edge */
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
 }
 
-.hero-slider::-webkit-scrollbar {
-    display: none;                    /* Chrome / Safari / Opera */
+.status-tab-btn {
+    background-color: #242738;
+    color: #a0a3bd;
+    padding: 10px 22px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
 }
 
-/* Kích thước mỗi Banner item */
-.hero-slider .banner-item {
-    flex: 0 0 calc(50% - 10px);       /* Hiển thị vừa vặn 2 banner trên Desktop */
-    border-radius: 12px;
-    overflow: hidden;
+.status-tab-btn:hover {
+    color: #fff;
+    background-color: #2f344a;
+}
+
+.status-tab-btn.active {
+    background-color: #26c973;
+    /* Màu xanh chuẩn Ticketbox */
+    color: #ffffff;
+    border-color: #26c973;
+}
+
+/* 2. Hàng nút dạng Underline Tabs */
+.ticket-timeline-tabs {
+    display: flex;
+    gap: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.timeline-tab-link {
+    color: #a0a3bd;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    padding-bottom: 8px;
     position: relative;
-    background: #000;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease;
+    transition: color 0.2s ease;
 }
 
-.hero-slider .banner-item:hover {
-    transform: translateY(-4px);
+.timeline-tab-link.active {
+    color: #ffffff;
 }
 
-.hero-slider .banner-item img {
+.timeline-tab-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 0;
     width: 100%;
-    height: 260px;
+    height: 3px;
+    background-color: #26c973;
+    border-radius: 2px;
+}
+
+/* 3. Thẻ Vé & Badge Trạng Thái */
+.my-ticket-card {
+    background: var(--card-bg, #1b1e2e);
+    border: 1px solid var(--border-color, #2a2e45);
+    border-radius: 12px;
+    display: flex;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.my-ticket-img {
+    width: 220px;
+    min-width: 220px;
+}
+
+.my-ticket-img img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    display: block;
 }
 
-/* Căn chỉnh vị trí 2 nút bấm riêng cho Banner */
-.hero-slider-wrapper .prev-btn {
-    left: -5px;
+.my-ticket-info {
+    padding: 18px 22px;
+    flex: 1;
 }
 
-.hero-slider-wrapper .next-btn {
-    right: -5px;
+.badge-status {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 700;
 }
 
-/* Responsive trên Điện thoại */
-@media (max-width: 768px) {
-    .hero-slider .banner-item {
-        flex: 0 0 85%;                 /* Màn hình nhỏ hiện 1 banner chính + lấp ló banner sau */
-    }
-    .hero-slider .banner-item img {
-        height: 180px;
-    }
+.status-success {
+    background: rgba(38, 201, 115, 0.15);
+    color: #26c973;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.status-cancelled {
+    background: rgba(255, 77, 79, 0.15);
+    color: #ff4d4f;
+}
+
+/* 4. Nút Hủy Vé */
+.btn-cancel-ticket {
+    background: transparent;
+    color: #ff4d4f;
+    border: 1px solid #ff4d4f;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel-ticket:hover {
+    background: #ff4d4f;
+    color: #ffffff;
 }
