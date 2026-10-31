@@ -4,7 +4,6 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../app/middleware/auth.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../app/helpers/validation.php';
-require_once __DIR__ . '/../../app/helpers/response.php';
 require_once __DIR__ . '/../../app/models/Event.php';
 
 require_method('POST');

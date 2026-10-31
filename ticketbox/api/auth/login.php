@@ -50,10 +50,19 @@ $_SESSION['user'] = [
     'id' => (int) $user['id'],
     'ho_ten' => $user['ho_ten'],
     'email' => $user['email'],
-    'vai_tro' => $user['vai_tro']
+    'vai_tro' => strtolower($user['vai_tro'])
 ];
 
+$_SESSION['user_id'] = (int) $user['id'];
+$_SESSION['user_role'] = strtolower($user['vai_tro']);
+
 respond(200, [
+    'success' => true,
     'message' => 'Đăng nhập thành công.',
-    'user' => $_SESSION['user']
+    'user' => [
+        'id' => $_SESSION['user_id'],
+        'ho_ten' => $_SESSION['user_name'],
+        'email' => $_SESSION['user_email'],
+        'vai_tro' => $_SESSION['user_role']
+    ]
 ]);

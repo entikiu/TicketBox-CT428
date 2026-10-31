@@ -1,3 +1,4 @@
+
 <?php
 declare(strict_types=1);
 
@@ -6,10 +7,10 @@ function read_json_input(): array
     $raw = file_get_contents('php://input');
     $data = json_decode($raw, true);
 
-    if (!is_array9($data) || json_last_error() !== JSON_ERROR_NONE) {
-        api_error(400, [
+    if (!is_array($data) || json_last_error() !== JSON_ERROR_NONE) {
+        api_response(400, [
             'success' => false,
-            'message' => 'JSON khong hợp lệ',
+            'message' => 'JSON không hợp lệ.'
         ]);
     }
 
@@ -36,6 +37,7 @@ function require_method(string $method): void
 {
     if ($_SERVER['REQUEST_METHOD'] !== $method) {
         header('Allow: ' . $method);
+
         api_response(405, [
             'success' => false,
             'message' => 'Phương thức HTTP không được hỗ trợ.'
