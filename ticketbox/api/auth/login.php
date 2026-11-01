@@ -57,3 +57,4 @@ respond(200, [
     'message' => 'Đăng nhập thành công.',
     'user' => $_SESSION['user']
 ]);
+?>
