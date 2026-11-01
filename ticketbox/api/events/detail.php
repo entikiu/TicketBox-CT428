@@ -1,74 +1,32 @@
+
 <?php
 declare(strict_types=1);
 
-header('Content-Type: application/json; charset=utf-8');
-
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../app/helpers/response.php';
+require_once __DIR__ . '/../../app/models/Event.php';
 
-function respond(int $status, array $data): void
-{
-    http_response_code($status);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-// Chỉ chấp nhận GET
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET');
-    respond(405, [
-        'success' => false,
-        'message' => 'Phương thức không hợp lệ.'
-    ]);
+    api_response(405, ['success' => false, 'message' => 'Chỉ hỗ trợ GET.']);
 }
 
-// Kiểm tra ID sự kiện
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+$id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT);
 
 if (!$id || $id < 1) {
-    respond(400, [
-        'success' => false,
-        'message' => 'ID sự kiện không hợp lệ.'
-    ]);
+    api_response(422, ['success' => false, 'message' => 'ID không hợp lệ.']);
 }
 
 try {
-    $sql = "
-        SELECT
-            id,
-            ten_su_kien,
-            mo_ta,
-            dia_diem,
-            thoi_gian,
-            so_luong_toi_da,
-            nguoi_tao
-        FROM sukien
-        WHERE id = :id
-        LIMIT 1
-    ";
+    $event = (new Event($pdo))->find($id);
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(['id' => $id]);
-
-    $event = $stmt->fetch();
-
-    if (!$event) {
-        respond(404, [
-            'success' => false,
-            'message' => 'Không tìm thấy sự kiện.'
-        ]);
+    if (!$event || $event['status'] !== 'published') {
+        api_response(404, ['success' => false, 'message' => 'Không tìm thấy sự kiện.']);
     }
 
-    respond(200, [
-        'success' => true,
-        'message' => 'Lấy chi tiết sự kiện thành công.',
-        'data' => $event
-    ]);
-
+    unset($event['organizer_id']);
+    api_response(200, ['success' => true, 'data' => $event]);
 } catch (PDOException $e) {
-    error_log($e->getMessage());
-
-    respond(500, [
-        'success' => false,
-        'message' => 'Không thể lấy chi tiết sự kiện.'
-    ]);
+    error_log('[TicketBox Event Detail] ' . $e->getMessage());
+    api_response(500, ['success' => false, 'message' => 'Lỗi máy chủ.']);
 }
