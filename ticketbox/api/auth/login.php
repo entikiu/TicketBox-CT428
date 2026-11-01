@@ -65,4 +65,9 @@ respond(200, [
         'email'   => $_SESSION['user']['email'],
         'vai_tro' => $_SESSION['user_role']
     ]
+<<<<<<< HEAD
 ]);
+=======
+]);
+?>
+>>>>>>> 869a4f3e61d911b68f5daef4c4a54ae0900fdc09
