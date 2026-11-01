@@ -59,15 +59,10 @@ $_SESSION['user_role'] = strtolower($user['vai_tro']);
 respond(200, [
     'success' => true,
     'message' => 'Đăng nhập thành công.',
-    'user' => [
+    'user'    => [
         'id'      => $_SESSION['user_id'],
         'ho_ten'  => $_SESSION['user']['ho_ten'],
         'email'   => $_SESSION['user']['email'],
         'vai_tro' => $_SESSION['user_role']
     ]
-<<<<<<< HEAD
 ]);
-=======
-]);
-?>
->>>>>>> 869a4f3e61d911b68f5daef4c4a54ae0900fdc09
