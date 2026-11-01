@@ -131,3 +131,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// ==========================================
+// CHỨC NĂNG BỔ TRỢ PHẦN FOOTER
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Xử lý chuyển đổi Ngôn ngữ (VI / EN)
+    const langBtns = document.querySelectorAll('.lang-btn');
+    
+    langBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Loại bỏ active hiện tại
+            langBtns.forEach(b => b.classList.remove('active'));
+            // Thêm active cho nút vừa bấm
+            this.classList.add('active');
+            
+            const selectedLang = this.getAttribute('data-lang');
+            
+            // Lưu lựa chọn ngôn ngữ vào LocalStorage
+            localStorage.setItem('ticketbox_lang', selectedLang);
+            
+            // Thông báo chuyển đổi ngôn ngữ thành công (Tích hợp thực tế)
+            console.log('Đã chuyển ngôn ngữ sang:', selectedLang.toUpperCase());
+        });
+    });
+
+    // Tự động khôi phục ngôn ngữ đã chọn trước đó
+    const savedLang = localStorage.getItem('ticketbox_lang');
+    if (savedLang) {
+        const activeBtn = document.querySelector(`.lang-btn[data-lang="${savedLang}"]`);
+        if (activeBtn) {
+            langBtns.forEach(b => b.classList.remove('active'));
+            activeBtn.classList.add('active');
+        }
+    }
+});

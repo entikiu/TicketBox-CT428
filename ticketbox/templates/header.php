@@ -11,7 +11,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticketbox - Mua Vé Sự Kiện</title>
-      <link rel="icon" type="image/png" href="../assets/images/logo.png">
+    <link rel="icon" type="image/png" href="../assets/images/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,14 +38,17 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a href="#">Blog</a>
 
                 <?php if (isset($_SESSION['user'])): ?>
-                    <!-- MEUN TÀI KHOẢN KHI ĐÃ ĐĂNG NHẬP -->
+                    <!-- MENU TÀI KHOẢN KHI ĐÃ ĐĂNG NHẬP -->
                     <div class="user-account-dropdown">
-                        <!-- Thêm onclick="toggleAccountMenu(event)" trực tiếp vào nút -->
                         <button type="button" class="account-btn" onclick="toggleAccountMenu(event)">
                             <span class="user-avatar-sm">
-                                <?php echo strtoupper(substr($_SESSION['user']['name'] ?? 'N', 0, 1)); ?>
+                                <?php
+                                // Đã sửa 'name' thành 'ho_ten'
+                                $userName = $_SESSION['user']['ho_ten'] ?? 'N';
+                                echo mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'), 'UTF-8');
+                                ?>
                             </span>
-                            <span><?php echo htmlspecialchars($_SESSION['user']['name'] ?? 'Tài khoản'); ?></span>
+                            <span><?php echo htmlspecialchars($_SESSION['user']['ho_ten'] ?? 'Tài khoản'); ?></span>
                             <i class="fa-solid fa-caret-down"></i>
                         </button>
 
@@ -56,21 +59,24 @@ if (session_status() === PHP_SESSION_NONE) {
                             <a href="my-tickets.php"><i class="fa-solid fa-gem"></i> Thẻ thành viên</a>
                             <a href="my-tickets.php"><i class="fa-regular fa-calendar-check"></i> Sự kiện của tôi</a>
                             <div class="dropdown-divider"></div>
-                            <a href="logout.php" class="logout-link"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a>
+
+                            <!-- NÚT ĐĂNG XUẤT (Tích hợp id="btnLogout" gọi API Logout) -->
+                            <a href="#" id="btnLogout" class="logout-link">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Đoạn JS ngắn xử lý bật/tắt menu trực tiếp -->
+                    <!-- Script toggle menu xổ xuống & Đăng xuất -->
                     <script>
                         function toggleAccountMenu(event) {
-                            event.stopPropagation(); // Tránh sự kiện click bị trôi ra ngoài
+                            event.stopPropagation();
                             const dropdown = document.getElementById('accountDropdown');
                             if (dropdown) {
                                 dropdown.classList.toggle('show');
                             }
                         }
 
-                        // Tự động đóng menu khi bấm ra ngoài khoảng trống bất kỳ trên trang
                         document.addEventListener('click', function() {
                             const dropdown = document.getElementById('accountDropdown');
                             if (dropdown && dropdown.classList.contains('show')) {
@@ -86,7 +92,6 @@ if (session_status() === PHP_SESSION_NONE) {
                 <?php endif; ?>
             </nav>
         </div>
-
     </header>
 
     <!-- Nhúng thanh danh mục -->

@@ -670,34 +670,5 @@ if ($selected_sort === 'price-asc') {
     <?php endif; ?>
 </main>
 
-<!-- SCRIPT XỬ LÝ NÚT XEM THÊM (HIỂN THỊ THÊM 8 EVENT MỖI LẦN BẤM) -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const btnLoadMore = document.getElementById('btnLoadMoreEvents');
-    const loadMoreWrapper = document.getElementById('loadMoreWrapper');
-
-    if (btnLoadMore) {
-        btnLoadMore.addEventListener('click', function() {
-            // 1. Tìm tất cả các sự kiện đang bị ẩn (mang class extra-event-item và style display: none)
-            const hiddenItems = Array.from(document.querySelectorAll('.extra-event-item'))
-                                     .filter(item => item.style.display === 'none');
-            
-            // 2. Lấy ra tối đa 8 sự kiện tiếp theo để hiển thị
-            const itemsToShow = hiddenItems.slice(0, 8);
-            itemsToShow.forEach(item => {
-                item.style.display = 'block';
-            });
-
-            // 3. Tính số lượng còn bị ẩn sau lượt bấm này
-            const remainingHiddenCount = hiddenItems.length - itemsToShow.length;
-
-            // 4. Nếu đã hiển thị hết (không còn sự kiện ẩn), tự động ẩn nút Xem thêm
-            if (remainingHiddenCount <= 0 && loadMoreWrapper) {
-                loadMoreWrapper.style.display = 'none';
-            }
-        });
-    }
-});
-</script>
-
+<script src="../assets/js/events.js"></script>
 <?php include '../templates/footer.php'; ?>

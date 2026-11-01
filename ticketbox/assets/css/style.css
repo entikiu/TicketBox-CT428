@@ -1433,3 +1433,441 @@ a {
     background: #ff4d4f;
     color: #ffffff;
 }
+/* ==========================================
+   GIAO DIỆN FOOTER CHUẨN TICKETBOX
+   ========================================== */
+.site-footer {
+    width: 100%;
+    color: #a0a3bd;
+    font-size: 13px;
+    line-height: 1.6;
+    background-color: #2b2f3e; /* Tông xám nhạt phần trên */
+}
+
+/* 1. Phần Trên Footer */
+.footer-top {
+    padding: 40px 0 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-columns {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1.2fr;
+    gap: 40px;
+    margin-bottom: 35px;
+}
+
+.col-title {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.col-title-sm {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.contact-block {
+    margin-bottom: 18px;
+}
+
+.hotline-number {
+    color: #26c973; /* Xanh lá rực đặc trưng */
+    font-size: 22px;
+    font-weight: 800;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 2px;
+    transition: transform 0.2s;
+}
+
+.hotline-number:hover {
+    transform: scale(1.03);
+}
+
+.working-hours, .email-text, .address-text {
+    margin: 0;
+    font-size: 13px;
+    color: #b3b6cb;
+}
+
+.email-text a {
+    color: #b3b6cb;
+    text-decoration: none;
+}
+
+.email-text a:hover {
+    color: #26c973;
+}
+
+/* Danh sách liên kết */
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 8px;
+}
+
+.footer-links a {
+    color: #a0a3bd;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+}
+
+/* 2. Hàng Giữa: Tải App, Social, Ngôn ngữ */
+.footer-middle {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 30px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.middle-title {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.store-badges {
+    display: flex;
+    gap: 10px;
+}
+
+.store-btn img {
+    height: 38px;
+    border-radius: 5px;
+    transition: opacity 0.2s;
+}
+
+.store-btn:hover img {
+    opacity: 0.85;
+}
+
+/* Icons Mạng Xã Hội */
+.social-lang-col {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.social-icons {
+    display: flex;
+    gap: 10px;
+}
+
+.social-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #3b4054;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+/* ==========================================
+   DINH DANG LOGO MANG XA HOI BANG HINH ANH
+   ========================================== */
+.social-icons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.social-icon {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.social-icon:hover {
+    transform: translateY(-2px);
+    opacity: 0.85;
+}
+
+.social-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 50%; /* Bo tròn nếu logo là dạng hình vuông */
+}
+
+/* Trường hợp dùng 1 file ảnh gộp thong-tin-mxh.png */
+.social-group-img {
+    height: 32px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+}
+
+/* Nút Chuyển Đổi Ngôn Ngữ */
+.lang-flags {
+    display: flex;
+    gap: 8px;
+}
+
+.lang-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    opacity: 0.6;
+    transition: all 0.2s;
+}
+
+.lang-btn.active, .lang-btn:hover {
+    opacity: 1;
+    border-color: #26c973;
+}
+
+.flag-icon {
+    display: inline-block;
+    width: 28px;
+    height: 20px;
+    border-radius: 2px;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Cờ Việt Nam SVG */
+.flag-vi {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600"><rect width="900" height="600" fill="%23da251d"/><polygon points="450,150 488,267 612,267 512,340 550,457 450,384 350,457 388,340 288,267 412,267" fill="%23ffff00"/></svg>');
+}
+
+/* Cờ Anh (UK) SVG */
+.flag-en {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 30"><clipPath id="s"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="t"><path d="M30,15 L60,0 v30 z M30,15 L0,30 v-30 z M30,15 L0,0 h60 z M30,15 L60,30 h-60 z"/></clipPath><g clip-path="url(%23s)"><path d="M0,0 v30 h60 v-30 z" fill="%23012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="%23fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(%23t)" stroke="%23C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="%23fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="%23C8102E" stroke-width="6"/></g></svg>');
+}
+
+/* 3. Phần Dưới Footer (Nền tối) */
+.footer-bottom {
+    background-color: #1a1d26; /* Tông nền đen xám đậm bên dưới */
+    padding: 30px 0;
+}
+
+.footer-bottom-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+}
+
+.ticketbox-logo-footer {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+}
+
+/* Logo Footer bằng hình ảnh */
+.ticketbox-logo-footer {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.ticketbox-logo-footer img {
+    max-height: 38px; /* Tối ưu độ cao logo chuẩn khung footer */
+    width: auto;
+    display: block;
+    object-fit: contain;
+}
+
+.brand-slogan {
+    margin: 8px 0 4px;
+    font-size: 12px;
+    color: #a0a3bd;
+}
+
+.copyright-text {
+    margin: 0;
+    font-size: 12px;
+    color: #72778e;
+}
+
+.company-legal-info {
+    max-width: 480px;
+    font-size: 12px;
+    color: #8c90a6;
+}
+
+.company-legal-info p {
+    margin: 3px 0;
+}
+
+/* ==========================================
+   DINH DANG HUY HIEU BO CONG THUONG & GIAY PHEEP
+   ========================================== */
+.bct-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.bct-badge-item {
+    display: inline-block;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.bct-badge-item:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.bct-badge-img {
+    height: 38px; /* Tối ưu chiều cao huy hiệu vừa vặn khung footer */
+    width: auto;
+    max-width: 160px;
+    display: block;
+    object-fit: contain;
+}
+
+/* Responsive cho màn hình di động */
+@media (max-width: 992px) {
+    .bct-badges {
+        align-items: flex-start;
+        flex-direction: row;
+        margin-top: 15px;
+    }
+}
+/* ==========================================
+   GIAO DIỆN TRÌNH XEM PDF CHUẨN TICKETBOX (100% MATCH)
+   ========================================== */
+.terms-pdf-page {
+    width: 100%;
+    background-color: #f2f4f7; /* Nền xám sáng bao quanh khung PDF chuẩn Ticketbox */
+    padding: 20px 0;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.terms-pdf-container {
+    width: 90%;
+    max-width: 1280px; /* Độ rộng khung vừa vặn chuẩn thiết kế */
+    height: 85vh;
+    min-height: 780px;
+    background-color: #323639; /* Nền tối của PDF Viewer */
+    border-radius: 0; /* Vuông góc chuẩn theo đúng hình ảnh mẫu */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.terms-pdf-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.pdf-fallback-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #a0a3bd;
+    text-align: center;
+    padding: 20px;
+}
+
+.pdf-fallback-box i {
+    font-size: 50px;
+    color: #26c973;
+    margin-bottom: 15px;
+}
+/* ==========================================
+   ĐỊNH DẠNG MÀU SẮC BẢNG TIÊU CHUẨN MẬT KHẨU
+   ========================================== */
+.pwd-requirements-box {
+    margin-top: 10px;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+/* Tiêu đề mặc định khi chưa đạt -> Màu đỏ */
+.pwd-req-title {
+    color: #ff4d4f;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s ease;
+}
+
+.pwd-req-title i {
+    color: #ff4d4f;
+}
+
+/* KHI MẬT KHẨU ĐẠT TIÊU CHUẨN -> ĐỔI CẢ CHỮ VÀ ICON SANG MÀU XANH */
+.pwd-req-title.valid,
+.pwd-req-title.valid i,
+.pwd-requirements-box.all-valid .pwd-req-title,
+.pwd-requirements-box.all-valid .pwd-req-title i {
+    color: #26c973 !important;
+}
+
+.pwd-req-title.valid {
+    color: #26c973 !important; /* Màu xanh khi đạt tất cả tiêu chí */
+}
+
+/* Danh sách các dòng tiêu chí */
+.pwd-req-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pwd-req-list li {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    transition: color 0.2s ease;
+}
+
+/* TRẠNG THÁI CHƯA ĐẠT -> CHỮ VÀ ICON MÀU ĐỎ */
+.pwd-req-list li.invalid {
+    color: #ff4d4f !important;
+}
+
+.pwd-req-list li.invalid .icon-status {
+    color: #ff4d4f !important;
+}
+
+/* TRẠNG THÁI ĐÃ ĐẠT -> CHỮ VÀ ICON MÀU XANH */
+.pwd-req-list li.valid {
+    color: #26c973 !important;
+}
+
+.pwd-req-list li.valid .icon-status {
+    color: #26c973 !important;
+}

@@ -60,9 +60,9 @@ respond(200, [
     'success' => true,
     'message' => 'Đăng nhập thành công.',
     'user' => [
-        'id' => $_SESSION['user_id'],
-        'ho_ten' => $_SESSION['user_name'],
-        'email' => $_SESSION['user_email'],
+        'id'      => $_SESSION['user_id'],
+        'ho_ten'  => $_SESSION['user']['ho_ten'],
+        'email'   => $_SESSION['user']['email'],
         'vai_tro' => $_SESSION['user_role']
     ]
 ]);
