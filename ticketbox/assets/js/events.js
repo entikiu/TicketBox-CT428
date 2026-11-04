@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 document.addEventListener('DOMContentLoaded', function() {
     const btnLoadMore = document.getElementById('btnLoadMoreEvents');
     const loadMoreWrapper = document.getElementById('loadMoreWrapper');
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-=======
+
 // Lấy các phần tử DOM
 const searchInput = document.getElementById('searchInput');
 const filterStatus = document.getElementById('filterStatus');
@@ -83,4 +82,4 @@ filterStatus.addEventListener('change', fetchEvents);
 
 // Gọi lần đầu khi tải trang
 document.addEventListener('DOMContentLoaded', fetchEvents);
->>>>>>> 869a4f3e61d911b68f5daef4c4a54ae0900fdc09
+

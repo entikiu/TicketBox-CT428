@@ -164,4 +164,20 @@ document.addEventListener('DOMContentLoaded', function() {
             activeBtn.classList.add('active');
         }
     }
+});document.addEventListener('DOMContentLoaded', function () {
+    const track = document.getElementById('starsTrack');
+    const prevBtn = document.getElementById('starPrevBtn');
+    const nextBtn = document.getElementById('starNextBtn');
+
+    if (track && prevBtn && nextBtn) {
+        const scrollAmount = 350; // Khoảng cách cuộn mỗi lần bấm
+
+        nextBtn.addEventListener('click', () => {
+            track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+
+        prevBtn.addEventListener('click', () => {
+            track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+    }
 });
