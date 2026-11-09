@@ -3,45 +3,100 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1. Nếu chưa đăng nhập -> Ép buộc chuyển hướng sang trang đăng nhập
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/database.php';
+
+// 1. Kiểm tra đăng nhập
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit;
 }
 
-// 2. Xử lý lưu vé khi gửi Form Mua Vé
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $event_title = $_POST['event_title'] ?? 'Sự kiện Ticketbox';
-    $category = $_POST['category'] ?? 'Vé Tiêu Chuẩn';
-    $price = $_POST['price'] ?? '500.000 đ';
-    $location = $_POST['location'] ?? 'Hà Nội';
-    $date = $_POST['date'] ?? '15.11.2026';
-    $image = $_POST['image'] ?? '../assets/images/events/banner-tinh-ha.jpg';
+    $user_id     = (int)($_SESSION['user']['id'] ?? 0);
+    $su_kien_id  = (int)($_POST['su_kien_id'] ?? 0);
+    $event_title = trim($_POST['event_title'] ?? 'Sự kiện Ticketbox');
+    $category    = trim($_POST['category'] ?? 'Vé Tiêu Chuẩn');
+    $price       = trim($_POST['price'] ?? '500.000 đ');
+    $location    = trim($_POST['location'] ?? 'Hà Nội');
+    $raw_date    = trim($_POST['date'] ?? '2026-12-31');
+    $image       = trim($_POST['image'] ?? '../assets/images/events/banner-tinh-ha.jpg');
 
-    // Khởi tạo danh sách vé cá nhân trong Session nếu chưa có
+    // Chuyển ngày nhập sang định dạng DATETIME chuẩn MySQL (YYYY-MM-DD HH:MM:SS)
+    $clean_date = str_replace(['.', '/'], '-', $raw_date);
+    // Xử lý chuỗi ngày tiếng Việt nếu có (vd: "29 Tháng 10, 2026")
+    if (preg_match('/(\d{1,2})\s+Tháng\s+(\d{1,2}),?\s+(\d{4})/ui', $raw_date, $matches)) {
+        $clean_date = $matches[3] . '-' . $matches[2] . '-' . $matches[1];
+    }
+    
+    $timestamp      = strtotime($clean_date);
+    $formatted_date = ($timestamp && $timestamp > 0) ? date('Y-m-d H:i:s', $timestamp) : date('Y-m-d 19:30:00');
+
+    $ticket_code  = 'TKB-' . date('Y') . '-' . rand(10000, 99999);
+    $inserted_id  = null;
+
+    if (isset($pdo) && $user_id > 0) {
+        try {
+            // 1. Kiểm tra sự kiện đã có trong CSDL chưa
+            if ($su_kien_id === 0) {
+                $stmtSearch = $pdo->prepare("SELECT id FROM sukien WHERE ten_su_kien = :title LIMIT 1");
+                $stmtSearch->execute(['title' => $event_title]);
+                $foundEvent = $stmtSearch->fetch(PDO::FETCH_ASSOC);
+
+                if ($foundEvent) {
+                    $su_kien_id = (int)$foundEvent['id'];
+                } else {
+                    $stmtInsEvt = $pdo->prepare("INSERT INTO sukien (ten_su_kien, dia_diem, thoi_gian, so_luong_toi_da, nguoi_tao, hinh_anh) 
+                                                 VALUES (:title, :location, :thoi_gian, 1000, :nguoi_tao, :image)");
+                    $stmtInsEvt->execute([
+                        'title'       => $event_title,
+                        'location'    => $location,
+                        'thoi_gian'   => $formatted_date,
+                        'nguoi_tao'   => $user_id,
+                        'image'       => $image
+                    ]);
+                    $su_kien_id = (int)$pdo->lastInsertId();
+                }
+            }
+
+            // 2. Chèn vé đã mua vào bảng `ve`
+            $stmtVe = $pdo->prepare("INSERT INTO ve (ma_ve, su_kien_id, nguoi_dung_id, loai_ve, gia_ve, trang_thai, ngay_dat) 
+                                     VALUES (:ma_ve, :su_kien_id, :nguoi_dung_id, :loai_ve, :gia_ve, 'thanh-cong', NOW())");
+            $stmtVe->execute([
+                'ma_ve'         => $ticket_code,
+                'su_kien_id'    => $su_kien_id,
+                'nguoi_dung_id' => $user_id,
+                'loai_ve'       => $category,
+                'gia_ve'        => $price
+            ]);
+            $inserted_id = (int)$pdo->lastInsertId();
+
+        } catch (PDOException $e) {
+            // Log lỗi kết nối/SQL nếu cần
+        }
+    }
+
+    // 3. Đồng bộ vé vào SESSION làm dữ liệu dự phòng hiển thị tức thì
     if (!isset($_SESSION['my_tickets'])) {
         $_SESSION['my_tickets'] = [];
     }
-
-    // Tạo mã vé động ngẫu nhiên
-    $ticket_id = 'TKB-' . date('Y') . '-' . rand(1000, 9999);
-
-    // Thêm vé mới mua vào đầu danh sách Session
+    
     array_unshift($_SESSION['my_tickets'], [
-        'id' => $ticket_id,
-        'event_title' => $event_title,
+        'ticket_db_id'    => $inserted_id,
+        'id'              => $ticket_code,
+        'ticket_code'     => $ticket_code,
+        'event_title'     => $event_title,
         'ticket_category' => $category,
-        'price' => $price,
-        'date' => $date,
-        'location' => $location,
-        'status' => 'success',   // Trạng thái mua thành công
-        'time' => 'upcoming',     // Sắp diễn ra
-        'image' => $image,
-        'created_at' => date('H:i d/m/Y')
+        'price'           => $price,
+        'date'            => $raw_date,
+        'location'        => $location,
+        'status'          => 'thanh-cong',
+        'timeline'        => 'sap-dien-ra',
+        'image'           => $image
     ]);
 
-    // Mua thành công -> Tự động chuyển thẳng tới trang "Vé của tôi"
-    header('Location: my-tickets.php');
+    // Tự động chuyển thẳng tới trang "Vé của tôi"
+    header('Location: my-tickets.php?tab=tickets');
     exit;
 }
 

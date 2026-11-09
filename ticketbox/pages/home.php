@@ -101,49 +101,63 @@ include '../templates/header.php';
 
         <div class="stars-track" id="starsTrack">
             <?php
-            // 1. Lấy danh sách Ban tổ chức từ bảng `nguoidung`
-            $stmtOrg = $pdo->prepare("SELECT id, ho_ten FROM nguoidung WHERE vai_tro IN ('Organizer', 'Admin') ORDER BY id DESC");
-            $stmtOrg->execute();
-            $organizers = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
+            $organizers = [];
 
-            // 2. Danh sách ảnh demo fallback cho các Ban tổ chức/Nghệ sĩ
+            // 1. Lấy danh sách Ban tổ chức từ CSDL (Nếu đã kết nối PDO)
+            if (isset($pdo)) {
+                try {
+                    $stmtOrg = $pdo->prepare("SELECT id, ho_ten, avatar FROM nguoidung WHERE vai_tro IN ('Organizer', 'Admin', 'NhaToChuc') ORDER BY id DESC LIMIT 15");
+                    $stmtOrg->execute();
+                    $organizers = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
+                } catch (PDOException $e) {
+                    $organizers = [];
+                }
+            }
+
+            // 2. Danh sách ảnh mẫu chuẩn cho các BTC/Nghệ sĩ
             $sampleAvatars = [
-                'YeahH1 Family' => '../assets/images/stars/yeah1.jpg',
-                'Vie Concert'   => '../assets/images/stars/vieconcert.jpg',
-                'SS Label'      => '../assets/images/stars/sslabel.jpg',
-                'GAI MEET'      => '../assets/images/stars/gaimeet.jpg',
-                'Quốc Thiên'    => '../assets/images/stars/quocthien.jpg',
-                'Kịch IDECAF'   => '../assets/images/stars/idecaf.jpg',
+                'Yeah1 Family' => '../assets/images/stars/yeah1.jpg',
+                'Vie Concert'  => '../assets/images/stars/vieconcert.jpg',
+                'SS Label'     => '../assets/images/stars/sslabel.jpg',
+                'GAI MEET'     => '../assets/images/stars/gaimeet.jpg',
+                'Quốc Thiên'   => '../assets/images/stars/quocthien.jpg',
+                'Kịch IDECAF'  => '../assets/images/stars/idecaf.jpg',
             ];
 
-            // Nếu trong CSDL chưa có dữ liệu Organizer, hiển thị danh sách mặc định để test giao diện
+            // Nếu CSDL rỗng -> Dùng dữ liệu giả lập chuẩn khớp với trang organizer.php
             if (empty($organizers)) {
                 $organizers = [
-                    ['id' => 1, 'ho_ten' => 'YeahH1 Family'],
-                    ['id' => 2, 'ho_ten' => 'Vie Concert'],
-                    ['id' => 3, 'ho_ten' => 'SS Label'],
-                    ['id' => 4, 'ho_ten' => 'GAI MEET'],
-                    ['id' => 5, 'ho_ten' => 'Quốc Thiên'],
-                    ['id' => 6, 'ho_ten' => 'Đình Mạnh...'],
-                    ['id' => 7, 'ho_ten' => 'Phùng Khá...'],
-                    ['id' => 8, 'ho_ten' => 'Những Thà...'],
-                    ['id' => 9, 'ho_ten' => 'Jun Phạm'],
-                    ['id' => 10, 'ho_ten' => 'Subicha'],
-                    ['id' => 11, 'ho_ten' => 'Hoàng Dũng'],
-                    ['id' => 12, 'ho_ten' => 'Cheng'],
-                    ['id' => 13, 'ho_ten' => 'Mr. Siro']
+                    ['id' => 'yeah1-family', 'ho_ten' => 'Yeah1 Family'],
+                    ['id' => 'vie-concert',  'ho_ten' => 'Vie Concert'],
+                    ['id' => 'ss-label',     'ho_ten' => 'SS Label'],
+                    ['id' => 'gai-meet',     'ho_ten' => 'GAI MEET'],
+                    ['id' => 'quoc-thien',   'ho_ten' => 'Quốc Thiên'],
+                    ['id' => 'idecaf',       'ho_ten' => 'Kịch IDECAF'],
+                    ['id' => 7,              'ho_ten' => 'Phùng Khá...'],
+                    ['id' => 8,              'ho_ten' => 'Những Thà...'],
+                    ['id' => 9,              'ho_ten' => 'Jun Phạm'],
+                    ['id' => 10,             'ho_ten' => 'Suboi'],
+                    ['id' => 11,             'ho_ten' => 'Hoàng Dũng'],
+                    ['id' => 12,             'ho_ten' => 'Cheng'],
+                    ['id' => 13,             'ho_ten' => 'Mr. Siro']
                 ];
             }
 
             foreach ($organizers as $org):
-                $avatarSrc = $sampleAvatars[$org['ho_ten']] ?? '../assets/images/default-avatar.png';
+                $name = $org['ho_ten'];
+                // Ưu tiên: Ảnh từ DB -> Ảnh mẫu -> Ảnh avatar mặc định
+                $avatarSrc = !empty($org['avatar']) ? $org['avatar'] : ($sampleAvatars[$name] ?? '../assets/images/default-avatar.png');
+                $orgId = $org['id'];
             ?>
-                <a href="organizer.php?id=<?php echo $org['id']; ?>" class="star-card">
+                <a href="organizer.php?id=<?php echo urlencode((string)$orgId); ?>" class="star-card">
                     <div class="avatar-ring">
-                        <img src="<?php echo $avatarSrc; ?>" alt="<?php echo htmlspecialchars($org['ho_ten']); ?>" class="star-avatar" onerror="this.src='https://via.placeholder.com/90/000/26c973?text=<?php echo urlencode(substr($org['ho_ten'], 0, 2)); ?>'">
+                        <img src="<?php echo htmlspecialchars($avatarSrc); ?>" 
+                             alt="<?php echo htmlspecialchars($name); ?>" 
+                             class="star-avatar" 
+                             onerror="this.src='https://via.placeholder.com/90/000/26c973?text=<?php echo urlencode(mb_substr($name, 0, 2, 'UTF-8')); ?>'">
                     </div>
                     <div class="star-info">
-                        <span class="star-name"><?php echo htmlspecialchars($org['ho_ten']); ?></span>
+                        <span class="star-name"><?php echo htmlspecialchars($name); ?></span>
                         <i class="fa-solid fa-circle-check verified-badge"></i>
                     </div>
                 </a>
@@ -156,6 +170,26 @@ include '../templates/header.php';
     </div>
 </section>
 
+<!-- Script xử lý sự kiện cuộn Slider cho nút Mũi tên -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const track = document.getElementById('starsTrack');
+    const prevBtn = document.getElementById('starPrevBtn');
+    const nextBtn = document.getElementById('starNextBtn');
+
+    if (track && prevBtn && nextBtn) {
+        const scrollStep = 320; // Khoảng cách cuộn mỗi lần nhấp
+
+        prevBtn.addEventListener('click', function() {
+            track.scrollBy({ left: -scrollStep, behavior: 'smooth' });
+        });
+
+        nextBtn.addEventListener('click', function() {
+            track.scrollBy({ left: scrollStep, behavior: 'smooth' });
+        });
+    }
+});
+</script>
 
 <!-- OFFICIAL MEMBERSHIP (THẺ THÀNH VIÊN) -->
 <section class="container" style="margin-top: 40px;">

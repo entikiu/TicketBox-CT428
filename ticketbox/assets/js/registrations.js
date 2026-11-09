@@ -1,19 +1,15 @@
-
 async function registerEvent(eventId) {
     try {
-        const response = await fetch(
-            "/ticketbox/api/registrations/register.php",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "same-origin",
-                body: JSON.stringify({
-                    event_id: eventId
-                })
-            }
-        );
+        const response = await fetch("../api/registrations/register.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                event_id: eventId
+            })
+        });
 
         const result = await response.json();
 
@@ -22,15 +18,11 @@ async function registerEvent(eventId) {
             return;
         }
 
-        alert("Đăng ký vé thành công!");
-
-        console.log("Mã vé:", result.data.ticket_code);
-
-        // Cập nhật giao diện sau khi đăng ký
+        alert("Đăng ký vé thành công! Mã vé: " + (result.data ? result.data.ticket_code : ""));
         window.location.reload();
 
     } catch (error) {
         console.error(error);
-        alert("Không thể kết nối đến máy chủ.");
+        alert("Không thể kết nối đến máy chủ API.");
     }
 }

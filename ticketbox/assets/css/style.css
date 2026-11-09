@@ -156,9 +156,10 @@ a {
     width: 200px;
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    padding: 10px 0;
+    padding: 0 0 8px 0; /* Sửa: Đã xóa padding-top để nút dán chặt lề trên */
     display: none;
     z-index: 2000;
+    overflow: hidden;   /* Thêm: Giúp nút ôm sát theo 2 góc bo tròn trên cùng */
 }
 
 .dropdown-menu.show {
@@ -174,25 +175,98 @@ a {
     font-size: 13.5px;
     font-weight: 500;
     transition: background 0.2s;
+    text-decoration: none;
 }
 
 .dropdown-menu a:hover {
     background: #f4f5f7;
 }
 
-.btn-create-event {
-    background: #000;
-    color: #fff !important;
-    border-radius: 20px;
-    margin: 5px 12px 10px;
-    justify-content: center;
-    font-weight: bold !important;
+/* Khung chứa Menu Dropdown */
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background: #ffffff;
+    color: #222222;
+    width: 220px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 12px;
+    display: none;
+    z-index: 2000;
 }
 
-.dropdown-divider {
-    height: 1px;
-    background: #eee;
-    margin: 6px 0;
+.dropdown-menu.show {
+    display: block;
+}
+
+/* 1. Nút "Tạo sự kiện" dạng viên thuốc (Pill shape) màu đen */
+.dropdown-menu .btn-create-event {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-radius: 40px !important; /* Bo góc tròn dạng viên thuốc */
+    padding: 10px 16px !important;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px !important;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.dropdown-menu .btn-create-event:hover {
+    background-color: #222222 !important;
+    color: #ffffff !important;
+}
+
+.dropdown-menu .btn-create-event i {
+    color: #ffffff !important;
+    font-size: 13px;
+}
+
+/* 2. Các mục Menu tiêu chuẩn */
+.dropdown-menu a:not(.btn-create-event) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    color: #222222;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-menu a:not(.btn-create-event) i {
+    font-size: 18px;
+    width: 22px;
+    text-align: center;
+    color: #333333;
+}
+
+/* Hover cho mục thường */
+.dropdown-menu a:not(.btn-create-event):not(.logout-link):hover {
+    background-color: #f5f5f7;
+    color: #000000;
+}
+
+/* 3. Mục Đăng xuất màu đỏ nổi bật */
+.dropdown-menu .logout-link {
+    color: #ff4d4f !important;
+    margin-top: 4px;
+}
+
+.dropdown-menu .logout-link i {
+    color: #ff4d4f !important;
+}
+
+.dropdown-menu .logout-link:hover {
+    background-color: rgba(255, 77, 79, 0.08) !important;
 }
 
 .logout-link {
@@ -1899,4 +1973,283 @@ a {
     font-size: 50px;
     color: #26c973;
     margin-bottom: 15px;
+}
+/* =========================================================
+   ORGANIZER PROFILE PAGE STYLES (DỰNG THEO TICKETBOX)
+   ========================================================= */
+
+.organizer-profile-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+/* 1. Sidebar Card (Bên trái) */
+.organizer-sidebar-card {
+    background: #1e1e24;
+    border: 1px solid #2d2d35;
+    border-radius: 16px;
+    padding: 35px 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.organizer-avatar-wrap {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 18px;
+    background: #000;
+    border: 2px solid #3a3a45;
+}
+
+.organizer-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.organizer-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0614;
+    color: #e11b74;
+    font-weight: 800;
+    font-size: 20px;
+}
+
+.organizer-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.verified-badge {
+    color: #26c973;
+    font-size: 16px;
+}
+
+.organizer-tag-pill {
+    background: rgba(255, 255, 255, 0.08);
+    color: #a0a3bd;
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+}
+
+.btn-follow-organizer {
+    width: 100%;
+    padding: 12px;
+    background: #26c973;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease;
+}
+
+.btn-follow-organizer:hover {
+    background: #20ad63;
+}
+
+/* 2. Timeline Section (Bên phải) */
+.organizer-timeline-section {
+    background: #1e1e24;
+    border: 1px solid #2d2d35;
+    border-radius: 16px;
+    padding: 30px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.timeline-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.view-all-link {
+    color: #26c973;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+/* Timeline vertical line */
+.timeline-container {
+    position: relative;
+    padding-left: 25px;
+}
+
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: #2d2d35;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 35px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -25px;
+    top: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #26c973;
+    box-shadow: 0 0 0 4px #1e1e24;
+}
+
+.timeline-date {
+    color: #a0a3bd;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Event Card inside Timeline */
+.timeline-event-card {
+    background: #272730;
+    border: 1px solid #3a3a45;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.event-thumb {
+    position: relative;
+    width: 180px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.event-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.badge-event-status.ended {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #e67e22;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.event-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.event-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.event-price-text {
+    color: #26c973;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.event-action-wrap {
+    margin-top: 6px;
+}
+
+.btn-event-action {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-buy-now {
+    background: #26c973;
+    color: #ffffff;
+}
+
+.btn-buy-now:hover {
+    background: #20ad63;
+}
+
+.btn-sold-out {
+    background: #3a3a45;
+    color: #a0a3bd;
+    cursor: not-allowed;
+}
+
+.btn-view-detail {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .organizer-profile-layout {
+        grid-template-columns: 1fr;
+    }
+    .timeline-event-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .event-thumb {
+        width: 100%;
+        height: 160px;
+    }
 }
