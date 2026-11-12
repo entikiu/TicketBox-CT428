@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test API Cập Nhật Sự Kiện</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        input {
+            padding: 8px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Test API: api/events/update.php</h2>
+
+    <div class="form-group">
+        <label for="eventId">Nhập ID Sự kiện cần cập nhật:</label><br>
+        <input type="number" id="eventId" value="1" min="1">
+    </div>
+
+    <button onclick="sendUpdateEventRequest()">Gửi Request PUT Cập Nhật</button>
+
+    <h3>Kết quả trả về từ Server:</h3>
+    <pre id="result">Chưa có kết quả...</pre>
+
+    <script>
+        async function sendUpdateEventRequest() {
+            const resultBox = document.getElementById('result');
+            const eventId = document.getElementById('eventId').value;
+
+            if (!eventId) {
+                resultBox.innerText = "Vui lòng nhập ID sự kiện!";
+                return;
+            }
+
+            // Dữ liệu JSON (Payload) để test
+            const updateData = {
+                title: "Hội thảo Công nghệ Web 2026 - Đã cập nhật",
+                description: "Nội dung mô tả đã được sửa đổi qua API Update.",
+                location: "Hội trường B, Trường CNTT-TT",
+                time: "2026-12-15 08:30:00",
+                capacity: 200,
+                status: "published"
+            };
+
+            resultBox.innerText = "Đang gửi request...";
+
+            try {
+                // Đường dẫn nối thêm ?id= để $_GET['id'] nhận được dữ liệu
+                const response = await fetch(`./api/events/update.php?id=${eventId}`, {
+                    method: 'PUT', // Phương thức PUT theo quy chuẩn RESTful
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                // Kiểm tra xem phản hồi có phải là HTML báo lỗi PHP (như lỗi Strict Types) hay không
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const result = await response.json();
+                    resultBox.innerText = `HTTP Status: ${response.status}\n\n` + JSON.stringify(result, null, 2);
+                } else {
+                    const textResult = await response.text();
+                    resultBox.innerText = `Lỗi hệ thống (HTTP ${response.status}): Phản hồi không phải JSON.\n\nChi tiết:\n${textResult}`;
+                }
+
+            } catch (error) {
+                resultBox.innerText = 'Lỗi kết nối hoặc sự cố mạng: ' + error;
+            }
+        }
+    </script>
+
+</body>
+
+</html>

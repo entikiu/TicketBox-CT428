@@ -1,4 +1,3 @@
-
 <?php
 
 header('Content-Type: application/json; charset=utf-8');
@@ -50,11 +49,11 @@ $_SESSION['user'] = [
     'id' => (int) $user['id'],
     'ho_ten' => $user['ho_ten'],
     'email' => $user['email'],
-    'vai_tro' => strtolower($user['vai_tro'])
+    'vai_tro' => $user['vai_tro']
 ];
 
 $_SESSION['user_id'] = (int) $user['id'];
-$_SESSION['user_role'] = strtolower($user['vai_tro']);
+$_SESSION['user_role'] = $user['vai_tro'];
 
 respond(200, [
     'success' => true,

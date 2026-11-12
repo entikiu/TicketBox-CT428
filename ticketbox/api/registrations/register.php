@@ -1,4 +1,3 @@
-
 <?php
 
 header('Content-Type: application/json; charset=utf-8');
@@ -22,8 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ]);
 }
 
-// Kiểm tra đăng nhập
-$userId = (int) ($_SESSION['user']['id'] ?? 0);
+// Kiểm tra đăng nhập (Giả định session của bạn lưu 'id' trong mảng 'user' hoặc 'user_id')
+// Nếu dùng biến giống các file trước: $_SESSION['user_id']
+$userId = (int) ($_SESSION['user']['id'] ?? $_SESSION['user_id'] ?? 0);
 
 if ($userId <= 0) {
     respond(401, [
@@ -54,10 +54,10 @@ if (!$eventId || $eventId <= 0) {
 try {
     $pdo->beginTransaction();
 
-    // Khóa sự kiện để chống đăng ký vượt sức chứa
+    // Khóa sự kiện để chống đăng ký vượt sức chứa (Sửa bảng thành `sukien`)
     $stmt = $pdo->prepare(
         "SELECT id, thoi_gian, so_luong_toi_da
-         FROM SuKien
+         FROM sukien
          WHERE id = ?
          FOR UPDATE"
     );
@@ -80,19 +80,20 @@ try {
         ]);
     }
 
-    // Kiểm tra đăng ký hiện tại
+    // Kiểm tra đăng ký hiện tại (Sửa bảng thành `ve`)
     $stmt = $pdo->prepare(
         "SELECT id, trang_thai
-         FROM DangKySuKien
+         FROM ve
          WHERE nguoi_dung_id = ?
            AND su_kien_id = ?"
     );
     $stmt->execute([$userId, $eventId]);
     $registration = $stmt->fetch();
 
+    // Sửa trạng thái thành 'da-huy'
     if (
         $registration &&
-        $registration['trang_thai'] !== 'Cancelled'
+        $registration['trang_thai'] !== 'da-huy'
     ) {
         $pdo->rollBack();
         respond(409, [
@@ -101,12 +102,12 @@ try {
         ]);
     }
 
-    // Đếm số vé đang chiếm chỗ
+    // Đếm số vé đang chiếm chỗ (Sửa trạng thái)
     $stmt = $pdo->prepare(
         "SELECT COUNT(*)
-         FROM DangKySuKien
+         FROM ve
          WHERE su_kien_id = ?
-           AND trang_thai IN ('Registered', 'CheckedIn')"
+           AND trang_thai IN ('thanh-cong', 'da-checkin')"
     );
     $stmt->execute([$eventId]);
     $registeredCount = (int) $stmt->fetchColumn();
@@ -120,15 +121,19 @@ try {
     }
 
     // Mã vé ngẫu nhiên
-    $ticketCode = 'TB-' . strtoupper(bin2hex(random_bytes(12)));
+    $ticketCode = 'TKB-' . date('Y') . '-' . rand(10000, 99999); // VD: TKB-2026-12345 giống ảnh CSDL của bạn
+
+    // Cần có tham số mặc định cho loại vé và giá vé (bạn có thể lấy từ bảng sukien nếu có)
+    $loaiVe = 'VÉ TIÊU CHUẨN';
+    $giaVe = '0 đ'; 
 
     if ($registration) {
-        // Đăng ký lại vé đã hủy
+        // Đăng ký lại vé đã hủy (Sửa cột ngay_dang_ky thành ngay_dat, trạng thái 'thanh-cong')
         $stmt = $pdo->prepare(
-            "UPDATE DangKySuKien
-             SET trang_thai = 'Registered',
+            "UPDATE ve
+             SET trang_thai = 'thanh-cong',
                  ma_ve = ?,
-                 ngay_dang_ky = CURRENT_TIMESTAMP
+                 ngay_dat = CURRENT_TIMESTAMP
              WHERE id = ?"
         );
         $stmt->execute([
@@ -136,16 +141,18 @@ try {
             $registration['id']
         ]);
     } else {
-        // Đăng ký mới
+        // Đăng ký mới (Thêm cột loai_ve, gia_ve, sửa ngay_dang_ky thành ngay_dat, trạng thái 'thanh-cong')
         $stmt = $pdo->prepare(
-            "INSERT INTO DangKySuKien
-             (nguoi_dung_id, su_kien_id, ma_ve, trang_thai)
-             VALUES (?, ?, ?, 'Registered')"
+            "INSERT INTO ve
+             (nguoi_dung_id, su_kien_id, ma_ve, loai_ve, gia_ve, trang_thai, ngay_dat)
+             VALUES (?, ?, ?, ?, ?, 'thanh-cong', CURRENT_TIMESTAMP)"
         );
         $stmt->execute([
             $userId,
             $eventId,
-            $ticketCode
+            $ticketCode,
+            $loaiVe,
+            $giaVe
         ]);
     }
 
@@ -157,7 +164,7 @@ try {
         'data' => [
             'event_id' => $eventId,
             'ticket_code' => $ticketCode,
-            'status' => 'Registered'
+            'status' => 'thanh-cong'
         ]
     ]);
 

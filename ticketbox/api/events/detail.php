@@ -1,4 +1,3 @@
-
 <?php
 declare(strict_types=1);
 
@@ -20,11 +19,13 @@ if (!$id || $id < 1) {
 try {
     $event = (new Event($pdo))->find($id);
 
-    if (!$event || $event['status'] !== 'published') {
+    if (!$event) {
         api_response(404, ['success' => false, 'message' => 'Không tìm thấy sự kiện.']);
     }
 
-    unset($event['organizer_id']);
+    // Ẩn ID người tạo theo đúng tên cột trong DB
+    unset($event['nguoi_tao'], $event['organizer_id']);
+
     api_response(200, ['success' => true, 'data' => $event]);
 } catch (PDOException $e) {
     error_log('[TicketBox Event Detail] ' . $e->getMessage());
