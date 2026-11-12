@@ -156,10 +156,12 @@ a {
     width: 200px;
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    padding: 0 0 8px 0; /* Sửa: Đã xóa padding-top để nút dán chặt lề trên */
+    padding: 0 0 8px 0;
+    /* Sửa: Đã xóa padding-top để nút dán chặt lề trên */
     display: none;
     z-index: 2000;
-    overflow: hidden;   /* Thêm: Giúp nút ôm sát theo 2 góc bo tròn trên cùng */
+    overflow: hidden;
+    /* Thêm: Giúp nút ôm sát theo 2 góc bo tròn trên cùng */
 }
 
 .dropdown-menu.show {
@@ -205,7 +207,8 @@ a {
 .dropdown-menu .btn-create-event {
     background-color: #000000 !important;
     color: #ffffff !important;
-    border-radius: 40px !important; /* Bo góc tròn dạng viên thuốc */
+    border-radius: 40px !important;
+    /* Bo góc tròn dạng viên thuốc */
     padding: 10px 16px !important;
     font-weight: 700;
     font-size: 14px;
@@ -624,16 +627,19 @@ a {
     overflow-x: auto;
     scroll-behavior: smooth;
     padding: 10px 5px;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
 .stars-track::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none;
+    /* Chrome, Safari, Opera */
 }
 
 /* Star Card Component */
 .star-card {
-    flex: 0 0 calc(100% / 8 - 14px); /* Hiển thị ~8 item trên màn hình lớn */
+    flex: 0 0 calc(100% / 8 - 14px);
+    /* Hiển thị ~8 item trên màn hình lớn */
     min-width: 130px;
     background: #1e1e1e;
     border: 1px solid rgba(38, 201, 115, 0.3);
@@ -719,52 +725,218 @@ a {
     border-color: #26c973;
 }
 
-.prev-btn { left: -15px; }
-.next-btn { right: -15px; }
+.prev-btn {
+    left: -15px;
+}
 
-.membership-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+.next-btn {
+    right: -15px;
+}
+
+.membership-section {
+    box-sizing: border-box;
+}
+
+.membership-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 16px;
+}
+
+.membership-header i {
+    color: #f7b500;
+    font-size: 18px;
+}
+
+.membership-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.membership-slider-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.membership-track {
+    display: flex;
+    align-items: stretch;
     gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
 }
 
+.membership-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* Chia chính xác 3 cột trong khung 1200px */
 .membership-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    padding: 25px;
-    border-radius: 12px;
-    text-align: center;
+    flex: 0 0 calc((100% - 40px) / 3);
+    min-width: 0;
+    background: #1c1d22 !important;
+    border: 1px solid rgba(38, 201, 115, 0.28) !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: left !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    transition: border-color 0.22s ease;
 }
 
-.membership-card.highlight {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(0, 177, 79, 0.2);
+.membership-card:hover {
+    border-color: #26c973 !important;
+}
+
+/* Khung ảnh khóa tỷ lệ 16:9 đồng nhất cho mọi thẻ */
+.membership-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    flex-shrink: 0;
+    background: #111215;
+    border-bottom: 1px solid rgba(38, 201, 115, 0.25);
+    overflow: hidden;
+    display: block;
+}
+
+.membership-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Phần thông tin chữ & nút bên dưới */
+.membership-body {
+    flex: 1;
+    padding: 14px 16px 16px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    text-align: left !important;
+}
+
+.membership-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #26c973 !important;
+    text-decoration: none;
+    line-height: 1.3;
+    margin: 0 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.membership-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2px 0 8px !important;
 }
 
 .membership-price {
-    color: var(--primary-color);
-    font-size: 18px;
-    font-weight: bold;
-    margin: 12px 0 18px;
+    color: #f7b500 !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
 }
 
-.btn-join {
-    background: var(--primary-color);
-    color: #fff;
-    border: none;
-    padding: 8px 24px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
+.membership-duration {
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
 }
 
-.badge-status {
+.btn-mem-join {
     display: inline-block;
-    background: #4b5563;
-    color: #d1d5db;
-    padding: 5px 15px;
-    border-radius: 15px;
-    font-size: 12px;
+    align-self: flex-start;
+    background: #f7b500 !important;
+    color: #111111 !important;
+    border: none;
+    padding: 7px 14px !important;
+    border-radius: 4px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-mem-join:hover {
+    background: #ffca28 !important;
+}
+
+.btn-mem-disabled {
+    display: inline-block;
+    align-self: flex-start;
+    background: #38393e !important;
+    color: #7c7e87 !important;
+    padding: 7px 14px !important;
+    border-radius: 4px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1.2;
+    text-decoration: none;
+}
+
+/* Nút điều hướng trái / phải tự căn giữa theo chiều cao ảnh */
+.mem-nav-btn {
+    position: absolute;
+    top: 105px;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 40px;
+    background: rgba(15, 16, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: background 0.2s ease;
+}
+
+.mem-nav-btn:hover {
+    background: #26c973;
+    border-color: #26c973;
+}
+
+.mem-nav-prev {
+    left: 0;
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    display: none;
+}
+
+.mem-nav-next {
+    right: 0;
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+}
+
+@media (max-width: 992px) {
+    .membership-card {
+        flex: 0 0 calc((100% - 20px) / 2);
+    }
+}
+
+@media (max-width: 600px) {
+    .membership-card {
+        flex: 0 0 85%;
+    }
 }
 
 /* ==========================================
@@ -1608,6 +1780,7 @@ a {
     background: #ff4d4f;
     color: #ffffff;
 }
+
 /* ==========================================
    GIAO DIỆN FOOTER CHUẨN TICKETBOX
    ========================================== */
@@ -1616,7 +1789,8 @@ a {
     color: #a0a3bd;
     font-size: 13px;
     line-height: 1.6;
-    background-color: #2b2f3e; /* Tông xám nhạt phần trên */
+    background-color: #2b2f3e;
+    /* Tông xám nhạt phần trên */
 }
 
 /* 1. Phần Trên Footer */
@@ -1652,7 +1826,8 @@ a {
 }
 
 .hotline-number {
-    color: #26c973; /* Xanh lá rực đặc trưng */
+    color: #26c973;
+    /* Xanh lá rực đặc trưng */
     font-size: 22px;
     font-weight: 800;
     text-decoration: none;
@@ -1665,7 +1840,9 @@ a {
     transform: scale(1.03);
 }
 
-.working-hours, .email-text, .address-text {
+.working-hours,
+.email-text,
+.address-text {
     margin: 0;
     font-size: 13px;
     color: #b3b6cb;
@@ -1758,6 +1935,7 @@ a {
     font-size: 14px;
     transition: background-color 0.2s, transform 0.2s;
 }
+
 /* ==========================================
    DINH DANG LOGO MANG XA HOI BANG HINH ANH
    ========================================== */
@@ -1784,7 +1962,8 @@ a {
     height: 100%;
     object-fit: contain;
     display: block;
-    border-radius: 50%; /* Bo tròn nếu logo là dạng hình vuông */
+    border-radius: 50%;
+    /* Bo tròn nếu logo là dạng hình vuông */
 }
 
 /* Trường hợp dùng 1 file ảnh gộp thong-tin-mxh.png */
@@ -1811,7 +1990,8 @@ a {
     transition: all 0.2s;
 }
 
-.lang-btn.active, .lang-btn:hover {
+.lang-btn.active,
+.lang-btn:hover {
     opacity: 1;
     border-color: #26c973;
 }
@@ -1837,7 +2017,8 @@ a {
 
 /* 3. Phần Dưới Footer (Nền tối) */
 .footer-bottom {
-    background-color: #1a1d26; /* Tông nền đen xám đậm bên dưới */
+    background-color: #1a1d26;
+    /* Tông nền đen xám đậm bên dưới */
     padding: 30px 0;
 }
 
@@ -1863,7 +2044,8 @@ a {
 }
 
 .ticketbox-logo-footer img {
-    max-height: 38px; /* Tối ưu độ cao logo chuẩn khung footer */
+    max-height: 38px;
+    /* Tối ưu độ cao logo chuẩn khung footer */
     width: auto;
     display: block;
     object-fit: contain;
@@ -1912,7 +2094,8 @@ a {
 }
 
 .bct-badge-img {
-    height: 38px; /* Tối ưu chiều cao huy hiệu vừa vặn khung footer */
+    height: 38px;
+    /* Tối ưu chiều cao huy hiệu vừa vặn khung footer */
     width: auto;
     max-width: 160px;
     display: block;
@@ -1927,12 +2110,14 @@ a {
         margin-top: 15px;
     }
 }
+
 /* ==========================================
    GIAO DIỆN TRÌNH XEM PDF CHUẨN TICKETBOX (100% MATCH)
    ========================================== */
 .terms-pdf-page {
     width: 100%;
-    background-color: #f2f4f7; /* Nền xám sáng bao quanh khung PDF chuẩn Ticketbox */
+    background-color: #f2f4f7;
+    /* Nền xám sáng bao quanh khung PDF chuẩn Ticketbox */
     padding: 20px 0;
     box-sizing: border-box;
     display: flex;
@@ -1942,11 +2127,14 @@ a {
 
 .terms-pdf-container {
     width: 90%;
-    max-width: 1280px; /* Độ rộng khung vừa vặn chuẩn thiết kế */
+    max-width: 1280px;
+    /* Độ rộng khung vừa vặn chuẩn thiết kế */
     height: 85vh;
     min-height: 780px;
-    background-color: #323639; /* Nền tối của PDF Viewer */
-    border-radius: 0; /* Vuông góc chuẩn theo đúng hình ảnh mẫu */
+    background-color: #323639;
+    /* Nền tối của PDF Viewer */
+    border-radius: 0;
+    /* Vuông góc chuẩn theo đúng hình ảnh mẫu */
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
@@ -1974,6 +2162,7 @@ a {
     color: #26c973;
     margin-bottom: 15px;
 }
+
 /* =========================================================
    ORGANIZER PROFILE PAGE STYLES (DỰNG THEO TICKETBOX)
    ========================================================= */
@@ -2244,12 +2433,15 @@ a {
     .organizer-profile-layout {
         grid-template-columns: 1fr;
     }
+
     .timeline-event-card {
         flex-direction: column;
         align-items: flex-start;
     }
+
     .event-thumb {
         width: 100%;
         height: 160px;
     }
 }
+

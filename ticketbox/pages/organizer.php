@@ -1,82 +1,125 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
-// 1. Lấy ID/Slug nhà tổ chức từ URL (Mặc định: 'yeah1-family')
-$organizer_id = $_GET['id'] ?? 'yeah1-family';
+// Nhận linh hoạt cả tham số ?slug= hoặc ?id= từ URL
+$slug = trim($_GET['slug'] ?? $_GET['id'] ?? 'yeah1-family');
 
-// 2. Cơ sở dữ liệu mẫu các Ban tổ chức
-$organizers_db = [
+// 1. Cấu hình thông tin Ban tổ chức & từ khóa đối chiếu với bảng `sukien`
+$organizersConfig = [
     'yeah1-family' => [
-        'name' => 'Yeah1 Family',
-        'type' => 'Ban tổ chức',
+        'name'     => 'YeaH1 Family',
+        'avatar'   => '../assets/images/stars/yeah1.jpg',
+        'type'     => 'Ban tổ chức',
         'verified' => true,
-        'avatar' => '../assets/images/organizers/yeah1.jpg',
-        'events' => [
-            [
-                'date_str' => '12 Tháng 12, 2026',
-                'title' => 'HIỆN DIỆN - UPRIZE CONCERT',
-                'price' => 'Từ 800.000 đ',
-                'image' => '../assets/images/events/hien-dien.jpg',
-                'status' => 'available',
-                'status_label' => 'Mua vé ngay',
-                'link' => 'event-detail.php?id=101'
-            ],
-            [
-                'date_str' => '05 Tháng 12, 2026',
-                'title' => '[CONCERT] ANH TRAI VƯỢT NGÀN CHÔNG GAI 2026 - DAY 3 & DAY 4',
-                'price' => 'Từ 1.000.000 đ',
-                'image' => '../assets/images/events/atvncg-day34.jpg',
-                'status' => 'sold_out',
-                'status_label' => 'Hết vé',
-                'link' => 'event-detail.php?id=102'
-            ],
-            [
-                'date_str' => '18 Tháng 10, 2026',
-                'title' => '[CONCERT] ANH TRAI VƯỢT NGÀN CHÔNG GAI 2026 - DAY 1 & DAY 2',
-                'price' => 'Từ 800.000 đ',
-                'image' => '../assets/images/events/atvncg-day12.jpg',
-                'status' => 'ended',
-                'status_label' => 'Đã diễn ra',
-                'link' => 'event-detail.php?id=103'
-            ]
-        ]
+        'keywords' => ['YeaH1', 'YEAH1']
     ],
     'vie-concert' => [
-        'name' => 'Vie Concert',
-        'type' => 'Ban tổ chức',
+        'name'     => 'Vie Concert',
+        'avatar'   => '../assets/images/stars/vieconcert.jpg',
+        'type'     => 'Ban tổ chức',
         'verified' => true,
-        'avatar' => '../assets/images/organizers/vie-concert.jpg',
-        'events' => []
+        'keywords' => ['Vie']
     ],
     'ss-label' => [
-        'name' => 'SS Label',
-        'type' => 'Ban tổ chức',
+        'name'     => 'SS Label',
+        'avatar'   => '../assets/images/stars/sslabel.jpg',
+        'type'     => 'Ban tổ chức',
         'verified' => true,
-        'avatar' => '../assets/images/organizers/ss-label.jpg',
-        'events' => []
+        'keywords' => ['SS Label', '1PRODUCTION']
     ],
     'gai-meet' => [
-        'name' => 'GAI MEET',
-        'type' => 'Ban tổ chức',
+        'name'     => 'GAI MEET',
+        'avatar'   => '../assets/images/stars/gaimeet.jpg',
+        'type'     => 'Ban tổ chức',
         'verified' => true,
-        'avatar' => '../assets/images/organizers/gai-meet.jpg',
-        'events' => []
+        'keywords' => ['GAI MEET']
     ],
     'quoc-thien' => [
-        'name' => 'Quốc Thiên',
-        'type' => 'Nghệ sĩ',
+        'name'     => 'Quốc Thiên',
+        'avatar'   => '../assets/images/stars/quocthien.jpg',
+        'type'     => 'Nghệ sĩ',
         'verified' => true,
-        'avatar' => '../assets/images/organizers/quoc-thien.jpg',
-        'events' => []
+        'keywords' => ['Quốc Thiên', 'SKYNOTE']
+    ],
+    'kich-idecaf' => [
+        'name'     => 'Kịch IDECAF',
+        'avatar'   => '../assets/images/stars/idecaf.jpg',
+        'type'     => 'Ban tổ chức',
+        'verified' => true,
+        'keywords' => ['IDECAF']
     ]
 ];
 
-$current_org = $organizers_db[$organizer_id] ?? $organizers_db['yeah1-family'];
+// Lấy thông tin Ban tổ chức hiện tại
+$orgInfo = $organizersConfig[$slug] ?? [
+    'name'     => ucwords(str_replace('-', ' ', $slug)),
+    'avatar'   => '../assets/images/stars/' . $slug . '.jpg',
+    'type'     => 'Ban tổ chức',
+    'verified' => true,
+    'keywords' => [str_replace('-', ' ', $slug)]
+];
+
+// 2. Truy vấn toàn bộ sự kiện của Ban tổ chức (Tách riêng từng tham số PDO)
+$conditions = [];
+$params = [];
+foreach ($orgInfo['keywords'] as $idx => $kw) {
+    $keyBtc   = 'kw_btc_' . $idx;
+    $keyTitle = 'kw_title_' . $idx;
+
+    $conditions[] = "(ten_ban_to_chuc LIKE :$keyBtc OR ten_su_kien LIKE :$keyTitle)";
+    $params[$keyBtc]   = '%' . $kw . '%';
+    $params[$keyTitle] = '%' . $kw . '%';
+}
+
+$whereSql = implode(' OR ', $conditions);
+$stmtEvents = $pdo->prepare("SELECT * FROM sukien WHERE $whereSql ORDER BY thoi_gian DESC");
+$stmtEvents->execute($params);
+$dbRows = $stmtEvents->fetchAll(PDO::FETCH_ASSOC);
+
+// Chuẩn bị truy vấn kiểm tra trạng thái hết vé từ bảng `loaive`
+$stmtCheckSoldOut = $pdo->prepare("
+    SELECT COUNT(*) AS total_cats, SUM(da_het_ve) AS soldout_cats 
+    FROM loaive 
+    WHERE su_kien_id = :id
+");
+
+// 3. Ánh xạ dữ liệu từ CSDL sang cấu trúc mảng giao diện
+$mappedEvents = [];
+foreach ($dbRows as $row) {
+    $timeSec = strtotime($row['thoi_gian']);
+    $isEnded = $timeSec < time();
+
+    $status = 'available';
+    if ($isEnded) {
+        $status = 'ended';
+    } else {
+        $stmtCheckSoldOut->execute(['id' => $row['id']]);
+        $ticketStat = $stmtCheckSoldOut->fetch(PDO::FETCH_ASSOC);
+        if ($ticketStat && (int)$ticketStat['total_cats'] > 0 && (int)$ticketStat['total_cats'] === (int)$ticketStat['soldout_cats']) {
+            $status = 'sold_out';
+        }
+    }
+
+    $mappedEvents[] = [
+        'id'       => (int)$row['id'],
+        'title'    => $row['ten_su_kien'],
+        'date_str' => date('d \T\h\á\n\g m, Y', $timeSec),
+        'image'    => $row['hinh_anh'] ?: '../assets/images/default-event.jpg',
+        'price'    => 'Từ ' . number_format((int)$row['gia_thap_nhat'], 0, ',', '.') . ' đ',
+        'status'   => $status,
+        'link'     => 'event-detail.php?id=' . (int)$row['id']
+    ];
+}
+
+// 4. Khởi tạo biến `$current_org` cho HTML
+$current_org = [
+    'name'     => $orgInfo['name'],
+    'avatar'   => $orgInfo['avatar'],
+    'type'     => $orgInfo['type'],
+    'verified' => $orgInfo['verified'],
+    'events'   => $mappedEvents
+];
 
 include '../templates/header.php';
 ?>
@@ -88,11 +131,11 @@ include '../templates/header.php';
         <!-- CỘT TRÁI: THÔNG TIN BAN TỔ CHỨC -->
         <aside class="organizer-sidebar-card">
             <div class="organizer-avatar-wrap">
-                <?php if (file_exists($current_org['avatar'])): ?>
+                <?php if (file_exists(__DIR__ . '/' . $current_org['avatar'])): ?>
                     <img src="<?php echo htmlspecialchars($current_org['avatar']); ?>" alt="<?php echo htmlspecialchars($current_org['name']); ?>">
                 <?php else: ?>
                     <div class="organizer-avatar-fallback">
-                        <span><?php echo htmlspecialchars(substr($current_org['name'], 0, 5)); ?></span>
+                        <span><?php echo htmlspecialchars(mb_substr($current_org['name'], 0, 5, 'UTF-8')); ?></span>
                     </div>
                 <?php endif; ?>
             </div>
