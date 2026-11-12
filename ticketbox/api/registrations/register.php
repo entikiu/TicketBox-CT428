@@ -174,15 +174,4 @@ try {
     ]);
 }
 
-$stmtIns = $pdo->prepare("INSERT INTO nguoidung (ho_ten, email, mat_khau, vai_tro) VALUES (:name, :email, :pass, 'Attendee')");
-$stmtIns->execute([
-    'name'  => $fullname,
-    'email' => $email,
-    'pass'  => password_hash($password, PASSWORD_DEFAULT)
-]);
 
-$stmtCheck = $pdo->prepare("SELECT id FROM nguoidung WHERE email = :email LIMIT 1");
-$stmtCheck->execute(['email' => $email]);
-if ($stmtCheck->rowCount() > 0) {
-    $errors['email'] = 'Email này đã được sử dụng trên hệ thống.';
-}
