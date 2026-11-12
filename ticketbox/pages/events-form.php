@@ -129,8 +129,7 @@ include '../templates/header.php';
             <div>
                 <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;">Mô tả chi tiết sự kiện</label>
                 <textarea name="mo_ta" rows="5" placeholder="Nhập thông tin mô tả chi tiết sự kiện..." style="width: 100%; padding: 12px 15px; background: #272730; border: 1px solid #3a3a45; border-radius: 8px; color: #fff; outline: none; resize: vertical;"><?php echo htmlspecialchars($_POST['mo_ta'] ?? ''); ?></textarea>
-            </div>
-
+            </div> 
             <!-- Nút bấm tác vụ -->
             <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 10px;">
                 <a href="events.php" style="padding: 12px 24px; background: #272730; color: #a0a3bd; text-decoration: none; border-radius: 8px; font-weight: 600;">Hủy</a>

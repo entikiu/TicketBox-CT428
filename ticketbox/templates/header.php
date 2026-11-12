@@ -3,6 +3,33 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Tự động kết nối DB để đồng bộ dữ liệu toàn cục trên mọi trang
+require_once __DIR__ . '/../config/database.php';
+
+// 1. ĐỒNG BỘ DỮ LIỆU TỪ CSDL NGAY TRÊN HEADER ĐỂ TRÁNH LỖI SESSION
+if (isset($_SESSION['user']) && isset($_SESSION['user']['id']) && isset($pdo)) {
+    try {
+        $sync_id = (int)$_SESSION['user']['id'];
+        $stmtSync = $pdo->prepare("SELECT ho_ten, avatar FROM nguoidung WHERE id = :id LIMIT 1");
+        $stmtSync->execute(['id' => $sync_id]);
+        $dbUserSync = $stmtSync->fetch(PDO::FETCH_ASSOC);
+        
+        if ($dbUserSync) {
+            $_SESSION['user']['ho_ten'] = $dbUserSync['ho_ten'];
+            $_SESSION['user']['name']   = $dbUserSync['ho_ten'];
+            $_SESSION['user']['avatar'] = $dbUserSync['avatar'] ?? '';
+        }
+    } catch (PDOException $e) {
+        // Bỏ qua lỗi nếu CSDL gián đoạn
+    }
+}
+
+$is_logged_in = isset($_SESSION['user']);
+$user_data    = $_SESSION['user'] ?? [];
+$header_name  = $user_data['ho_ten'] ?? $user_data['name'] ?? 'Tài khoản';
+$header_avt   = $user_data['avatar'] ?? '';
+$first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -21,7 +48,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <header class="main-header">
         <div class="header-container">
-            <!-- Logo Text (Click chuyển về trang chủ) -->
+            <!-- Logo Text -->
             <a href="home.php" class="logo-text" title="Về trang chủ Ticketbox">ticketbox</a>
 
             <!-- Thanh tìm kiếm -->
@@ -37,45 +64,32 @@ if (session_status() === PHP_SESSION_NONE) {
                 <a href="events.php">Bán lại vé</a>
                 <a href="#">Blog</a>
 
-                <?php if (isset($_SESSION['user'])): ?>
+                <?php if ($is_logged_in): ?>
 
                     <!-- MENU TÀI KHOẢN KHI ĐÃ ĐĂNG NHẬP -->
                     <div class="user-account-dropdown">
                         <button type="button" class="account-btn" onclick="toggleAccountMenu(event)">
-                            <!-- ĐÃ SỬA: Đồng bộ Avatar hiển thị trực tiếp ngay khi đăng nhập -->
+                            <!-- KHUNG AVATAR ĐÃ ĐƯỢC ÉP LẤY ẢNH MỚI NHẤT -->
                             <span class="user-avatar-sm" style="display: flex; align-items: center; justify-content: center; overflow: hidden; background: #26c973; color: #fff; width: 32px; height: 32px; border-radius: 50%;">
-                                <?php
-                                $userName      = $_SESSION['user']['ho_ten'] ?? $_SESSION['user']['name'] ?? 'Tài khoản';
-                                $header_avatar = $_SESSION['user']['avatar'] ?? '';
-
-                                // Xử lý đường dẫn tệp ảnh tuyệt đối / tương đối chính xác trên mọi trang
-                                $resolved_path = '';
-                                if (!empty($header_avatar)) {
-                                    if (file_exists($header_avatar)) {
-                                        $resolved_path = $header_avatar;
-                                    } elseif (file_exists(__DIR__ . '/' . $header_avatar)) {
-                                        $resolved_path = __DIR__ . '/' . $header_avatar;
-                                    } elseif (file_exists(__DIR__ . '/../' . ltrim($header_avatar, '../'))) {
-                                        $resolved_path = __DIR__ . '/../' . ltrim($header_avatar, '../');
-                                    }
-                                }
-
-                                if (!empty($resolved_path) && !is_dir($resolved_path)) {
-                                    // Thêm tham số ?v=time() để chống cache trình duyệt
-                                    $display_src = (strpos($header_avatar, '../') === 0) ? $header_avatar : '../' . ltrim($header_avatar, './');
-                                    echo '<img src="' . htmlspecialchars($display_src) . '?v=' . time() . '" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">';
-                                } else {
-                                    echo mb_strtoupper(mb_substr($userName, 0, 1, 'UTF-8'), 'UTF-8');
-                                }
-                                ?>
+                                <?php if (!empty($header_avt)): ?>
+                                    <!-- Thêm ?v=time() để chống trình duyệt lưu Cache ảnh cũ -->
+                                    <img src="<?php echo htmlspecialchars($header_avt); ?>?v=<?php echo time(); ?>" 
+                                         alt="Avatar" 
+                                         style="width: 100%; height: 100%; object-fit: cover;" 
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <span style="display:none; font-weight: bold;"><?php echo $first_char; ?></span>
+                                <?php else: ?>
+                                    <span style="font-weight: bold;"><?php echo $first_char; ?></span>
+                                <?php endif; ?>
                             </span>
-                            <span><?php echo htmlspecialchars($userName); ?></span>
+                            
+                            <span><?php echo htmlspecialchars($header_name); ?></span>
                             <i class="fa-solid fa-caret-down"></i>
                         </button>
 
                         <!-- Menu xổ xuống -->
                         <div class="dropdown-menu" id="accountDropdown">
-                            <a href="events-form.php" class="btn-create-event">
+                            <a href="create-event.php" class="btn-create-event">
                                 <i class="fa-solid fa-plus"></i> Tạo sự kiện
                             </a>
 
@@ -125,7 +139,6 @@ if (session_status() === PHP_SESSION_NONE) {
                             }
                         });
 
-                        // Xử lý sự kiện nút đăng xuất
                         document.addEventListener('DOMContentLoaded', function() {
                             const btnLogout = document.getElementById('btnLogout');
                             if (btnLogout) {
