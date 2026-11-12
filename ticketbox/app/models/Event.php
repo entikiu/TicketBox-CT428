@@ -13,7 +13,18 @@ class Event
     public function find(int $id): array|false
     {
         $stmt = $this->pdo->prepare(
-            'SELECT * FROM events WHERE id = :id LIMIT 1'
+            'SELECT id,
+                    ten_su_kien, ten_su_kien AS title,
+                    mo_ta, mo_ta AS description,
+                    dia_diem, dia_diem AS location,
+                    thoi_gian, thoi_gian AS start_at,
+                    so_luong_toi_da, so_luong_toi_da AS capacity,
+                    nguoi_tao,
+                    ngay_tao,
+                    hinh_anh
+             FROM sukien
+             WHERE id = :id
+             LIMIT 1'
         );
         $stmt->execute(['id' => $id]);
 
@@ -21,64 +32,30 @@ class Event
     }
 
     /**
-     * Lấy danh sách sự kiện đã xuất bản (published)
+     * Tìm kiếm sự kiện theo từ khóa (Tên sự kiện hoặc Địa điểm)
      */
-    public function listPublished(): array
+    public function searchEvents(string $keyword = ''): array
     {
-        $stmt = $this->pdo->query(
-            "SELECT id, title, description, location, start_at,
-                    end_at, price, capacity
-             FROM events
-             WHERE status = 'published'
-             ORDER BY start_at ASC"
-        );
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Tìm kiếm sự kiện + tính số lượt vé đã đăng ký (Tích hợp với API list & events.js)
-     */
-    public function searchEvents(string $keyword = '', string $status = ''): array
-    {
-        $sql = "SELECT 
-                    e.id,
-                    e.id AS ID,
-                    e.title,
-                    e.title AS TenSuKien,
-                    e.description,
-                    e.description AS MoTa,
-                    e.location,
-                    e.location AS DiaDiem,
-                    e.start_at,
-                    e.start_at AS ThoiGian,
-                    e.end_at,
-                    e.price,
-                    e.price AS GiaVe,
-                    e.capacity,
-                    e.capacity AS SoLuongToiDa,
-                    e.status,
-                    e.status AS TrangThai,
-                    COUNT(CASE WHEN r.status IN ('registered', 'checked_in', 'Registered', 'CheckedIn') THEN 1 END) AS SoNguoiDaDangKy
-                FROM events e
-                LEFT JOIN registrations r ON e.id = r.event_id
+        $sql = "SELECT id,
+                       ten_su_kien, ten_su_kien AS title,
+                       mo_ta, mo_ta AS description,
+                       dia_diem, dia_diem AS location,
+                       thoi_gian, thoi_gian AS start_at,
+                       so_luong_toi_da, so_luong_toi_da AS capacity,
+                       ngay_tao,
+                       hinh_anh
+                FROM sukien
                 WHERE 1=1";
 
         $params = [];
 
         if ($keyword !== '') {
-            $sql .= " AND (e.title LIKE :keyword OR e.location LIKE :keyword)";
-            $params['keyword'] = '%' . $keyword . '%';
+            $sql .= " AND (ten_su_kien LIKE :kw_title OR dia_diem LIKE :kw_location)";
+            $params['kw_title']    = '%' . $keyword . '%';
+            $params['kw_location'] = '%' . $keyword . '%';
         }
 
-        if ($status !== '') {
-            $sql .= " AND e.status = :status";
-            $params['status'] = $status;
-        } else {
-            $sql .= " AND e.status = 'published'";
-        }
-
-        $sql .= " GROUP BY e.id ORDER BY e.start_at ASC";
+        $sql .= " ORDER BY thoi_gian ASC";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -87,75 +64,67 @@ class Event
     }
 
     /**
-     * Thêm sự kiện mới
+     * Thêm sự kiện mới (CRUD Admin)
      */
     public function create(array $data, int $organizerId): int
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO events
-             (title, description, location, start_at, end_at,
-              price, capacity, organizer_id, status)
+            'INSERT INTO sukien
+             (ten_su_kien, mo_ta, dia_diem, thoi_gian, so_luong_toi_da, nguoi_tao, ngay_tao, hinh_anh)
              VALUES
-             (:title, :description, :location, :start_at, :end_at,
-              :price, :capacity, :organizer_id, :status)'
+             (:ten_su_kien, :mo_ta, :dia_diem, :thoi_gian, :so_luong_toi_da, :nguoi_tao, NOW(), :hinh_anh)'
         );
 
         $stmt->execute([
-            'title'        => $data['title'],
-            'description'  => $data['description'],
-            'location'     => $data['location'],
-            'start_at'     => $data['start_at'],
-            'end_at'       => $data['end_at'],
-            'price'        => $data['price'],
-            'capacity'     => $data['capacity'],
-            'organizer_id' => $organizerId,
-            'status'       => $data['status'] ?? 'draft'
+            'ten_su_kien'     => $data['ten_su_kien'] ?? $data['title'],
+            'mo_ta'           => $data['mo_ta'] ?? $data['description'] ?? null,
+            'dia_diem'        => $data['dia_diem'] ?? $data['location'],
+            'thoi_gian'       => $data['thoi_gian'] ?? $data['start_at'],
+            'so_luong_toi_da' => $data['so_luong_toi_da'] ?? $data['capacity'],
+            'nguoi_tao'       => $organizerId,
+            'hinh_anh'        => $data['hinh_anh'] ?? null,
         ]);
 
         return (int)$this->pdo->lastInsertId();
     }
 
     /**
-     * Cập nhật thông tin sự kiện
+     * Cập nhật thông tin sự kiện (CRUD Admin)
      */
     public function update(int $id, array $data): bool
     {
         $stmt = $this->pdo->prepare(
-            'UPDATE events SET
-                title = :title,
-                description = :description,
-                location = :location,
-                start_at = :start_at,
-                end_at = :end_at,
-                price = :price,
-                capacity = :capacity,
-                status = :status
+            'UPDATE sukien SET
+                ten_su_kien = :ten_su_kien,
+                mo_ta = :mo_ta,
+                dia_diem = :dia_diem,
+                thoi_gian = :thoi_gian,
+                so_luong_toi_da = :so_luong_toi_da,
+                hinh_anh = :hinh_anh
              WHERE id = :id'
         );
 
         $stmt->execute([
-            'title'       => $data['title'],
-            'description' => $data['description'],
-            'location'    => $data['location'],
-            'start_at'    => $data['start_at'],
-            'end_at'      => $data['end_at'],
-            'price'       => $data['price'],
-            'capacity'    => $data['capacity'],
-            'status'      => $data['status'],
-            'id'          => $id
+            'ten_su_kien'     => $data['ten_su_kien'] ?? $data['title'],
+            'mo_ta'           => $data['mo_ta'] ?? $data['description'] ?? null,
+            'dia_diem'        => $data['dia_diem'] ?? $data['location'],
+            'thoi_gian'       => $data['thoi_gian'] ?? $data['start_at'],
+            'so_luong_toi_da' => $data['so_luong_toi_da'] ?? $data['capacity'],
+            'hinh_anh'        => $data['hinh_anh'] ?? null,
+            'id'              => $id,
         ]);
 
         return $stmt->rowCount() > 0;
     }
 
     /**
-     * Xóa sự kiện theo ID
+     * Xóa sự kiện theo ID (CRUD Admin)
      */
-    public function delete(int $id): void
+    public function delete(int $id): bool
     {
-        $stmt = $this->pdo->prepare(
-            'DELETE FROM events WHERE id = :id'
-        );
+        $stmt = $this->pdo->prepare('DELETE FROM sukien WHERE id = :id');
         $stmt->execute(['id' => $id]);
+
+        return $stmt->rowCount() > 0;
     }
 }

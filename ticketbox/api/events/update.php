@@ -1,4 +1,3 @@
-
 <?php
 declare(strict_types=1);
 
@@ -16,9 +15,10 @@ if (!$id || $id < 1) {
 }
 
 $data = read_json_input();
+// Giả định Frontend gửi lên các trường này
 require_fields($data, [
     'title', 'description', 'location',
-    'start_at', 'end_at', 'price', 'capacity', 'status'
+    'time', 'capacity' // Thay start_at, end_at bằng time (thoi_gian)
 ]);
 
 $eventModel = new Event($pdo);
@@ -28,9 +28,11 @@ if (!$event) {
     api_response(404, ['success' => false, 'message' => 'Không tìm thấy sự kiện.']);
 }
 
+// SỬA: Đổi 'user_role' thành 'role' và 'organizer_id' thành 'nguoi_tao'
+$userRole = $_SESSION['role'] ?? $_SESSION['user_role'] ?? '';
 if (
-    $_SESSION['user_role'] !== 'admin' &&
-    (int)$event['organizer_id'] !== (int)$_SESSION['user_id']
+    $userRole !== 'admin' &&
+    (int)$event['nguoi_tao'] !== (int)$_SESSION['user_id']
 ) {
     api_response(403, ['success' => false, 'message' => 'Không có quyền sửa sự kiện này.']);
 }
@@ -38,34 +40,38 @@ if (
 $title = trim((string)$data['title']);
 $description = trim((string)$data['description']);
 $location = trim((string)$data['location']);
-$start = strtotime((string)$data['start_at']);
-$end = strtotime((string)$data['end_at']);
-$price = filter_var($data['price'], FILTER_VALIDATE_FLOAT);
+$time = strtotime((string)$data['time']); // Lấy thoi_gian thay vì start_at/end_at
 $capacity = filter_var($data['capacity'], FILTER_VALIDATE_INT);
-$status = $data['status'];
+// Giá vé có thể nằm ở bảng khác hoặc không có trong bảng sukien, tùy bạn cấu hình
 
 if (
     $title === '' || strlen($title) > 200 ||
     $description === '' || strlen($description) > 10000 ||
     $location === '' || strlen($location) > 255 ||
-    !$start || !$end || $end <= $start ||
-    $price === false || $price < 0 || $price > 99999999.99 ||
-    $capacity === false || $capacity < 1 ||
-    !in_array($status, ['draft', 'published', 'cancelled'], true)
+    !$time ||
+    $capacity === false || $capacity < 1
 ) {
     api_response(422, ['success' => false, 'message' => 'Dữ liệu không hợp lệ.']);
 }
 
-$data['title'] = $title;
-$data['description'] = $description;
-$data['location'] = $location;
-$data['start_at'] = date('Y-m-d H:i:s', $start);
-$data['end_at'] = date('Y-m-d H:i:s', $end);
-$data['price'] = $price;
-$data['capacity'] = $capacity;
+// SỬA: Map dữ liệu chuẩn bị Update sang đúng tên cột trong CSDL tiếng Việt
+$updateData = [
+    'ten_su_kien' => $title,
+    'mo_ta' => $description,
+    'dia_diem' => $location,
+    'thoi_gian' => date('Y-m-d H:i:s', $time),
+    'so_luong_toi_da' => $capacity
+];
+
+// Nếu có trạng thái thì map thêm
+if (isset($data['status'])) {
+    // Nhớ kiểm tra giá trị status sao cho khớp với ENUM trong DB của bạn
+    $updateData['trang_thai'] = $data['status']; 
+}
 
 try {
-    $eventModel->update($id, $data);
+    // Truyền mảng updateData (đã map tên cột tiếng Việt) vào model
+    $eventModel->update($id, $updateData);
 
     api_response(200, [
         'success' => true,
