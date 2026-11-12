@@ -477,17 +477,52 @@ include '../templates/header.php';
                     </script>
                     <?php break; ?>
 
-                // ==================== 3. THẺ THÀNH VIÊN ====================
-                <?php case 'membership': ?>
+      // ==================== 3. THẺ THÀNH VIÊN ====================
+                <?php case 'membership': 
+                    $mem_status = $_GET['mem_status'] ?? 'dang-hoat-dong';
+                    $stmtUserMem = $pdo->prepare("
+                        SELECT u.*, t.ten_the, t.nghe_si, t.gia, t.thoi_han_thang, t.hinh_anh
+                        FROM the_thanh_vien_nguoidung u
+                        JOIN the_thanh_vien t ON u.the_id = t.id
+                        WHERE u.nguoi_dung_id = :uid AND u.trang_thai = :st
+                        ORDER BY u.ngay_kich_hoat DESC
+                    ");
+                    $stmtUserMem->execute(['uid' => $user_id, 'st' => $mem_status]);
+                    $my_memberships = $stmtUserMem->fetchAll(PDO::FETCH_ASSOC);
+                ?>
                     <h2 style="font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 20px;">Thẻ thành viên</h2>
-                    <div style="display: flex; gap: 30px; border-bottom: 1px solid #2d2d35; margin-bottom: 40px; padding-bottom: 10px;">
-                        <a href="#" style="color: #26c973; font-weight: 600; text-decoration: none; border-bottom: 2px solid #26c973; padding-bottom: 10px;">Đang hoạt động</a>
-                        <a href="#" style="color: #a0a3bd; text-decoration: none; padding-bottom: 10px;">Đã hết hạn</a>
-                        <a href="#" style="color: #a0a3bd; text-decoration: none; padding-bottom: 10px;">Đã huỷ</a>
+                    <div style="display: flex; gap: 30px; border-bottom: 1px solid #2d2d35; margin-bottom: 30px; padding-bottom: 10px;">
+                        <a href="my-tickets.php?tab=membership&mem_status=dang-hoat-dong" style="color: <?php echo $mem_status === 'dang-hoat-dong' ? '#26c973' : '#a0a3bd'; ?>; font-weight: 600; text-decoration: none; <?php echo $mem_status === 'dang-hoat-dong' ? 'border-bottom: 2px solid #26c973; padding-bottom: 10px;' : ''; ?>">Đang hoạt động</a>
+                        <a href="my-tickets.php?tab=membership&mem_status=da-het-han" style="color: <?php echo $mem_status === 'da-het-han' ? '#26c973' : '#a0a3bd'; ?>; font-weight: 600; text-decoration: none; <?php echo $mem_status === 'da-het-han' ? 'border-bottom: 2px solid #26c973; padding-bottom: 10px;' : ''; ?>">Đã hết hạn</a>
+                        <a href="my-tickets.php?tab=membership&mem_status=da-huy" style="color: <?php echo $mem_status === 'da-huy' ? '#26c973' : '#a0a3bd'; ?>; font-weight: 600; text-decoration: none; <?php echo $mem_status === 'da-huy' ? 'border-bottom: 2px solid #26c973; padding-bottom: 10px;' : ''; ?>">Đã huỷ</a>
                     </div>
-                    <div style="text-align: center; padding: 60px 0;">
-                        <p style="color: #a0a3bd; font-size: 14px;">Bạn chưa có thẻ nào đang hoạt động</p>
-                    </div>
+
+                    <?php if (empty($my_memberships)): ?>
+                        <div style="text-align: center; padding: 60px 0;">
+                            <p style="color: #a0a3bd; font-size: 14px;">Bạn chưa có thẻ nào trong mục này</p>
+                        </div>
+                    <?php else: ?>
+                        <div style="display: flex; flex-direction: column; gap: 18px;">
+                            <?php foreach ($my_memberships as $m): ?>
+                                <div style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 18px; display: flex; gap: 20px; align-items: center;">
+                                    <img src="<?php echo htmlspecialchars($m['hinh_anh']); ?>" alt="<?php echo htmlspecialchars($m['ten_the']); ?>" style="width: 170px; height: 105px; object-fit: cover; border-radius: 8px;">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <span style="font-size: 12px; color: #a0a3bd;">Mã thẻ: <strong style="color: #fff;"><?php echo htmlspecialchars($m['ma_the']); ?></strong></span>
+                                            <span style="background: rgba(38,201,115,0.15); color: #26c973; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                <i class="fa-solid fa-crown"></i> Đang hoạt động
+                                            </span>
+                                        </div>
+                                        <h3 style="font-size: 17px; font-weight: 700; color: #26c973; margin: 0 0 6px 0;"><?php echo htmlspecialchars($m['ten_the']); ?></h3>
+                                        <p style="font-size: 13px; color: #d0d1d8; margin: 2px 0;">Nghệ sĩ / Đơn vị: <strong><?php echo htmlspecialchars($m['nghe_si']); ?></strong> (Gói <?php echo (int)$m['thoi_han_thang']; ?> tháng)</p>
+                                        <p style="font-size: 12px; color: #a0a3bd; margin: 4px 0 0 0;">
+                                            Hiệu lực: <?php echo date('d/m/Y', strtotime($m['ngay_kich_hoat'])); ?> - <?php echo date('d/m/Y', strtotime($m['ngay_het_han'])); ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                     <?php break; ?>
 
                 // ==================== 4. VÉ CỦA TÔI ====================

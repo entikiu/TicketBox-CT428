@@ -56,22 +56,31 @@ include '../templates/header.php';
             <i class="fa-solid fa-chevron-left"></i>
         </button>
 
+        <!-- Danh sách sự kiện nổi bật lấy từ Database -->
         <div class="event-slider" id="eventSlider">
             <?php
-            $mock_events = [
-                ['id' => 1, 'title' => 'Live Concert SKYNOTE - Quốc Thiên', 'price' => 'Từ 880.000 đ', 'date' => '29.11.2026', 'location' => 'Hà Nội', 'image' => '../assets/images/events/banner-skynote.jpg'],
-                ['id' => 2, 'title' => 'Những Thành Phố Mộng Mơ Year End', 'price' => 'Từ 499.000 đ', 'date' => '12.12.2026', 'location' => 'TP. Hồ Chí Minh', 'image' => '../assets/images/events/banner-ntpmm.jpg'],
-                ['id' => 3, 'title' => 'Mắt Nhắm Mắt Mở', 'price' => 'Từ 1.600.000 đ', 'date' => '01.11.2026', 'location' => 'Hà Nội', 'image' => '../assets/images/events/banner-mnmm.jpg'],
-                ['id' => 4, 'title' => 'Tinh Hà "Say Hi" Concert - Đêm 2', 'price' => 'Từ 800.000 đ', 'date' => '18.10.2026', 'location' => 'Hà Nội', 'image' => '../assets/images/events/banner-tinh-ha.jpg'],
-                ['id' => 5, 'title' => 'The Starry - S\'NOW', 'price' => 'Từ 800.000 đ', 'date' => '19.12.2026', 'location' => 'Hồ Chí Minh', 'image' => '../assets/images/events/banner-snow.jpg'],
-                ['id' => 6, 'title' => 'GAI MEET - NHÀ RỰC RỠ', 'price' => 'Từ 1.500.000 đ', 'date' => '18.10.2026', 'location' => 'Hồ Chí Minh', 'image' => '../assets/images/events/banner-nha-ruc-ro.jpg'],
-                ['id' => 7, 'title' => '(S)TRONG \'DỊ KIỀU\' SHOW 2026: ĐẾN GIÂY CUỐI CÙNG', 'price' => 'Từ 1.450.000 đ', 'date' => '07.11.2026', 'location' => 'Hà Nội', 'image' => '../assets/images/events/banner-strong.jpg'],
-                ['id' => 8, 'title' => 'GAI MEET - DỰ ÁN NHÂN TỐ X', 'price' => 'Từ 1.500.000 đ', 'date' => '01.11.2026', 'location' => 'Hồ Chí Minh', 'image' => '../assets/images/events/banner-nhan-to-x.jpg'],
-                ['id' => 9, 'title' => '[CONCERT] ANH TRAI VƯỢT NGÀN CHÔNG GAI 2026 - DAY 1 & DAY 2', 'price' => 'Từ 1.000.000 đ', 'date' => '18.10.2026', 'location' => 'Hồ Chí Minh', 'image' => '../assets/images/events/banner-anh-trai.jpg'],
-                ['id' => 10, 'title' => 'HIỆN DIỆN - UPRIZE CONCERT', 'price' => 'Từ 800.000 đ', 'date' => '12.12.2026', 'location' => 'Hà Nội', 'image' => '../assets/images/events/banner-uprize.jpg']
-            ];
+            // Truy vấn 10 sự kiện nổi bật từ bảng sukien
+            $stmtFeatured = $pdo->prepare("SELECT * FROM sukien ORDER BY id ASC LIMIT 10");
+            $stmtFeatured->execute();
+            $dbEvents = $stmtFeatured->fetchAll(PDO::FETCH_ASSOC);
 
-            foreach ($mock_events as $event) {
+            foreach ($dbEvents as $row) {
+                // Tách tên Tỉnh/Thành phố ở cuối chuỗi địa chỉ (sau dấu phẩy cuối cùng)
+                $city = $row['dia_diem'];
+                if (strpos($row['dia_diem'], ',') !== false) {
+                    $city = trim(substr(strrchr($row['dia_diem'], ','), 1));
+                }
+
+                // Ánh xạ cột CSDL sang đúng định dạng biến của templates/event-card.php
+                $event = [
+                    'id'       => $row['id'],
+                    'title'    => $row['ten_su_kien'],
+                    'price'    => 'Từ ' . number_format($row['gia_thap_nhat'], 0, ',', '.') . ' đ',
+                    'date'     => date('d.m.Y', strtotime($row['thoi_gian'])),
+                    'location' => $city,
+                    'image'    => $row['hinh_anh']
+                ];
+
                 include '../templates/event-card.php';
             }
             ?>
@@ -190,28 +199,91 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<!-- Section: Thẻ thành viên -->
+<?php
+$stmtMem = $pdo->prepare("SELECT * FROM the_thanh_vien ORDER BY id ASC");
+$stmtMem->execute();
+$memberships = $stmtMem->fetchAll(PDO::FETCH_ASSOC);
+?>
 
-<!-- OFFICIAL MEMBERSHIP (THẺ THÀNH VIÊN) -->
-<section class="container" style="margin-top: 40px;">
-    <h2 class="section-title"><i class="fa-solid fa-id-card" style="color: var(--primary-color, #26c973);"></i> Official Membership</h2>
-    <div class="membership-grid">
-        <div class="membership-card">
-            <h3>THẺ CƯ DÂN</h3>
-            <p class="membership-price">0 đ / 6 tháng</p>
-            <span class="badge-status status-sold">Đã bán hết</span>
+
+<section class="container membership-section" style="margin-top: 35px; margin-bottom: 45px;">
+    <div class="membership-header">
+        <i class="fa-solid fa-credit-card"></i>
+        <h2>Thẻ thành viên</h2>
+    </div>
+
+    <div class="membership-slider-wrap">
+        <button type="button" class="mem-nav-btn mem-nav-prev" id="memPrevBtn" onclick="scrollMembership(-1)">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <div class="membership-track" id="membershipTrack" onscroll="updateMembershipArrows()">
+            <?php foreach ($memberships as $mem): ?>
+                <div class="membership-card">
+                    <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="membership-thumb">
+                        <img src="<?php echo htmlspecialchars($mem['hinh_anh']); ?>"
+                             alt="<?php echo htmlspecialchars($mem['ten_the']); ?>"
+                             onerror="this.src='https://via.placeholder.com/480x260/18191d/26c973?text=<?php echo urlencode($mem['ten_the']); ?>'">
+                    </a>
+                    <div class="membership-body">
+                        <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="membership-title">
+                            <?php echo htmlspecialchars($mem['ten_the']); ?>
+                        </a>
+                        <div class="membership-meta">
+                            <span class="membership-price"><?php echo number_format((int)$mem['gia'], 0, ',', '.'); ?> đ</span>
+                            <span class="membership-duration"><?php echo (int)$mem['thoi_han_thang']; ?> tháng</span>
+                        </div>
+
+                        <?php if ($mem['trang_thai'] === 'dang-ban'): ?>
+                            <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="btn-mem-join">Tham gia ngay</a>
+                        <?php elseif ($mem['trang_thai'] === 'da-ban-het'): ?>
+                            <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="btn-mem-disabled">Đã bán hết</a>
+                        <?php else: ?>
+                            <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="btn-mem-disabled">Đã đóng bán</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
-        <div class="membership-card highlight">
-            <h3>SWAN PASS</h3>
-            <p class="membership-price">324.000 đ / 6 tháng</p>
-            <button class="btn-join">Tham gia ngay</button>
-        </div>
-        <div class="membership-card">
-            <h3>SKYNOTE Membership</h3>
-            <p class="membership-price">99.000 đ / 6 tháng</p>
-            <span class="badge-status">Đã đóng bán</span>
-        </div>
+
+        <button type="button" class="mem-nav-btn mem-nav-next" id="memNextBtn" onclick="scrollMembership(1)">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
     </div>
 </section>
+
+<script>
+    function updateMembershipArrows() {
+        const track = document.getElementById('membershipTrack');
+        const prevBtn = document.getElementById('memPrevBtn');
+        const nextBtn = document.getElementById('memNextBtn');
+        if (!track || !prevBtn || !nextBtn) return;
+
+        // Căn giữa mũi tên theo đúng chiều cao thực tế của khung ảnh
+        const thumb = track.querySelector('.membership-thumb');
+        if (thumb && thumb.offsetHeight > 0) {
+            const centerTop = (thumb.offsetHeight / 2) + 'px';
+            prevBtn.style.top = centerTop;
+            nextBtn.style.top = centerTop;
+        }
+
+        prevBtn.style.display = track.scrollLeft > 10 ? 'flex' : 'none';
+        const isAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+        nextBtn.style.display = isAtEnd ? 'none' : 'flex';
+    }
+
+    function scrollMembership(direction) {
+        const track = document.getElementById('membershipTrack');
+        if (!track) return;
+        const card = track.querySelector('.membership-card');
+        const step = card ? (card.offsetWidth + 20) * 2 : track.clientWidth * 0.7;
+        track.scrollBy({ left: direction * step, behavior: 'smooth' });
+    }
+
+    document.addEventListener('DOMContentLoaded', updateMembershipArrows);
+    window.addEventListener('resize', updateMembershipArrows);
+</script>
 
 
 
