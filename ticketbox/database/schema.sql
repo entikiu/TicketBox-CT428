@@ -61,6 +61,22 @@ INSERT INTO `nguoidung` (`id`, `ho_ten`, `email`, `phone`, `dob`, `gender`, `ava
 -- 2. BẢNG SỰ KIỆN (52 sự kiện thuộc đầy đủ các danh mục)
 -- ----------------------------------------------------------------------------
 
+-- Đặt đoạn này ở phần trên (trước bảng sukien)
+CREATE TABLE IF NOT EXISTS danh_muc (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ten_danh_muc VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Khi tạo bảng sukien, bổ sung trực tiếp cột danh_muc_id và khóa ngoại vào trong:
+CREATE TABLE IF NOT EXISTS sukien (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ten_su_kien VARCHAR(255) NOT NULL,
+    -- ... các trường khác của bảng sukien ...
+    danh_muc_id INT DEFAULT NULL,
+    CONSTRAINT fk_sukien_danhmuc FOREIGN KEY (danh_muc_id) REFERENCES danh_muc(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `sukien` (
   `id` int(11) NOT NULL,
   `ten_su_kien` varchar(200) NOT NULL,
