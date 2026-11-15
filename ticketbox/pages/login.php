@@ -161,8 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                     <!-- Ô Nhập Email / SĐT -->
                     <div class="form-group <?php echo !empty($errors['email']) ? 'has-error' : ''; ?>" id="group-email">
-                        <label class="form-label">Email hoặc Số điện thoại</label>
-                        <input type="text" id="loginEmail" name="email" class="form-input" placeholder="Nhập email hoặc SĐT" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                        <label class="form-label">Email</label>
+                        <input type="text" id="loginEmail" name="email" class="form-input" placeholder="Nhập email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                         <span class="field-error" id="error-loginEmail" style="color:#ff4d4f; font-size:12px;"><?php echo $errors['email'] ?? ''; ?></span>
                     </div>
 
@@ -180,18 +180,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <button type="submit" id="btnLoginSubmit" class="btn-primary-auth">Tiếp tục</button>
                 </form>
 
-                <div class="auth-divider">
-                    <span>Hoặc đăng nhập bằng</span>
-                </div>
-
-                <div class="google-login-box">
-                    <div id="g_id_onload"
-                        data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-                        data-callback="handleCredentialResponse"
-                        data-auto_prompt="false">
-                    </div>
-                    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="filled_blue" data-text="signin_with" data-size="large" data-logo_alignment="left" data-width="100%"></div>
-                </div>
 
                 <div class="auth-links">
                     <p>Chưa có tài khoản? <a href="register.php">Tạo tài khoản ngay</a></p>
