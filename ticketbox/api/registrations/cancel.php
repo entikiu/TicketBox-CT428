@@ -1,110 +1,57 @@
 <?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/../../app/middleware/auth.php';
+header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../app/helpers/validation.php';
 
-require_method('POST');
-require_roles(['user', 'attendee', 'customer', 'member', 'organizer', 'admin']);
-
-$data = read_json_input();
-$rawId = $data['registration_id'] ?? $data['id'] ?? null;
-$registrationId = filter_var($rawId, FILTER_VALIDATE_INT);
-
-if ($registrationId === false || $registrationId < 1) {
-    api_response(422, [
-        'success' => false,
-        'message' => 'ID đăng ký vé không hợp lệ.'
-    ]);
+// 1. Kiểm tra đăng nhập
+if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập.']);
+    exit;
 }
 
-$currentUserId = (int)$_SESSION['user_id'];
-$currentRole = (string)($_SESSION['role'] ?? '');
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Phương thức không được hỗ trợ.']);
+    exit;
+}
+
+$input = json_decode(file_get_contents('php://input'), true);
+// Hỗ trợ cả registration_id (hoặc ticket_id)
+$registration_id = isset($input['registration_id']) ? (int)$input['registration_id'] : (isset($input['ticket_id']) ? (int)$input['ticket_id'] : 0);
+$user_id = (int)$_SESSION['user']['id'];
+
+if ($registration_id <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Mã vé/đăng ký không hợp lệ.']);
+    exit;
+}
 
 try {
-    $pdo->beginTransaction();
+    // 2. Kiểm tra vé thuộc về người dùng hiện tại
+    $stmtTicket = $pdo->prepare("SELECT id, trang_thai FROM ve WHERE id = :id AND nguoi_dung_id = :uid LIMIT 1");
+    $stmtTicket->execute(['id' => $registration_id, 'uid' => $user_id]);
+    $ticket = $stmtTicket->fetch(PDO::FETCH_ASSOC);
 
-    $stmt = $pdo->prepare("
-        SELECT 
-            r.id,
-            r.nguoi_dung_id,
-            r.trang_thai,
-            e.thoi_gian
-        FROM ve r
-        INNER JOIN sukien e ON r.su_kien_id = e.id
-        WHERE r.id = :id
-        FOR UPDATE
-    ");
-    $stmt->execute([':id' => $registrationId]);
-    $registration = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$registration) {
-        $pdo->rollBack();
-        api_response(404, [
-            'success' => false,
-            'message' => 'Không tìm thấy thông tin vé.'
-        ]);
+    if (!$ticket) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Không tìm thấy vé hoặc bạn không có quyền hủy vé này.']);
+        exit;
     }
 
-    if ((int)$registration['nguoi_dung_id'] !== $currentUserId && $currentRole !== 'admin') {
-        $pdo->rollBack();
-        api_response(403, [
-            'success' => false,
-            'message' => 'Bạn không có quyền hủy vé này.'
-        ]);
+    if ($ticket['trang_thai'] === 'da-huy') {
+        echo json_encode(['success' => false, 'message' => 'Vé này đã được hủy trước đó.']);
+        exit;
     }
 
-    if ($registration['trang_thai'] === 'da-huy') {
-        $pdo->rollBack();
-        api_response(422, [
-            'success' => false,
-            'message' => 'Vé này đã được hủy trước đó.'
-        ]);
-    }
+    // 3. Cập nhật trạng thái vé thành 'da-huy'
+    $stmtCancel = $pdo->prepare("UPDATE ve SET trang_thai = 'da-huy' WHERE id = :id");
+    $stmtCancel->execute(['id' => $registration_id]);
 
-    if ($registration['trang_thai'] === 'da-checkin') {
-        $pdo->rollBack();
-        api_response(422, [
-            'success' => false,
-            'message' => 'Không thể hủy vé đã được check-in.'
-        ]);
-    }
-
-    $eventStart = strtotime((string)$registration['thoi_gian']);
-    if ($eventStart !== false && $eventStart <= time()) {
-        $pdo->rollBack();
-        api_response(422, [
-            'success' => false,
-            'message' => 'Không thể hủy vé khi sự kiện đã bắt đầu hoặc kết thúc.'
-        ]);
-    }
-
-    $updateStmt = $pdo->prepare("
-        UPDATE ve
-        SET trang_thai = 'da-huy'
-        WHERE id = :id
-    ");
-    $updateStmt->execute([':id' => $registrationId]);
-
-    $pdo->commit();
-
-    api_response(200, [
+    echo json_encode([
         'success' => true,
-        'message' => 'Hủy vé thành công.',
-        'data' => [
-            'id' => $registrationId,
-            'trang_thai' => 'da-huy'
-        ]
+        'message' => 'Hủy đăng ký thành công'
     ]);
-
 } catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-    error_log('[TicketBox Registration Cancel] ' . $e->getMessage());
-    api_response(500, [
-        'success' => false,
-        'message' => 'Lỗi máy chủ.'
-    ]);
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Lỗi cơ sở dữ liệu: ' . $e->getMessage()]);
 }

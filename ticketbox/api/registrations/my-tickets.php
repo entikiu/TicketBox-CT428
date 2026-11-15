@@ -1,65 +1,46 @@
 <?php
-declare(strict_types=1);
-
-require_once __DIR__ . '/../../app/middleware/auth.php';
+header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../app/helpers/validation.php';
 
-require_method('GET');
-require_roles(['user', 'attendee', 'customer', 'member', 'organizer', 'admin']);
-
-$userId = (int)$_SESSION['user_id'];
-$status = isset($_GET['status']) ? trim((string)$_GET['status']) : '';
-
-// Giả định trạng thái trong bảng `ve` (ví dụ từ ảnh là "thanh-cong")
-$allowedStatuses = ['thanh-cong', 'da-huy', 'da-checkin']; 
-if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
-    api_response(422, [
-        'success' => false,
-        'message' => 'Trạng thái lọc vé không hợp lệ.'
-    ]);
+// 1. Kiểm tra đăng nhập
+if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập.']);
+    exit;
 }
 
+$user_id = (int)$_SESSION['user']['id'];
+
 try {
-    $sql = "
-        SELECT 
-            r.id AS registration_id,
-            r.ma_ve,
-            r.trang_thai,
-            r.ngay_dat,
-            r.loai_ve,
-            r.gia_ve,
-            e.id AS event_id,
-            e.ten_su_kien,
-            e.dia_diem,
-            e.thoi_gian
-        FROM ve r
-        INNER JOIN sukien e ON r.su_kien_id = e.id
-        WHERE r.nguoi_dung_id = :user_id
-    ";
-
-    $params = [':user_id' => $userId];
-
-    if ($status !== '') {
-        $sql .= " AND r.trang_thai = :status";
-        $params[':status'] = $status;
-    }
-
-    $sql .= " ORDER BY r.ngay_dat DESC";
+    // 2. Truy vấn danh sách vé kèm thông tin sự kiện
+    $sql = "SELECT 
+                v.id AS ticket_id,
+                v.ma_ve AS ticket_code,
+                v.loai_ve AS category,
+                v.gia_ve AS price,
+                v.trang_thai AS status,
+                v.ngay_dat AS booked_at,
+                s.id AS event_id,
+                s.ten_su_kien AS event_title,
+                s.thoi_gian AS event_time,
+                s.dia_diem AS event_location,
+                s.hinh_anh AS event_image
+            FROM ve v
+            JOIN sukien s ON v.su_kien_id = s.id
+            WHERE v.nguoi_dung_id = :uid
+            ORDER BY v.ngay_dat DESC";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    $stmt->execute(['uid' => $user_id]);
     $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    api_response(200, [
+    echo json_encode([
         'success' => true,
+        'count' => count($tickets),
         'data' => $tickets
     ]);
-
 } catch (PDOException $e) {
-    error_log('[TicketBox My Tickets] ' . $e->getMessage());
-    api_response(500, [
-        'success' => false,
-        'message' => 'Lỗi máy chủ.'
-    ]);
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Lỗi cơ sở dữ liệu: ' . $e->getMessage()]);
 }

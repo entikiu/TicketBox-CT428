@@ -1,181 +1,72 @@
 <?php
-
 header('Content-Type: application/json; charset=utf-8');
-
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
 
-function respond(int $status, array $data): void
-{
-    http_response_code($status);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+// 1. Kiểm tra đăng nhập
+if (!isset($_SESSION['user']) || empty($_SESSION['user']['id'])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập trước khi đăng ký vé.']);
     exit;
 }
 
-// Chỉ chấp nhận POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Allow: POST');
-    respond(405, [
-        'success' => false,
-        'message' => 'Phương thức không hợp lệ.'
-    ]);
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Phương thức không được hỗ trợ.']);
+    exit;
 }
 
-// Kiểm tra đăng nhập (Giả định session của bạn lưu 'id' trong mảng 'user' hoặc 'user_id')
-// Nếu dùng biến giống các file trước: $_SESSION['user_id']
-$userId = (int) ($_SESSION['user']['id'] ?? $_SESSION['user_id'] ?? 0);
+$input = json_decode(file_get_contents('php://input'), true);
+$event_id = isset($input['event_id']) ? (int)$input['event_id'] : 0;
+$user_id = (int)$_SESSION['user']['id'];
 
-if ($userId <= 0) {
-    respond(401, [
-        'success' => false,
-        'message' => 'Vui lòng đăng nhập trước.'
-    ]);
-}
-
-// Nhận dữ liệu AJAX
-$data = json_decode(file_get_contents('php://input'), true);
-
-if (!is_array($data)) {
-    $data = $_POST;
-}
-
-$eventId = filter_var(
-    $data['event_id'] ?? null,
-    FILTER_VALIDATE_INT
-);
-
-if (!$eventId || $eventId <= 0) {
-    respond(422, [
-        'success' => false,
-        'message' => 'ID sự kiện không hợp lệ.'
-    ]);
+if ($event_id <= 0) {
+    echo json_encode(['success' => false, 'message' => 'ID sự kiện không hợp lệ.']);
+    exit;
 }
 
 try {
-    $pdo->beginTransaction();
-
-    // Khóa sự kiện để chống đăng ký vượt sức chứa (Sửa bảng thành `sukien`)
-    $stmt = $pdo->prepare(
-        "SELECT id, thoi_gian, so_luong_toi_da
-         FROM sukien
-         WHERE id = ?
-         FOR UPDATE"
-    );
-    $stmt->execute([$eventId]);
-    $event = $stmt->fetch();
+    // 2. Kiểm tra sự kiện có tồn tại và còn chỗ không
+    $stmtEvent = $pdo->prepare("SELECT id, so_luong_toi_da FROM sukien WHERE id = :id LIMIT 1");
+    $stmtEvent->execute(['id' => $event_id]);
+    $event = $stmtEvent->fetch(PDO::FETCH_ASSOC);
 
     if (!$event) {
-        $pdo->rollBack();
-        respond(404, [
-            'success' => false,
-            'message' => 'Không tìm thấy sự kiện.'
-        ]);
+        echo json_encode(['success' => false, 'message' => 'Sự kiện không tồn tại.']);
+        exit;
     }
 
-    if (strtotime($event['thoi_gian']) <= time()) {
-        $pdo->rollBack();
-        respond(409, [
-            'success' => false,
-            'message' => 'Sự kiện đã bắt đầu hoặc kết thúc.'
-        ]);
+    // Kiểm tra số lượng vé đã đăng ký
+    $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM ve WHERE su_kien_id = :eid AND trang_thai != 'da-huy'");
+    $stmtCount->execute(['eid' => $event_id]);
+    $registeredCount = (int)$stmtCount->fetchColumn();
+
+    if ($registeredCount >= (int)$event['so_luong_toi_da']) {
+        echo json_encode(['success' => false, 'message' => 'Sự kiện đã hết chỗ.']);
+        exit;
     }
 
-    // Kiểm tra đăng ký hiện tại (Sửa bảng thành `ve`)
-    $stmt = $pdo->prepare(
-        "SELECT id, trang_thai
-         FROM ve
-         WHERE nguoi_dung_id = ?
-           AND su_kien_id = ?"
-    );
-    $stmt->execute([$userId, $eventId]);
-    $registration = $stmt->fetch();
-
-    // Sửa trạng thái thành 'da-huy'
-    if (
-        $registration &&
-        $registration['trang_thai'] !== 'da-huy'
-    ) {
-        $pdo->rollBack();
-        respond(409, [
-            'success' => false,
-            'message' => 'Bạn đã đăng ký sự kiện này.'
-        ]);
+    // 3. Kiểm tra người dùng đã đăng ký vé hợp lệ chưa (tránh trùng lặp)
+    $stmtCheck = $pdo->prepare("SELECT id FROM ve WHERE su_kien_id = :eid AND nguoi_dung_id = :uid AND trang_thai != 'da-huy' LIMIT 1");
+    $stmtCheck->execute(['eid' => $event_id, 'uid' => $user_id]);
+    if ($stmtCheck->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'Bạn đã đăng ký vé hợp lệ cho sự kiện này rồi.']);
+        exit;
     }
 
-    // Đếm số vé đang chiếm chỗ (Sửa trạng thái)
-    $stmt = $pdo->prepare(
-        "SELECT COUNT(*)
-         FROM ve
-         WHERE su_kien_id = ?
-           AND trang_thai IN ('thanh-cong', 'da-checkin')"
-    );
-    $stmt->execute([$eventId]);
-    $registeredCount = (int) $stmt->fetchColumn();
+    // 4. Tạo mã vé mới và lưu vào CSDL
+    $ticket_code = 'TKB-' . date('Y') . '-' . rand(10000, 99999);
+    $stmtInsert = $pdo->prepare("INSERT INTO ve (ma_ve, su_kien_id, nguoi_dung_id, loai_ve, trang_thai) VALUES (:code, :eid, :uid, 'Vé Tiêu Chuẩn', 'thanh-cong')");
+    $stmtInsert->execute(['code' => $ticket_code, 'eid' => $event_id, 'uid' => $user_id]);
 
-    if ($registeredCount >= (int) $event['so_luong_toi_da']) {
-        $pdo->rollBack();
-        respond(409, [
-            'success' => false,
-            'message' => 'Sự kiện đã hết vé.'
-        ]);
-    }
-
-    // Mã vé ngẫu nhiên
-    $ticketCode = 'TKB-' . date('Y') . '-' . rand(10000, 99999); // VD: TKB-2026-12345 giống ảnh CSDL của bạn
-
-    // Cần có tham số mặc định cho loại vé và giá vé (bạn có thể lấy từ bảng sukien nếu có)
-    $loaiVe = 'VÉ TIÊU CHUẨN';
-    $giaVe = '0 đ';
-
-    if ($registration) {
-        // Đăng ký lại vé đã hủy (Sửa cột ngay_dang_ky thành ngay_dat, trạng thái 'thanh-cong')
-        $stmt = $pdo->prepare(
-            "UPDATE ve
-             SET trang_thai = 'thanh-cong',
-                 ma_ve = ?,
-                 ngay_dat = CURRENT_TIMESTAMP
-             WHERE id = ?"
-        );
-        $stmt->execute([
-            $ticketCode,
-            $registration['id']
-        ]);
-    } else {
-        // Đăng ký mới (Thêm cột loai_ve, gia_ve, sửa ngay_dang_ky thành ngay_dat, trạng thái 'thanh-cong')
-        $stmt = $pdo->prepare(
-            "INSERT INTO ve
-             (nguoi_dung_id, su_kien_id, ma_ve, loai_ve, gia_ve, trang_thai, ngay_dat)
-             VALUES (?, ?, ?, ?, ?, 'thanh-cong', CURRENT_TIMESTAMP)"
-        );
-        $stmt->execute([
-            $userId,
-            $eventId,
-            $ticketCode,
-            $loaiVe,
-            $giaVe
-        ]);
-    }
-
-    $pdo->commit();
-
-    respond(201, [
+    echo json_encode([
         'success' => true,
-        'message' => 'Đăng ký vé thành công.',
+        'message' => 'Đăng ký thành công',
         'data' => [
-            'event_id' => $eventId,
-            'ticket_code' => $ticketCode,
-            'status' => 'thanh-cong'
+            'ticket_code' => $ticket_code
         ]
     ]);
-} catch (Throwable $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-
-    error_log($e->getMessage());
-
-    respond(500, [
-        'success' => false,
-        'message' => 'Lỗi hệ thống, vui lòng thử lại.'
-    ]);
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Lỗi cơ sở dữ liệu: ' . $e->getMessage()]);
 }
