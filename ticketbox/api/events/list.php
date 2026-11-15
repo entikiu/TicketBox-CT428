@@ -8,32 +8,26 @@ require_once __DIR__ . '/../../app/models/Event.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET');
     api_response(405, [
-        'status'  => 'error',
-        'success' => false, 
+        'success' => false,
         'message' => 'Chỉ hỗ trợ GET.'
     ]);
 }
 
-// Nhận tham số tìm kiếm & bộ lọc từ Query String (URL)
-$keyword = trim((string)($_GET['keyword'] ?? ''));
-$status  = trim((string)($_GET['status'] ?? ''));
+// Chấp nhận linh hoạt cả ?keyword=, ?key= hoặc ?q= từ Frontend
+$keyword = trim((string)($_GET['keyword'] ?? $_GET['key'] ?? $_GET['q'] ?? ''));
 
 try {
     $eventModel = new Event($pdo);
-    
-    // Gọi phương thức searchEvents để hỗ trợ lọc từ khóa và tính số vé đã đăng ký
-    $events = $eventModel->searchEvents($keyword, $status);
+    $events = $eventModel->searchEvents($keyword);
 
     api_response(200, [
-        'status'  => 'success',
         'success' => true,
         'data'    => $events
     ]);
 } catch (PDOException $e) {
     error_log('[TicketBox Events] ' . $e->getMessage());
     api_response(500, [
-        'status'  => 'error',
-        'success' => false, 
+        'success' => false,
         'message' => 'Lỗi máy chủ.'
     ]);
 }
