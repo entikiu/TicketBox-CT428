@@ -42,6 +42,7 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/TicketBox-CT428/ticketbox/assets/css/search-ajax.css">
 </head>
 
 <body>
@@ -51,10 +52,104 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
             <!-- Logo Text -->
             <a href="home.php" class="logo-text" title="Về trang chủ Ticketbox">ticketbox</a>
 
-            <!-- Thanh tìm kiếm -->
-            <div class="search-bar">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" placeholder="Bạn tìm gì hôm nay?">
+            <!-- Khung tìm kiếm AJAX Real-time -->
+            <div class="tb-search-wrapper" id="tbSearchWrapper">
+                <form class="tb-search-box" id="tbSearchForm" autocomplete="off">
+                    <i class="fa-solid fa-magnifying-glass tb-search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="tbSearchInput" 
+                        class="tb-search-input" 
+                        placeholder="Bạn tìm gì hôm nay?" 
+                        aria-label="Tìm kiếm sự kiện"
+                    >
+                    <button type="button" id="tbSearchClearBtn" class="tb-search-clear" title="Xóa từ khóa" style="display: none;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <button type="submit" id="tbSearchSubmitBtn" class="tb-search-submit">Tìm kiếm</button>
+                </form>
+
+                <!-- Dropdown gợi ý & kết quả tìm kiếm -->
+                <div class="tb-search-dropdown" id="tbSearchDropdown">
+                    <!-- 1. Từ khóa xu hướng -->
+                    <div class="tb-trending-list" id="tbTrendingSection">
+                        <button type="button" class="tb-trending-item" data-keyword="tinh hà say hi">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span>tinh hà say hi</span>
+                        </button>
+                        <button type="button" class="tb-trending-item" data-keyword="những thành phố mộng mơ">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span>những thành phố mộng mơ</span>
+                        </button>
+                        <button type="button" class="tb-trending-item" data-keyword="skynote">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span>skynote</span>
+                        </button>
+                    </div>
+
+                    <!-- 2. Tab Khám phá theo Thể loại / Thành phố -->
+                    <div class="tb-explore-section" id="tbExploreSection">
+                        <div class="tb-explore-tabs">
+                            <button type="button" class="tb-explore-tab active" data-tab="category">
+                                Khám phá theo Thể loại
+                            </button>
+                            <button type="button" class="tb-explore-tab" data-tab="city">
+                                Khám phá theo Thành phố
+                            </button>
+                        </div>
+
+                        <!-- Tab 1: Thể loại -->
+                        <div class="tb-explore-grid" id="tab-category">
+                            <div class="tb-explore-card" data-category-id="1" data-label="Concert & Âm nhạc">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-tinh-ha.jpg" alt="Nhạc sống">
+                                <div class="tb-explore-overlay"><span>Nhạc sống</span></div>
+                            </div>
+                            <div class="tb-explore-card" data-category-id="4" data-label="Sân khấu & Nghệ thuật">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-mua-roi-nuoc.jpg" alt="Sân khấu & Nghệ thuật">
+                                <div class="tb-explore-overlay"><span>Sân khấu &amp; Nghệ thuật</span></div>
+                            </div>
+                            <div class="tb-explore-card" data-category-id="2" data-label="Thể thao & Giải trí">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-lion-championship.jpg" alt="Thể thao">
+                                <div class="tb-explore-overlay"><span>Thể thao</span></div>
+                            </div>
+                            <div class="tb-explore-card" data-category-id="3" data-label="Workshop & Sáng tạo">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-mochi-cheesecake.jpg" alt="Hội thảo & Workshop">
+                                <div class="tb-explore-overlay"><span>Hội thảo &amp; Workshop</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Thành phố -->
+                        <div class="tb-explore-grid" id="tab-city" style="display: none;">
+                            <div class="tb-explore-card" data-city="Hồ Chí Minh" data-label="TP. Hồ Chí Minh">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-bus-2-tang.jpg" alt="TP. Hồ Chí Minh">
+                                <div class="tb-explore-overlay"><span>TP. Hồ Chí Minh</span></div>
+                            </div>
+                            <div class="tb-explore-card" data-city="Hà Nội" data-label="Hà Nội">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-tour-dem-van-mieu.jpg" alt="Hà Nội">
+                                <div class="tb-explore-overlay"><span>Hà Nội</span></div>
+                            </div>
+                            <div class="tb-explore-card" data-city="Đà Lạt" data-label="Đà Lạt">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-strong.jpg" alt="Đà Lạt">
+                                <div class="tb-explore-overlay"><span>Đà Lạt</span></div>
+                            </div>
+                            <div class="tb-explore-card" data-city="Sapa" data-label="Vị trí khác">
+                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-du-luon-sapa.jpg" alt="Vị trí khác">
+                                <div class="tb-explore-overlay"><span>Vị trí khác</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Lưới 3 cột Gợi ý / Kết quả AJAX -->
+                    <div class="tb-results-section">
+                        <div class="tb-results-header">
+                            <h4 id="tbResultsHeading">Gợi ý dành cho bạn</h4>
+                            <button type="button" id="tbResetFilterBtn" class="tb-reset-filter" style="display: none;">
+                                Đặt lại bộ lọc
+                            </button>
+                        </div>
+                        <div class="tb-results-grid" id="tbAjaxResultsGrid"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- Links Điều Hướng -->
@@ -72,7 +167,6 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
                             <!-- KHUNG AVATAR ĐÃ ĐƯỢC ÉP LẤY ẢNH MỚI NHẤT -->
                             <span class="user-avatar-sm" style="display: flex; align-items: center; justify-content: center; overflow: hidden; background: #26c973; color: #fff; width: 32px; height: 32px; border-radius: 50%;">
                                 <?php if (!empty($header_avt)): ?>
-                                    <!-- Thêm ?v=time() để chống trình duyệt lưu Cache ảnh cũ -->
                                     <img src="<?php echo htmlspecialchars($header_avt); ?>?v=<?php echo time(); ?>" 
                                          alt="Avatar" 
                                          style="width: 100%; height: 100%; object-fit: cover;" 
