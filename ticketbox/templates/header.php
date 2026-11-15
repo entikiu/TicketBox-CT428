@@ -25,11 +25,12 @@ if (isset($_SESSION['user']) && isset($_SESSION['user']['id']) && isset($pdo)) {
     }
 }
 
-$is_logged_in = isset($_SESSION['user']);
-$user_data    = $_SESSION['user'] ?? [];
-$header_name  = $user_data['ho_ten'] ?? $user_data['name'] ?? 'Tài khoản';
-$header_avt   = $user_data['avatar'] ?? '';
-$first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
+$is_logged_in      = isset($_SESSION['user']);
+$user_data         = $_SESSION['user'] ?? [];
+$header_name       = $user_data['ho_ten'] ?? $user_data['name'] ?? 'Tài khoản';
+$header_avt        = $user_data['avatar'] ?? '';
+$first_char        = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
+$current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keyword'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -42,7 +43,7 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/style.css'); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/search-ajax.css">
+    <link rel="stylesheet" href="../assets/css/search-ajax.css?v=<?php echo @filemtime(__DIR__ . '/../assets/css/search-ajax.css') ?: time(); ?>">
 </head>
 
 <body>
@@ -54,16 +55,18 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
 
             <!-- Khung tìm kiếm AJAX Real-time -->
             <div class="tb-search-wrapper" id="tbSearchWrapper">
-                <form class="tb-search-box" id="tbSearchForm" autocomplete="off">
+                <form class="tb-search-box" id="tbSearchForm" action="events.php" method="GET" autocomplete="off">
                     <i class="fa-solid fa-magnifying-glass tb-search-icon"></i>
                     <input 
                         type="text" 
+                        name="q"
                         id="tbSearchInput" 
                         class="tb-search-input" 
                         placeholder="Bạn tìm gì hôm nay?" 
                         aria-label="Tìm kiếm sự kiện"
+                        value="<?php echo htmlspecialchars($current_search_q); ?>"
                     >
-                    <button type="button" id="tbSearchClearBtn" class="tb-search-clear" title="Xóa từ khóa" style="display: none;">
+                    <button type="button" id="tbSearchClearBtn" class="tb-search-clear" title="Xóa từ khóa" style="display: <?php echo $current_search_q !== '' ? 'flex' : 'none'; ?>;">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                     <button type="submit" id="tbSearchSubmitBtn" class="tb-search-submit">Tìm kiếm</button>
@@ -155,7 +158,7 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
             <!-- Links Điều Hướng -->
             <nav class="nav-links">
                 <a href="events.php">Sự kiện</a>
-                <a href="events.php">TicketStars</a>
+                <a href="organizer.php">TicketStars</a>
                 <a href="events.php">Bán lại vé</a>
                 <a href="#">Blog</a>
 
@@ -187,7 +190,7 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
                             $current_role = strtolower($user_data['vai_tro'] ?? '');
                             if ($current_role === 'admin'): 
                             ?>
-                                <a href="admin/index.php" style="color: #26c973; font-weight: bold; background: #f0fdf4;">
+                                <a href="../admin/index.php" style="color: #26c973; font-weight: bold; background: #f0fdf4;">
                                     <i class="fa-solid fa-shield-halved"></i> Trang quản trị
                                 </a>
                                 <div class="dropdown-divider"></div>

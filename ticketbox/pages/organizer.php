@@ -60,32 +60,27 @@ $roleLabels    = [
 if ($currentStar) {
     $isFollowing = in_array($currentStar['slug'], $_SESSION['followed_stars'], true);
 
-    // 1. Lấy Sự kiện nổi bật (chỉ hiện nếu su_kien_noi_bat_id có dữ liệu)
+    // 1. Lấy Sự kiện nổi bật từ bảng sukien (chỉ hiện nếu su_kien_noi_bat_id có dữ liệu)
     if (!empty($currentStar['su_kien_noi_bat_id'])) {
         $stmtFeat = $pdo->prepare("SELECT id, ten_su_kien, hinh_anh, gia_thap_nhat FROM sukien WHERE id = :eid LIMIT 1");
         $stmtFeat->execute(['eid' => (int)$currentStar['su_kien_noi_bat_id']]);
         $featuredEvent = $stmtFeat->fetch(PDO::FETCH_ASSOC);
     }
 
-    // 2. Kiểm tra bảng liên kết nhiều-nhiều ticketstar_sukien
-    $hasLinkTable = false;
-    try {
-        $pdo->query("SELECT 1 FROM ticketstar_sukien LIMIT 1");
-        $hasLinkTable = true;
-    } catch (Exception $e) {
-        $hasLinkTable = false;
-    }
-
-    // 3. Lấy toàn bộ Lịch hoạt động (ưu tiên bảng ticketstar_sukien + từ khóa)
+    // 2. Lấy toàn bộ Lịch hoạt động từ bảng sukien & kiểm tra vé còn bán từ bảng loaive
     $conds  = [];
     $params = [];
 
-    if ($hasLinkTable) {
-        $conds[]        = "s.id IN (SELECT su_kien_id FROM ticketstar_sukien WHERE star_id = :sid)";
-        $params[':sid'] = (int)$currentStar['id'];
+    if (!empty($currentStar['su_kien_noi_bat_id'])) {
+        $conds[]            = "s.id = :feat_id";
+        $params[':feat_id'] = (int)$currentStar['su_kien_noi_bat_id'];
     }
 
-    $keywords = array_filter(array_map('trim', explode('|', (string)$currentStar['tu_khoa_su_kien'])));
+    $keywords = array_filter(array_map('trim', explode('|', (string)($currentStar['tu_khoa_su_kien'] ?? ''))));
+    if (empty($keywords) && !empty($currentStar['ten_hien_thi'])) {
+        $keywords[] = trim($currentStar['ten_hien_thi']);
+    }
+
     foreach ($keywords as $i => $kw) {
         $conds[]            = "(s.ten_su_kien LIKE :k1_{$i} OR s.ten_ban_to_chuc LIKE :k2_{$i})";
         $params[":k1_{$i}"] = '%' . $kw . '%';
@@ -212,7 +207,7 @@ include '../templates/header.php';
 
                 <?php elseif ($tab === 'news'): ?>
                     <div class="star-box-card">
-                        <h3 style="margin-top: 0; color: #fff;">Tin tức & Thông báo</h3>
+                        <h3 style="margin: 0 0 12px; color: #fff;">Tin tức & Thông báo</h3>
                         <?php if (!empty($currentStar['thong_bao'])): ?>
                             <div class="star-notice-banner" style="margin-bottom: 0;">
                                 <i class="fa-solid fa-bullhorn"></i>
@@ -225,8 +220,8 @@ include '../templates/header.php';
 
                 <?php elseif ($tab === 'community'): ?>
                     <div class="star-box-card">
-                        <h3 style="margin-top: 0; color: #fff;">Cộng đồng người hâm mộ</h3>
-                        <p style="color: #d1d5db; line-height: 1.6;">
+                        <h3 style="margin: 0 0 12px; color: #fff;">Cộng đồng người hâm mộ</h3>
+                        <p style="color: #d1d5db; line-height: 1.6; margin-bottom: 14px;">
                             Hiện có <strong style="color: #26c973;"><?php echo number_format((int)$currentStar['luot_theo_doi'], 0, ',', '.'); ?></strong> thành viên đang theo dõi <strong><?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></strong> trên Ticketbox.
                         </p>
                         <?php if (!empty($currentStar['nghe_si_membership'])): ?>

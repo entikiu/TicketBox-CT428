@@ -16,9 +16,8 @@
 
 .tb-search-wrapper {
     position: relative;
-    width: 100%;
-    max-width: 440px;
-    z-index: 1050;
+    flex: 1;
+    max-width: 480px;
 }
 
 .tb-search-box {
@@ -76,21 +75,25 @@
 
 /* Panel Dropdown nền tối */
 .tb-search-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 0;
-    width: 780px;
-    max-width: calc(100vw - 32px);
-    max-height: 82vh;
-    overflow-y: auto;
-    background: rgba(34, 35, 40, 0.98);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 18px 22px 22px;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65);
-    color: #f3f4f6;
     display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 660px;
+    max-width: calc(100vw - 32px);
+    max-height: 80vh;
+    overflow-y: auto;
+    background: #1e2029;
+    border: 1px solid #34374c;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+    z-index: 9999;
+    box-sizing: border-box;
+}
+
+.tb-search-dropdown.show {
+    display: block;
 }
 
 .tb-search-dropdown.open {
@@ -274,22 +277,29 @@
 }
 
 .tb-results-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin-top: 12px;
+    width: 100%;
 }
 
 .tb-result-card {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
-    text-decoration: none;
-    color: inherit;
+    background: #252733;
+    border: 1px solid #34374c;
     border-radius: 8px;
-    transition: transform 0.2s ease;
+    overflow: hidden;
+    text-decoration: none;
+    color: #ffffff;
+    min-width: 0;
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .tb-result-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
+    border-color: #26c973;
 }
 
 .tb-result-thumb {
@@ -383,13 +393,13 @@
     font-size: 14px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
     .tb-explore-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
     .tb-results-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
 

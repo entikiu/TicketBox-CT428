@@ -4,9 +4,9 @@ require_once __DIR__ . '/../config/database.php';
 
 // 1. Lấy các tham số bộ lọc từ URL (hỗ trợ cả tham số từ menu lẫn khung tìm kiếm AJAX)
 $selected_cat      = trim((string)($_GET['cat'] ?? $_GET['danh_muc_id'] ?? ''));
-$selected_location = trim((string)($_GET['location'] ?? ''));
+$selected_location = trim((string)($_GET['location'] ?? $_GET['city'] ?? ''));
 $selected_sort     = trim((string)($_GET['sort'] ?? ''));
-$search_query      = trim((string)($_GET['q'] ?? $_GET['keyword'] ?? ''));
+$search_query      = trim((string)($_GET['q'] ??$_GET['search'] ?? $_GET['keyword'] ?? ''));
 
 // 2. Xây dựng câu truy vấn SQL động
 $sql = "SELECT s.*, dm.ten_danh_muc, dm.slug AS danh_muc_slug 
@@ -26,16 +26,17 @@ if ($search_query !== '') {
     $page_title   = 'Kết quả tìm kiếm: "' . $search_query . '"';
 }
 
-// Lọc theo địa điểm
-if ($selected_location === 'hanoi') {
+// Lọc theo địa điểm / địa chỉ
+if ($selected_location !== '') {
+    $locationMap = [
+        'hanoi'  => 'Hà Nội',
+        'hcm'    => 'Hồ Chí Minh',
+        'danang' => 'Đà Nẵng',
+        'dalat'  => 'Đà Lạt',
+    ];
+    $locKeyword = $locationMap[strtolower($selected_location)] ?? $selected_location;
     $sql .= " AND s.dia_diem LIKE :loc";
-    $params['loc'] = '%Hà Nội%';
-} elseif ($selected_location === 'hcm') {
-    $sql .= " AND s.dia_diem LIKE :loc";
-    $params['loc'] = '%Hồ Chí Minh%';
-} elseif ($selected_location === 'danang') {
-    $sql .= " AND s.dia_diem LIKE :loc";
-    $params['loc'] = '%Đà Nẵng%';
+    $params['loc'] = '%' . $locKeyword . '%';
 }
 
 // Lọc theo danh mục (đồng bộ cả slug trên thanh menu lẫn ID/slug trong bảng danh_muc)
@@ -107,7 +108,7 @@ if ($selected_sort === 'price-asc') {
 } elseif ($selected_sort === 'price-desc') {
     $sql .= " ORDER BY s.gia_thap_nhat DESC, s.id ASC";
 } else {
-    $sql .= " ORDER BY s.id ASC";
+    $sql .= " ORDER BY s.thoi_gian DESC, s.id DESC";
 }
 
 $stmt = $pdo->prepare($sql);
@@ -155,6 +156,12 @@ include '../templates/header.php';
                 <option value="hanoi" <?php echo $selected_location === 'hanoi' ? 'selected' : ''; ?>>Hà Nội</option>
                 <option value="hcm" <?php echo $selected_location === 'hcm' ? 'selected' : ''; ?>>TP. Hồ Chí Minh</option>
                 <option value="danang" <?php echo $selected_location === 'danang' ? 'selected' : ''; ?>>Đà Nẵng</option>
+                <option value="dalat" <?php echo $selected_location === 'dalat' ? 'selected' : ''; ?>>Đà Lạt</option>
+                <?php if ($selected_location !== '' && !in_array(strtolower($selected_location), ['hanoi', 'hcm', 'danang', 'dalat'], true)): ?>
+                    <option value="<?php echo htmlspecialchars($selected_location); ?>" selected>
+                        <?php echo htmlspecialchars($selected_location); ?>
+                    </option>
+                <?php endif; ?>
             </select>
 
             <select name="sort" onchange="this.form.submit()" class="category-btn" style="background: var(--card-bg); color: #fff; border: 1px solid var(--border-color); padding: 8px 15px; outline: none; cursor: pointer;">
