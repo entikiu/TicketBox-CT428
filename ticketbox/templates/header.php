@@ -90,14 +90,11 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                         </button>
                     </div>
 
-                    <!-- 2. Tab Khám phá theo Thể loại / Thành phố -->
+                    <!-- 2. Tab Khám phá theo Thể loại -->
                     <div class="tb-explore-section" id="tbExploreSection">
                         <div class="tb-explore-tabs">
                             <button type="button" class="tb-explore-tab active" data-tab="category">
                                 Khám phá theo Thể loại
-                            </button>
-                            <button type="button" class="tb-explore-tab" data-tab="city">
-                                Khám phá theo Thành phố
                             </button>
                         </div>
 

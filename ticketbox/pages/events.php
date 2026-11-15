@@ -151,18 +151,6 @@ include '../templates/header.php';
                 <input type="hidden" name="q" value="<?php echo htmlspecialchars($search_query); ?>">
             <?php endif; ?>
 
-            <select name="location" onchange="this.form.submit()" class="category-btn" style="background: var(--card-bg); color: #fff; border: 1px solid var(--border-color); padding: 8px 15px; outline: none; cursor: pointer;">
-                <option value="">Tất cả địa điểm</option>
-                <option value="hanoi" <?php echo $selected_location === 'hanoi' ? 'selected' : ''; ?>>Hà Nội</option>
-                <option value="hcm" <?php echo $selected_location === 'hcm' ? 'selected' : ''; ?>>TP. Hồ Chí Minh</option>
-                <option value="danang" <?php echo $selected_location === 'danang' ? 'selected' : ''; ?>>Đà Nẵng</option>
-                <option value="dalat" <?php echo $selected_location === 'dalat' ? 'selected' : ''; ?>>Đà Lạt</option>
-                <?php if ($selected_location !== '' && !in_array(strtolower($selected_location), ['hanoi', 'hcm', 'danang', 'dalat'], true)): ?>
-                    <option value="<?php echo htmlspecialchars($selected_location); ?>" selected>
-                        <?php echo htmlspecialchars($selected_location); ?>
-                    </option>
-                <?php endif; ?>
-            </select>
 
             <select name="sort" onchange="this.form.submit()" class="category-btn" style="background: var(--card-bg); color: #fff; border: 1px solid var(--border-color); padding: 8px 15px; outline: none; cursor: pointer;">
                 <option value="">Sắp xếp: Mới nhất</option>
