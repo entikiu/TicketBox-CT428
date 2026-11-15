@@ -36,26 +36,30 @@ class Event
      */
     public function searchEvents(string $keyword = ''): array
     {
-        $sql = "SELECT id,
-                       ten_su_kien, ten_su_kien AS title,
-                       mo_ta, mo_ta AS description,
-                       dia_diem, dia_diem AS location,
-                       thoi_gian, thoi_gian AS start_at,
-                       so_luong_toi_da, so_luong_toi_da AS capacity,
-                       ngay_tao,
-                       hinh_anh
-                FROM sukien
+        $sql = "SELECT s.id,
+                       s.ten_su_kien, s.ten_su_kien AS title,
+                       s.mo_ta, s.mo_ta AS description,
+                       s.dia_diem, s.dia_diem AS location,
+                       s.thoi_gian, s.thoi_gian AS start_at,
+                       s.so_luong_toi_da, s.so_luong_toi_da AS capacity,
+                       s.ngay_tao,
+                       s.hinh_anh
+                FROM sukien s
+                LEFT JOIN ve v
+                    ON s.id = v.su_kien_id
+                    AND v.trang_thai IN ('thanh_cong', 'da_checkin')
                 WHERE 1=1";
 
         $params = [];
 
         if ($keyword !== '') {
-            $sql .= " AND (ten_su_kien LIKE :kw_title OR dia_diem LIKE :kw_location)";
+            $sql .= " AND (s.ten_su_kien LIKE :kw_title OR s.dia_diem LIKE :kw_location)";
             $params['kw_title']    = '%' . $keyword . '%';
             $params['kw_location'] = '%' . $keyword . '%';
         }
 
-        $sql .= " ORDER BY thoi_gian ASC";
+        $sql .= " GROUP BY s.id
+                  ORDER BY s.ngay_tao DESC";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
