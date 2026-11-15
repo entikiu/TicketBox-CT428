@@ -7,10 +7,17 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/config.php';
 
+if(session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Allow: POST');
     http_response_code(405);
-    echo json_encode(['message' => 'Phương thức không hợp lệ.']);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Phương thức không hợp lệ.'
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -34,5 +41,6 @@ if (ini_get('session.use_cookies')) {
 session_destroy();
 
 echo json_encode([
+    'success' => true,
     'message' => 'Đăng xuất thành công.'
 ], JSON_UNESCAPED_UNICODE);

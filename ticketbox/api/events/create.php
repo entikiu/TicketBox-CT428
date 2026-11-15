@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../app/middleware/auth.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../app/helpers/validation.php';
+require_once __DIR__ . '/../../app/helpers/response.php';
 require_once __DIR__ . '/../../app/models/Event.php';
 
 require_method('POST');
@@ -12,29 +13,31 @@ require_roles(['organizer', 'admin']);
 $data = read_json_input();
 
 require_fields($data, [
-    'title', 'description', 'location',
-    'start_at', 'end_at', 'price', 'capacity'
+    'title', 'description', 'location', 'capacity'
 ]);
 
-$title = trim((string)$data['title']);
+$rawTime = $data['time'] ?? $data['start_at'] ?? null;
+if ($rawTime === null || trim((string)$rawTime) === '') {
+    api_response(422, [
+        'success' => false,
+        'message' => 'Thời gian diễn ra sự kiện không được để trống.'
+    ]);
+}
+
+$title       = trim((string)$data['title']);
 $description = trim((string)$data['description']);
-$location = trim((string)$data['location']);
-
-$start = strtotime((string)$data['start_at']);
-$end = strtotime((string)$data['end_at']);
-
-$price = filter_var($data['price'], FILTER_VALIDATE_FLOAT);
-$capacity = filter_var($data['capacity'], FILTER_VALIDATE_INT);
-$status = $data['status'] ?? 'draft';
+$location    = trim((string)$data['location']);
+$time        = strtotime((string)$rawTime);
+$capacity    = filter_var($data['capacity'], FILTER_VALIDATE_INT);
+$image       = trim((string)($data['hinh_anh'] ?? $data['image'] ?? ''));
 
 if (
-    $title === '' || strlen($title) > 200 ||
-    $description === '' || strlen($description) > 10000 ||
-    $location === '' || strlen($location) > 255 ||
-    !$start || !$end || $end <= $start ||
-    $price === false || $price < 0 ||
-    $capacity === false || $capacity < 1 ||
-    !in_array($status, ['draft', 'published'], true)
+    $title === '' || mb_strlen($title, 'UTF-8') > 200 ||
+    mb_strlen($description, 'UTF-8') > 10000 ||
+    mb_strlen($location, 'UTF-8') > 255 ||
+    mb_strlen($image, 'UTF-8') > 255 ||
+    $time === false ||
+    $capacity === false || $capacity < 1
 ) {
     api_response(422, [
         'success' => false,
@@ -42,33 +45,35 @@ if (
     ]);
 }
 
-$data['title'] = $title;
-$data['description'] = $description;
-$data['location'] = $location;
-$data['start_at'] = date('Y-m-d H:i:s', $start);
-$data['end_at'] = date('Y-m-d H:i:s', $end);
-$data['price'] = $price;
-$data['capacity'] = $capacity;
-$data['status'] = $status;
+$userId = (int)($_SESSION['user_id'] ?? $_SESSION['user']['id'] ?? 0);
+if ($userId < 1) {
+    api_response(401, [
+        'success' => false,
+        'message' => 'Phiên đăng nhập không hợp lệ.'
+    ]);
+}
+
+$payload = [
+    'ten_su_kien'     => $title,
+    'mo_ta'           => $description !== '' ? $description : null,
+    'dia_diem'        => $location !== '' ? $location : null,
+    'thoi_gian'       => date('Y-m-d H:i:s', $time),
+    'so_luong_toi_da' => $capacity,
+    'hinh_anh'        => $image !== '' ? $image : null
+];
 
 try {
-    $id = (new Event($pdo))->create(
-        $data,
-        (int)$_SESSION['user_id']
-    );
+    $id = (new Event($pdo))->create($payload, $userId);
 
     api_response(201, [
         'success' => true,
         'message' => 'Tạo sự kiện thành công.',
-        'data' => ['id' => $id]
+        'data'    => ['id' => $id]
     ]);
-
 } catch (PDOException $e) {
     error_log('[TicketBox Event Create] ' . $e->getMessage());
-
     api_response(500, [
         'success' => false,
-        'message' => 'Lỗi máy chủ.'
+        'message' => 'Lỗi máy chủ khi tạo sự kiện.'
     ]);
 }
-?>

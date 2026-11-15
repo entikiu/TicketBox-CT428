@@ -16,7 +16,10 @@ function respond(int $status, array $data): void
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Allow: POST');
-    respond(405, ['message' => 'Phương thức không hợp lệ.']);
+    respond(405, [
+        'success' => false,
+        'message' => 'Phương thức không hợp lệ.'
+    ]);
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
@@ -25,8 +28,8 @@ if (!is_array($data)) {
     $data = $_POST;
 }
 
-$hoTen = trim($data['ho_ten'] ?? '');
-$email = trim($data['email'] ?? '');
+$hoTen = trim((string)$data['ho_ten'] ?? '');
+$email = mb_strtolower(trim((string)$data['email'] ?? ''), 'UTF-8');
 $matKhau = $data['mat_khau'] ?? '';
 
 if (
@@ -39,30 +42,40 @@ if (
     strlen($matKhau) > 72
 ) {
     respond(422, [
+        'success' => false,
         'message' => 'Dữ liệu không hợp lệ. Mật khẩu cần ít nhất 8 ký tự.'
     ]);
 }
+try{
+    $user = new User($pdo);
 
-$user = new User($pdo);
+    if ($user->findByEmail($email)) {
+        respond(409, [
+            'success' => false,
+            'message' => 'Email đã được sử dụng.'
+        ]);
+    }
 
-if ($user->findByEmail($email)) {
-    respond(409, ['message' => 'Email đã được sử dụng.']);
-}
+    $hash = password_hash($matKhau, PASSWORD_DEFAULT);
 
-$hash = password_hash($matKhau, PASSWORD_DEFAULT);
-
-try {
     $id = $user->create($hoTen, $email, $hash);
 
     respond(201, [
+        'success' => true,
         'message' => 'Đăng ký thành công.',
         'user_id' => $id
     ]);
 } catch (PDOException $e) {
     if ($e->getCode() === '23000') {
-        respond(409, ['message' => 'Email đã được sử dụng.']);
+        respond(409, [
+            'success' => false,
+            'message' => 'Email đã được sử dụng.'
+        ]);
     }
 
     error_log($e->getMessage());
-    respond(500, ['message' => 'Lỗi hệ thống.']);
+    respond(500, [
+        'success' => false,
+        'message' => 'Lỗi hệ thống.'
+    ]);
 }
