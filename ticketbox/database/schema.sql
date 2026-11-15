@@ -434,6 +434,7 @@ ALTER TABLE `ve`
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 -- ngay 15/11/2026
+USE `ticketbox`;
 
 -- 1. Tạo bảng ticketstars
 DROP TABLE IF EXISTS `ticketstars`;
@@ -522,7 +523,6 @@ INSERT INTO `loaive` (`su_kien_id`, `ten_loai_ve`, `gia_ve`, `da_het_ve`, `so_lu
 USE `ticketbox`;
 
 
-
 -- 1. Thêm 3 cột riêng biệt vào bảng ticketstars
 ALTER TABLE `ticketstars`
   ADD COLUMN `banner_star` varchar(255) DEFAULT NULL COMMENT 'Đường dẫn ảnh banner riêng của Star' AFTER `avatar`,
@@ -576,7 +576,7 @@ WHERE `slug` = 'kich-idecaf';
 
 UPDATE `ticketstars`
 SET `su_kien_noi_bat_id` = 42
-WHERE `slug` = 'kich-doan-thanh-loc';
+WHERE `slug` = 'kich-doan-thanh-loc';ưd
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

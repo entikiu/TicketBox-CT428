@@ -8,17 +8,19 @@ $selected_location = trim($_GET['location'] ?? '');
 $selected_sort     = trim($_GET['sort'] ?? '');
 $search_query      = trim($_GET['q'] ?? '');
 
-// 2. Xây dựng câu truy vấn SQL động tối ưu hóa với bảng danh_muc
+// 2. Xây dựng câu truy vấn SQL động
 $sql = "SELECT s.*, dm.ten_danh_muc, dm.slug AS danh_muc_slug 
         FROM sukien s 
         LEFT JOIN danh_muc dm ON s.danh_muc_id = dm.id 
         WHERE 1=1";
 $params = [];
+$page_title = 'Tất cả sự kiện';
 
 // Lọc theo từ khóa tìm kiếm (nếu người dùng tìm từ thanh search)
 if ($search_query !== '') {
     $sql .= " AND (s.ten_su_kien LIKE :q OR s.dia_diem LIKE :q OR s.ten_ban_to_chuc LIKE :q)";
     $params['q'] = '%' . $search_query . '%';
+    $page_title = 'Kết quả tìm kiếm: "' . $search_query . '"';
 }
 
 // Lọc theo địa điểm
@@ -33,14 +35,66 @@ if ($selected_location === 'hanoi') {
     $params['loc'] = '%Đà Nẵng%';
 }
 
-// Lọc theo danh mục chuẩn xác bằng ID hoặc Slug của bảng danh_muc
-if ($selected_cat !== '') {
-    if (is_numeric($selected_cat)) {
-        $sql .= " AND s.danh_muc_id = :cat";
-        $params['cat'] = (int)$selected_cat;
-    } else {
-        $sql .= " AND dm.slug = :cat_slug";
-        $params['cat_slug'] = $selected_cat;
+// Lọc theo danh mục (đồng bộ cả slug trên thanh menu lẫn ID/slug trong bảng danh_muc)
+if ($selected_cat !== '' && $selected_cat !== 'all' && $selected_cat !== 'tat-ca') {
+    switch ($selected_cat) {
+        case 'nhac-song':
+        case 'concert-am-nhac':
+        case 'am-nhac':
+        case '1':
+            $sql .= " AND s.danh_muc_id = 1";
+            $page_title = 'Nhạc sống';
+            break;
+
+        case 'san-khau-nghe-thuat':
+        case 'san-khau':
+        case '4':
+            $sql .= " AND s.danh_muc_id = 4";
+            $page_title = 'Sân khấu & Nghệ thuật';
+            break;
+
+        case 'the-thao':
+        case 'the-thao-giai-tri':
+        case '2':
+            $sql .= " AND s.danh_muc_id = 2 AND s.id NOT IN (35, 36, 39, 41)";
+            $page_title = 'Thể thao';
+            break;
+
+        case 'hoi-thao-workshop':
+        case 'workshop-sang-tao':
+        case 'workshop':
+        case '3':
+            $sql .= " AND s.danh_muc_id = 3";
+            $page_title = 'Hội thảo & Workshop';
+            break;
+
+        case 'tham-quan-trai-nghiem':
+        case 'tham-quan':
+        case 'trai-nghiem':
+        case '5':
+            $sql .= " AND (
+                        s.danh_muc_id = 5 
+                        OR s.id IN (11, 13, 34, 35, 36, 37, 38, 39, 40, 41)
+                        OR s.ten_su_kien LIKE '%Trải nghiệm%'
+                        OR s.ten_su_kien LIKE '%Du lịch%'
+                        OR s.ten_su_kien LIKE '%Bảo tàng%'
+                        OR s.ten_su_kien LIKE '%Triển lãm%'
+                        OR s.ten_su_kien LIKE '%Tour%'
+                        OR s.ten_su_kien LIKE '%Khu vui chơi%'
+                        OR s.ten_su_kien LIKE '%Xe Buýt%'
+                      )";
+            $page_title = 'Tham quan & Trải nghiệm';
+            break;
+
+        default:
+            if (is_numeric($selected_cat)) {
+                $sql .= " AND s.danh_muc_id = :cat";
+                $params['cat'] = (int)$selected_cat;
+            } else {
+                $sql .= " AND dm.slug = :cat_slug";
+                $params['cat_slug'] = $selected_cat;
+            }
+            break;
     }
 }
 
@@ -81,7 +135,7 @@ include '../templates/header.php';
     <!-- Tiêu đề trang & Form Bộ lọc -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
         <h2 class="section-title" style="margin: 0;">
-            <i class="fa-solid fa-compass" style="color: var(--primary-color);"></i> Tất cả sự kiện
+            <i class="fa-solid fa-compass" style="color: var(--primary-color);"></i> <?php echo htmlspecialchars($page_title); ?>
         </h2>
 
         <!-- Form Bộ lọc tự động submit khi thay đổi lựa chọn -->
