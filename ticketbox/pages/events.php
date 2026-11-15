@@ -2,11 +2,11 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
-// 1. Lấy các tham số bộ lọc từ URL
-$selected_cat      = trim($_GET['cat'] ?? '');
-$selected_location = trim($_GET['location'] ?? '');
-$selected_sort     = trim($_GET['sort'] ?? '');
-$search_query      = trim($_GET['q'] ?? '');
+// 1. Lấy các tham số bộ lọc từ URL (hỗ trợ cả tham số từ menu lẫn khung tìm kiếm AJAX)
+$selected_cat      = trim((string)($_GET['cat'] ?? $_GET['danh_muc_id'] ?? ''));
+$selected_location = trim((string)($_GET['location'] ?? ''));
+$selected_sort     = trim((string)($_GET['sort'] ?? ''));
+$search_query      = trim((string)($_GET['q'] ?? $_GET['keyword'] ?? ''));
 
 // 2. Xây dựng câu truy vấn SQL động
 $sql = "SELECT s.*, dm.ten_danh_muc, dm.slug AS danh_muc_slug 
@@ -16,11 +16,14 @@ $sql = "SELECT s.*, dm.ten_danh_muc, dm.slug AS danh_muc_slug
 $params = [];
 $page_title = 'Tất cả sự kiện';
 
-// Lọc theo từ khóa tìm kiếm (nếu người dùng tìm từ thanh search)
+// Lọc theo từ khóa tìm kiếm (tách :q1, :q2, :q3 để tránh lỗi HY093 của PDO)
 if ($search_query !== '') {
-    $sql .= " AND (s.ten_su_kien LIKE :q OR s.dia_diem LIKE :q OR s.ten_ban_to_chuc LIKE :q)";
-    $params['q'] = '%' . $search_query . '%';
-    $page_title = 'Kết quả tìm kiếm: "' . $search_query . '"';
+    $sql .= " AND (s.ten_su_kien LIKE :q1 OR s.dia_diem LIKE :q2 OR s.ten_ban_to_chuc LIKE :q3)";
+    $kwLike       = '%' . $search_query . '%';
+    $params['q1'] = $kwLike;
+    $params['q2'] = $kwLike;
+    $params['q3'] = $kwLike;
+    $page_title   = 'Kết quả tìm kiếm: "' . $search_query . '"';
 }
 
 // Lọc theo địa điểm

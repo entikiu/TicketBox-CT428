@@ -1,0 +1,421 @@
+/* ==========================================================================
+   KHUNG TÌM KIẾM & DROPDOWN AJAX CHUẨN TICKETBOX
+   ========================================================================== */
+
+.tb-search-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 1040;
+    display: none;
+}
+
+.tb-search-backdrop.open {
+    display: block;
+}
+
+.tb-search-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    z-index: 1050;
+}
+
+.tb-search-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 999px;
+    padding: 0 16px;
+    height: 40px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: box-shadow 0.2s ease;
+}
+
+.tb-search-box:focus-within {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+}
+
+.tb-search-icon {
+    color: #6b7280;
+    font-size: 15px;
+    margin-right: 10px;
+}
+
+.tb-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.tb-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.tb-search-clear {
+    background: #e5e7eb;
+    border: none;
+    color: #4b5563;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.tb-search-clear:hover {
+    background: #d1d5db;
+}
+
+/* Panel Dropdown nền tối */
+.tb-search-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    width: 780px;
+    max-width: calc(100vw - 32px);
+    max-height: 82vh;
+    overflow-y: auto;
+    background: rgba(34, 35, 40, 0.98);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 18px 22px 22px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65);
+    color: #f3f4f6;
+    display: none;
+}
+
+.tb-search-dropdown.open {
+    display: block;
+    animation: tbFadeSlideDown 0.18s ease-out;
+}
+
+@keyframes tbFadeSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Thanh cuộn tối */
+.tb-search-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tb-search-dropdown::-webkit-scrollbar-track {
+    background: #1f2024;
+    border-radius: 8px;
+}
+
+.tb-search-dropdown::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 8px;
+}
+
+/* 1. Danh sách từ khóa xu hướng */
+.tb-trending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tb-trending-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: none;
+    color: #e5e7eb;
+    font-size: 14px;
+    text-align: left;
+    padding: 4px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tb-trending-item i {
+    color: #2dc275;
+    font-size: 14px;
+}
+
+.tb-trending-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #2dc275;
+}
+
+/* 2. Tabs Khám phá theo Thể loại / Thành phố */
+.tb-explore-section {
+    margin-bottom: 20px;
+}
+
+.tb-explore-tabs {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 14px;
+}
+
+.tb-explore-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.tb-explore-tab:hover {
+    color: #ffffff;
+}
+
+.tb-explore-tab.active {
+    color: #ffffff;
+    border-bottom-color: #2dc275;
+}
+
+.tb-explore-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.tb-explore-card {
+    position: relative;
+    height: 86px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.tb-explore-card:hover {
+    transform: translateY(-2px);
+}
+
+.tb-explore-card.selected {
+    border-color: #2dc275;
+}
+
+.tb-explore-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tb-explore-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.25) 100%);
+    padding: 10px 12px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.tb-explore-overlay span {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* 3. Lưới 3 cột Gợi ý / Kết quả AJAX */
+.tb-results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.tb-results-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.tb-reset-filter {
+    background: rgba(45, 194, 117, 0.15);
+    border: 1px solid #2dc275;
+    color: #2dc275;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tb-reset-filter:hover {
+    background: #2dc275;
+    color: #ffffff;
+}
+
+.tb-results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.tb-result-card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+}
+
+.tb-result-card:hover {
+    transform: translateY(-3px);
+}
+
+.tb-result-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #18181b;
+    margin-bottom: 10px;
+}
+
+.tb-result-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.25s ease;
+}
+
+.tb-result-card:hover .tb-result-thumb img {
+    transform: scale(1.04);
+}
+
+.tb-result-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.35;
+    margin: 0 0 6px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tb-result-price {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #2dc275;
+    margin: 0 0 5px 0;
+}
+
+.tb-result-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.tb-result-meta i {
+    color: #9ca3af;
+    font-size: 11px;
+}
+
+.tb-results-footer {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tb-view-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: rgba(45, 194, 117, 0.16);
+    border: 1px solid #2dc275;
+    color: #2dc275;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tb-view-all-btn:hover {
+    background: #2dc275;
+    color: #ffffff;
+}
+
+.tb-search-state-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 28px 12px;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .tb-explore-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tb-results-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tb-search-submit {
+    background: #2dc275;
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    padding: 6px 14px;
+    margin-left: 8px;
+    margin-right: -10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+
+.tb-search-submit:hover {
+    background: #25a864;
+}
+
+.main-header {
+    z-index: 1060 !important;
+    overflow: visible !important;
+}
+
+.header-container {
+    overflow: visible !important;
+}
