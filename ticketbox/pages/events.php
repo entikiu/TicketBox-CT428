@@ -8,48 +8,49 @@ $selected_location = trim($_GET['location'] ?? '');
 $selected_sort     = trim($_GET['sort'] ?? '');
 $search_query      = trim($_GET['q'] ?? '');
 
-// 2. Xây dựng câu truy vấn SQL động từ bảng sukien
-$sql = "SELECT * FROM sukien WHERE 1=1";
+// 2. Xây dựng câu truy vấn SQL động tối ưu hóa với bảng danh_muc
+$sql = "SELECT s.*, dm.ten_danh_muc, dm.slug AS danh_muc_slug 
+        FROM sukien s 
+        LEFT JOIN danh_muc dm ON s.danh_muc_id = dm.id 
+        WHERE 1=1";
 $params = [];
 
 // Lọc theo từ khóa tìm kiếm (nếu người dùng tìm từ thanh search)
 if ($search_query !== '') {
-    $sql .= " AND (ten_su_kien LIKE :q OR dia_diem LIKE :q OR ten_ban_to_chuc LIKE :q)";
+    $sql .= " AND (s.ten_su_kien LIKE :q OR s.dia_diem LIKE :q OR s.ten_ban_to_chuc LIKE :q)";
     $params['q'] = '%' . $search_query . '%';
 }
 
 // Lọc theo địa điểm
 if ($selected_location === 'hanoi') {
-    $sql .= " AND dia_diem LIKE :loc";
+    $sql .= " AND s.dia_diem LIKE :loc";
     $params['loc'] = '%Hà Nội%';
 } elseif ($selected_location === 'hcm') {
-    $sql .= " AND dia_diem LIKE :loc";
+    $sql .= " AND s.dia_diem LIKE :loc";
     $params['loc'] = '%Hồ Chí Minh%';
 } elseif ($selected_location === 'danang') {
-    $sql .= " AND dia_diem LIKE :loc";
+    $sql .= " AND s.dia_diem LIKE :loc";
     $params['loc'] = '%Đà Nẵng%';
 }
 
-// Lọc theo danh mục trên thanh điều hướng (nếu có)
+// Lọc theo danh mục chuẩn xác bằng ID hoặc Slug của bảng danh_muc
 if ($selected_cat !== '') {
-    if ($selected_cat === 'music' || $selected_cat === 'nhac-song') {
-        $sql .= " AND (ten_su_kien LIKE '%Concert%' OR ten_su_kien LIKE '%Show%' OR ten_su_kien LIKE '%GAI MEET%' OR ten_su_kien LIKE '%Mộng Mơ%' OR ten_su_kien LIKE '%Starry%')";
-    } elseif ($selected_cat === 'stage' || $selected_cat === 'san-khau') {
-        $sql .= " AND (ten_su_kien LIKE '%Kịch%' OR ten_su_kien LIKE '%Sân Khấu%' OR ten_su_kien LIKE '%Ballet%' OR ten_su_kien LIKE '%Múa rối%' OR ten_su_kien LIKE '%LOALOA%' OR ten_su_kien LIKE '%Thực Cảnh%' OR ten_su_kien LIKE '%CADAO%' OR ten_su_kien LIKE '%Mystic%' OR ten_su_kien LIKE '%Phiêu Lưu%')";
-    } elseif ($selected_cat === 'sport' || $selected_cat === 'the-thao') {
-        $sql .= " AND (ten_su_kien LIKE '%Basketball%' OR ten_su_kien LIKE '%Championship%' OR ten_su_kien LIKE '%Dù lượn%' OR ten_su_kien LIKE '%Go - Kart%' OR ten_su_kien LIKE '%Glory%' OR ten_su_kien LIKE '%LCP%' OR ten_su_kien LIKE '%VALORANT%')";
-    } elseif ($selected_cat === 'other' || $selected_cat === 'workshop') {
-        $sql .= " AND (ten_su_kien LIKE '%Workshop%' OR ten_su_kien LIKE '%Bảo Tàng%' OR ten_su_kien LIKE '%Tour%' OR ten_su_kien LIKE '%Du Lịch%' OR ten_su_kien LIKE '%Xe Buýt%' OR ten_su_kien LIKE '%Khu Vui Chơi%' OR ten_su_kien LIKE '%GenZania%' OR ten_su_kien LIKE '%Triển Lãm%')";
+    if (is_numeric($selected_cat)) {
+        $sql .= " AND s.danh_muc_id = :cat";
+        $params['cat'] = (int)$selected_cat;
+    } else {
+        $sql .= " AND dm.slug = :cat_slug";
+        $params['cat_slug'] = $selected_cat;
     }
 }
 
 // Sắp xếp theo giá hoặc mặc định
 if ($selected_sort === 'price-asc') {
-    $sql .= " ORDER BY gia_thap_nhat ASC, id ASC";
+    $sql .= " ORDER BY s.gia_thap_nhat ASC, s.id ASC";
 } elseif ($selected_sort === 'price-desc') {
-    $sql .= " ORDER BY gia_thap_nhat DESC, id ASC";
+    $sql .= " ORDER BY s.gia_thap_nhat DESC, s.id ASC";
 } else {
-    $sql .= " ORDER BY id ASC";
+    $sql .= " ORDER BY s.id ASC";
 }
 
 $stmt = $pdo->prepare($sql);
