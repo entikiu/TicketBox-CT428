@@ -518,7 +518,7 @@ INSERT INTO `loaive` (`su_kien_id`, `ten_loai_ve`, `gia_ve`, `da_het_ve`, `so_lu
 
 
 --------------- BO SUNG CÁC CỘT RIÊNG CHO TỪNG STAR TIÊU BIỂU --------------
-USE `ticketbox`;
+
 
 -- 1. Thêm 3 cột riêng biệt vào bảng ticketstars
 ALTER TABLE `ticketstars`
