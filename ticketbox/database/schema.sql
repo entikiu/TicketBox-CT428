@@ -433,7 +433,148 @@ ALTER TABLE `ve`
 
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
+-- ngay 15/11/2026
+USE `ticketbox`;
 
+-- 1. Tạo bảng ticketstars
+DROP TABLE IF EXISTS `ticketstars`;
+CREATE TABLE `ticketstars` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `slug` varchar(120) NOT NULL,
+  `ten_hien_thi` varchar(150) NOT NULL,
+  `loai` enum('NgheSi','BanToChuc','SanKhau') NOT NULL DEFAULT 'BanToChuc',
+  `avatar` varchar(255) NOT NULL,
+  `anh_bia` varchar(255) DEFAULT NULL,
+  `mo_ta` text DEFAULT NULL,
+  `luot_theo_doi` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `tu_khoa_su_kien` varchar(255) NOT NULL,
+  `nghe_si_membership` varchar(150) DEFAULT NULL,
+  `da_xac_minh` tinyint(1) NOT NULL DEFAULT 1,
+  `thu_tu` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. Nạp 28 Featured Stars chuẩn thứ tự Ticketbox
+INSERT INTO `ticketstars` (`slug`, `ten_hien_thi`, `loai`, `avatar`, `anh_bia`, `mo_ta`, `luot_theo_doi`, `tu_khoa_su_kien`, `nghe_si_membership`, `da_xac_minh`, `thu_tu`) VALUES
+('yeah1-family', 'YeaH1 Family', 'BanToChuc', '../assets/images/stars/yeah1.jpg', '../assets/images/events/banner-anh-trai.jpg', 'Tập đoàn giải trí & nhà sản xuất chuỗi concert quy mô lớn Anh Trai Vượt Ngàn Chông Gai, GAI MEET, UPRIZE.', 58420, 'Anh Trai Vượt Ngàn Chông Gai|GAI MEET|UPRIZE|YeaH1', NULL, 1, 1),
+('vie-concert', 'Vie Concert', 'BanToChuc', '../assets/images/stars/vieconcert.jpg', '../assets/images/events/banner-tinh-ha.jpg', 'Đơn vị tổ chức và sản xuất chuỗi concert Tinh Hà "Say Hi" cùng các lễ hội âm nhạc hàng đầu.', 64150, 'Tinh Hà|Vie Channel', NULL, 1, 2),
+('ss-label', 'SS Label', 'BanToChuc', '../assets/images/stars/sslabel.jpg', '../assets/images/memberships/spacespeakers.jpg', 'Hãng thu âm & công ty quản lý nghệ sĩ trực thuộc SpaceSpeakers Group.', 41200, 'Mắt Nhắm Mắt Mở|SpaceSpeakers', 'SpaceSpeakers', 1, 3),
+('gai-meet', 'GAI MEET', 'BanToChuc', '../assets/images/stars/gaimeet.jpg', '../assets/images/events/banner-nha-ruc-ro.jpg', 'Chuỗi sự kiện giao lưu âm nhạc & Fan Meeting độc quyền đồng sản xuất bởi YEAH1 x 1PRODUCTION.', 29800, 'GAI MEET', NULL, 1, 4),
+('quoc-thien', 'Quốc Thiên', 'NgheSi', '../assets/images/stars/quocthien.jpg', '../assets/images/events/banner-skynote.jpg', 'Ca sĩ Quốc Thiên - Chủ nhân chuỗi Live Concert SKYNOTE và gói hội viên SKYNOTE Membership.', 36500, 'SKYNOTE|Quốc Thiên', 'Quốc Thiên', 1, 5),
+('ngoc-thanh-tam', 'Ngọc Thanh Tâm', 'NgheSi', '../assets/images/stars/ngocthanhtam.jpg', '../assets/images/memberships/tieu-no.jpg', 'Diễn viên Ngọc Thanh Tâm - Cộng đồng thành viên TIỂU NƠ Membership độc quyền trên Ticketbox.', 21400, 'Ngọc Thanh Tâm|TIỂU NƠ', 'Ngọc Thanh Tâm', 1, 6),
+('dinh-manh-ninh', 'Đinh Mạnh Ninh', 'NgheSi', '../assets/images/stars/dinhmanhninh.jpg', '../assets/images/events/banner-skynote.jpg', 'Ca sĩ - Nhạc sĩ Đinh Mạnh Ninh với các đêm nhạc Acoustic và bộ sưu tập Official Merchandise.', 18750, 'Đinh Mạnh Ninh', NULL, 1, 7),
+('phung-khanh-linh', 'Phùng Khánh Linh', 'NgheSi', '../assets/images/stars/phungkhanhlinh.jpg', '../assets/images/events/banner-ntpmm.jpg', 'Ca sĩ - Nhạc sĩ dòng nhạc Indie Pop / City Pop với chuỗi tour diễn và album được yêu thích.', 24900, 'Phùng Khánh Linh|Những Thành Phố Mộng Mơ', NULL, 1, 8),
+('nhung-thanh-pho-mong-mo', 'Những Thành Phố Mộng Mơ', 'BanToChuc', '../assets/images/stars/ntpmm.jpg', '../assets/images/events/banner-ntpmm.jpg', 'Lễ hội âm nhạc Indie thường niên quy tụ dàn nghệ sĩ trẻ đình đám tại Hà Nội & TP. Hồ Chí Minh.', 55300, 'Những Thành Phố Mộng Mơ', 'Những Thành Phố Mộng Mơ', 1, 9),
+('jun-pham', 'Jun Phạm', 'NgheSi', '../assets/images/stars/junpham.jpg', '../assets/images/memberships/jun-pham.jpg', 'Ca sĩ, diễn viên, nhà văn Jun Phạm - Official Fanclub & Membership trên Ticketbox.', 33900, 'Jun Phạm|Anh Trai Vượt Ngàn Chông Gai', 'Jun Phạm', 1, 10),
+('subicha', 'Subicha', 'NgheSi', '../assets/images/stars/subicha.jpg', '../assets/images/events/banner-snow.jpg', 'Nghệ sĩ sáng tạo & biểu diễn độc lập đồng hành cùng các sự kiện giải trí giới trẻ.', 14200, 'Subicha|The Starry', NULL, 1, 11),
+('hoang-dung', 'Hoàng Dũng', 'NgheSi', '../assets/images/stars/hoangdung.jpg', '../assets/images/events/banner-ntpmm.jpg', 'Ca sĩ - Nhạc sĩ Hoàng Dũng với chuỗi concert Yên và các đêm nhạc tự sự sâu lắng.', 42800, 'Hoàng Dũng|Những Thành Phố Mộng Mơ', NULL, 1, 12),
+('cheng', 'Cheng', 'NgheSi', '../assets/images/stars/cheng.jpg', '../assets/images/events/banner-snow.jpg', 'Nghệ sĩ trẻ Cheng với phong cách âm nhạc hiện đại, sôi động.', 16400, 'Cheng|The Starry', NULL, 1, 13),
+('mr-siro', 'Mr. Siro', 'NgheSi', '../assets/images/stars/mrsiro.jpg', '../assets/images/events/banner-skynote.jpg', 'Nhạc sĩ - Ca sĩ Mr. Siro với những bản Ballad chạm đến trái tim hàng triệu khán giả.', 49100, 'Mr. Siro', NULL, 1, 14),
+('nguyen-van-chung', 'Nguyễn Văn Chung', 'NgheSi', '../assets/images/stars/nguyenvanchung.jpg', '../assets/images/events/banner-chao-show.jpg', 'Nhạc sĩ Nguyễn Văn Chung - Tác giả của hàng trăm ca khúc nhạc trẻ và thiếu nhi kinh điển.', 27600, 'Nguyễn Văn Chung', NULL, 1, 15),
+('tang-phuc', 'Tăng Phúc', 'NgheSi', '../assets/images/stars/tangphuc.jpg', '../assets/images/events/banner-strong.jpg', 'Ca sĩ Tăng Phúc - Chủ nhân chuỗi đêm nhạc Sun Song và các bản cover triệu view.', 31200, 'Tăng Phúc|Sun Song', NULL, 1, 16),
+('dj-mie', 'DJ Mie', 'NgheSi', '../assets/images/stars/djmie.jpg', '../assets/images/events/banner-tinh-ha.jpg', 'Nữ DJ hàng đầu Việt Nam khuấy đảo các lễ hội âm nhạc điện tử lớn.', 38900, 'DJ Mie', NULL, 1, 17),
+('kich-idecaf', 'Kịch IDECAF', 'SanKhau', '../assets/images/stars/idecaf.jpg', '../assets/images/events/banner-hon-ai-nay-giu.jpg', 'Nhà hát kịch IDECAF - Sân khấu kịch nói chuyên nghiệp hàng đầu tại TP. Hồ Chí Minh.', 44700, 'IDECAF', NULL, 1, 18),
+('phong-tra-ben-thanh', 'Phòng trà Bến Thành', 'SanKhau', '../assets/images/stars/phongtrabenthanh.jpg', '../assets/images/events/banner-chao-show.jpg', 'Không gian âm nhạc ấm cúng tại trung tâm Quận 1, nơi hội tụ các giọng ca hàng đầu Việt Nam.', 26300, 'Phòng trà Bến Thành', NULL, 1, 19),
+('kich-doan-thanh-loc', 'KỊCH ĐOÀN THÀNH LỘC', 'SanKhau', '../assets/images/stars/thiendang.jpg', '../assets/images/events/banner-co-giao-duyen.jpg', 'Sân khấu kịch Thiên Đăng - Kịch đoàn của NSƯT Thành Lộc với các vở diễn nghệ thuật đặc sắc.', 39500, 'THÀNH LỘC|Thiên Đăng', NULL, 1, 20),
+('san-khau-moi', 'Sân Khấu Mới', 'SanKhau', '../assets/images/stars/sankhaumoi.jpg', '../assets/images/events/banner-bong-ma-le-hoa.jpg', 'Đơn vị sản xuất các vở kịch tâm lý, kinh dị và giải trí đặc sắc tại TP. Hồ Chí Minh.', 19800, 'Sân Khấu Mới|LỆ HOA', NULL, 1, 21),
+('sao-concert', 'SAO Concert', 'BanToChuc', '../assets/images/stars/saoconcert.jpg', '../assets/images/events/banner-uprize.jpg', 'Đơn vị tổ chức đại nhạc hội SAO Concert quy tụ dàn sao V-Pop đình đám.', 22400, 'SAO Concert', NULL, 1, 22),
+('sound-healing-concert', 'SOUND HEALING CONCERT', 'BanToChuc', '../assets/images/stars/soundhealing.jpg', '../assets/images/events/banner-chao-show.jpg', 'Chuỗi hòa nhạc chữa lành kết hợp âm thanh chuông xoay và nhạc cụ truyền thống.', 15900, 'Sound Healing', NULL, 1, 23),
+('nha-hat-kich-thanh-nien', 'Nhà Hát Kịch Thanh Niên', 'SanKhau', '../assets/images/stars/kichthanhnien.jpg', '../assets/images/events/banner-cuoc-phieu-luu-ky-thu.jpg', 'Sân khấu kịch trẻ trung, sáng tạo dành cho khán giả và gia đình tại TP. Hồ Chí Minh.', 23100, 'Thanh Niên|Thiếu Nhi', NULL, 1, 24),
+('secret-garden', 'SECRET GARDEN', 'BanToChuc', '../assets/images/stars/secretgarden.jpg', '../assets/images/events/banner-moss-frame.jpg', 'Không gian biểu diễn âm nhạc Acoustic và nghệ thuật ẩn mình giữa lòng thành phố.', 17500, 'Secret Garden', NULL, 1, 25),
+('cat-and-mouse', 'Cat & Mouse Live Music', 'BanToChuc', '../assets/images/stars/catandmouse.jpg', '../assets/images/events/banner-mystic-night-show.jpg', 'Chuỗi đêm nhạc Live Band và trình diễn nghệ thuật tương tác về đêm.', 16200, 'Cat & Mouse|Mystic Night', NULL, 1, 26),
+('san-khau-the-gioi-tre', 'SÂN KHẤU THẾ GIỚI TRẺ', 'SanKhau', '../assets/images/stars/thegioitre.jpg', '../assets/images/events/banner-mat-ma-cau-co.jpg', 'Điểm hẹn sân khấu kịch giải trí sôi động tại 125 Cống Quỳnh, Quận 1, TP. Hồ Chí Minh.', 31800, 'Thế Giới Trẻ', NULL, 1, 27),
+('loaloa-show', 'LOALOA SHOW', 'BanToChuc', '../assets/images/stars/loaloa.jpg', '../assets/images/events/banner-loaloa-bung-sang.jpg', 'Chuỗi chương trình nghệ thuật kết hợp văn hóa dân gian và vũ điệu đương đại Việt Nam.', 20700, 'LOALOA SHOW', NULL, 1, 28);
+
+-- 3. Bổ sung sự kiện mẫu cho các Star chưa có sự kiện riêng trong bảng sukien (ID 53 -> 64)
+INSERT INTO `sukien` (`id`, `ten_su_kien`, `dia_diem`, `gia_thap_nhat`, `thoi_gian`, `thoi_gian_hien_thi`, `ten_dia_diem`, `so_luong_toi_da`, `nguoi_tao`, `hinh_anh`, `ten_ban_to_chuc`, `mo_ta_ban_to_chuc`) VALUES
+(53, '[CONCERT] ANH TRAI VƯỢT NGÀN CHÔNG GAI 2026 - DAY 3 & DAY 4', 'Đỗ Xuân Hợp, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 1000000, '2026-12-05 17:00:00', '17:00 - 23:00, 05 Tháng 12, 2026', 'The Global City', 5000, 2, '../assets/images/events/banner-anh-trai.jpg', 'YeaH1 Family', 'Đơn vị sản xuất độc quyền'),
+(54, 'NGỌC THANH TÂM FAN MEETING: TIỂU NƠ DAY 2026', 'Quận 1, TP. Hồ Chí Minh', 350000, '2026-12-10 18:30:00', '18:30 - 21:30, 10 Tháng 12, 2026', 'Nhà hát Bến Thành', 400, 2, '../assets/images/memberships/tieu-no.jpg', 'Ngọc Thanh Tâm', 'Fan Meeting & Ra mắt dự án mới'),
+(55, 'ĐINH MẠNH NINH LIVE ACOUSTIC & OFFICIAL MERCHANDISE', 'Quận Hoàn Kiếm, Hà Nội', 450000, '2026-12-08 20:00:00', '20:00 - 22:30, 08 Tháng 12, 2026', 'Polygon Musik', 250, 2, '../assets/images/events/banner-skynote.jpg', 'Đinh Mạnh Ninh', 'Đêm nhạc Acoustic & Giao lưu khán giả'),
+(56, 'JUN PHẠM FAN MEETING: XỨ SỞ MIÊN MAN', 'Quận 3, TP. Hồ Chí Minh', 490000, '2026-12-15 18:30:00', '18:30 - 21:30, 15 Tháng 12, 2026', 'Nhà hát Hòa Bình', 600, 2, '../assets/images/memberships/jun-pham.jpg', 'Jun Phạm', 'Sự kiện dành cho cộng đồng Fanclub Jun Phạm'),
+(57, 'MR. SIRO LIVE CONCERT: CHẠM ĐÁY NỖI ĐAU', 'Quận 1, TP. Hồ Chí Minh', 900000, '2026-12-20 19:30:00', '19:30 - 22:30, 20 Tháng 12, 2026', 'Nhà hát Thành Phố', 500, 2, '../assets/images/events/banner-skynote.jpg', 'Mr. Siro', 'Đêm nhạc Ballad đặc biệt của Mr. Siro'),
+(58, 'ĐÊM NHẠC NGUYỄN VĂN CHUNG: NHẬT KÝ CỦA MẸ', 'Quận 1, TP. Hồ Chí Minh', 500000, '2026-12-18 19:30:00', '19:30 - 22:00, 18 Tháng 12, 2026', 'Nhà hát Bến Thành', 450, 2, '../assets/images/events/banner-chao-show.jpg', 'Nguyễn Văn Chung', 'Đêm nhạc kỷ niệm chặng đường sáng tác'),
+(59, 'TĂNG PHÚC LIVE SHOW: SUN SONG 2026', 'Thành phố Đà Lạt, Tỉnh Lâm Đồng', 650000, '2026-12-14 17:00:00', '17:00 - 20:30, 14 Tháng 12, 2026', 'Mây Lang Thang Đà Lạt', 400, 2, '../assets/images/events/banner-strong.jpg', 'Tăng Phúc', 'Đêm nhạc ngoài trời giữa thông reo Đà Lạt'),
+(60, 'DJ MIE - NEON RAVE NIGHT PARTY', 'Quận 1, TP. Hồ Chí Minh', 400000, '2026-12-22 21:00:00', '21:00 - 01:00, 22 Tháng 12, 2026', 'Capital Theatre', 500, 2, '../assets/images/events/banner-tinh-ha.jpg', 'DJ Mie', 'Đêm nhạc điện tử EDM bùng nổ'),
+(61, 'Phòng trà Bến Thành: Đêm Nhạc Tình Khúc Mùa Đông', '6 Mạc Đĩnh Chi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 450000, '2026-11-28 20:30:00', '20:30 - 23:00, 28 Tháng 11, 2026', 'Phòng trà Bến Thành', 220, 2, '../assets/images/events/banner-chao-show.jpg', 'Phòng trà Bến Thành', 'Không gian âm nhạc sang trọng tại Quận 1'),
+(62, 'SAO CONCERT 2026 - ĐÊM HỘI ÂM NHẠC', 'Quận 7, TP. Hồ Chí Minh', 750000, '2026-12-26 19:00:00', '19:00 - 23:00, 26 Tháng 12, 2026', 'SECC Outdoor', 2000, 2, '../assets/images/events/banner-uprize.jpg', 'SAO Concert', 'Đại nhạc hội quy tụ dàn sao V-Pop'),
+(63, 'SOUND HEALING CONCERT: TĨNH LẶNG GIỮA PHỐ', 'Quận 3, TP. Hồ Chí Minh', 380000, '2026-12-06 19:00:00', '19:00 - 21:00, 06 Tháng 12, 2026', 'Không gian Nghệ thuật Thiền Âm', 120, 2, '../assets/images/events/banner-chao-show.jpg', 'Sound Healing', 'Trải nghiệm hòa nhạc chữa lành tâm hồn'),
+(64, 'SECRET GARDEN LIVE SESSION: ĐÊM MƯA PHỐ THỊ', 'Quận 1, TP. Hồ Chí Minh', 320000, '2026-12-09 20:00:00', '20:00 - 22:15, 09 Tháng 12, 2026', 'Secret Garden Acoustic Lounge', 100, 2, '../assets/images/events/banner-moss-frame.jpg', 'Secret Garden', 'Đêm nhạc Acoustic thân mật');
+
+INSERT INTO `loaive` (`su_kien_id`, `ten_loai_ve`, `gia_ve`, `da_het_ve`, `so_luong`) VALUES
+(53, 'GA CHÔNG GAI', 1000000, 1, 0),
+(54, 'VÉ TIỂU NƠ STANDARD', 350000, 0, 100),
+(55, 'VÉ ACOUSTIC STANDARD', 450000, 0, 100),
+(56, 'VÉ MIÊN MAN', 490000, 0, 100),
+(57, 'VÉ BALLAD VIP', 900000, 0, 100),
+(58, 'VÉ TIÊU CHUẨN', 500000, 0, 100),
+(59, 'VÉ SUN SONG', 650000, 0, 100),
+(60, 'VÉ RAVE PASS', 400000, 0, 100),
+(61, 'VÉ PHỤ THU ĐÊM NHẠC', 450000, 0, 100),
+(62, 'VÉ SAO FANZONE', 750000, 0, 100),
+(63, 'VÉ TRẢI NGHIỆM', 380000, 0, 100),
+(64, 'VÉ ACOUSTIC', 320000, 0, 100);
+
+
+
+
+--------------- BO SUNG CÁC CỘT RIÊNG CHO TỪNG STAR TIÊU BIỂU --------------
+USE `ticketbox`;
+
+-- 1. Thêm 3 cột riêng biệt vào bảng ticketstars
+ALTER TABLE `ticketstars`
+  ADD COLUMN `banner_star` varchar(255) DEFAULT NULL COMMENT 'Đường dẫn ảnh banner riêng của Star' AFTER `avatar`,
+  ADD COLUMN `su_kien_noi_bat_id` int(11) DEFAULT NULL COMMENT 'ID sự kiện nổi bật từ bảng sukien (NULL nếu không có)' AFTER `tu_khoa_su_kien`,
+  ADD COLUMN `thong_bao` text DEFAULT NULL COMMENT 'Nội dung thông báo hiển thị trên trang Star' AFTER `mo_ta`;
+
+-- 2. Gán đường dẫn thư mục riêng cho banner_star (bạn chỉ cần bỏ ảnh vào assets/images/stars/banners/)
+UPDATE `ticketstars`
+SET `banner_star` = CONCAT('../assets/images/stars/banners/', `slug`, '.jpg');
+
+-- 3. Gán Sự kiện nổi bật & Thông báo mẫu cho các Star tiêu biểu (các Star khác để NULL sẽ tự ẩn khối này)
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 3,
+    `thong_bao` = 'Chào mừng bạn đến với kênh chính thức của SS Label trên Ticketbox! Theo dõi ngay để nhận thông báo mở bán vé Presale sớm nhất.'
+WHERE `slug` = 'ss-label';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 9,
+    `thong_bao` = 'Lịch mở bán vé các đêm diễn tiếp theo của chuỗi concert sẽ được cập nhật trực tiếp tại mục Lịch hoạt động.'
+WHERE `slug` = 'yeah1-family';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 4,
+    `thong_bao` = 'Theo dõi Vie Concert để không bỏ lỡ các suất mở bán vé sớm và quyền lợi Fanzone.'
+WHERE `slug` = 'vie-concert';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 6
+WHERE `slug` = 'gai-meet';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 1,
+    `thong_bao` = 'Hội viên SKYNOTE Membership được ưu tiên đặt vé sớm trước giờ mở bán công khai.'
+WHERE `slug` = 'quoc-thien';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 54
+WHERE `slug` = 'ngoc-thanh-tam';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 2
+WHERE `slug` = 'nhung-thanh-pho-mong-mo';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 56
+WHERE `slug` = 'jun-pham';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 45
+WHERE `slug` = 'kich-idecaf';
+
+UPDATE `ticketstars`
+SET `su_kien_noi_bat_id` = 42
+WHERE `slug` = 'kich-doan-thanh-loc';
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
