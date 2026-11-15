@@ -582,90 +582,113 @@ a {
 /* ==========================================
    6. FEATURED STARS & MEMBERSHIP
    ========================================== */
-/* ==========================================
-   FEATURED STARS SECTION (TICKETBOX STYLE)
-   ========================================== */
-.featured-stars-section {
-    padding: 30px 0;
-    background-color: none;
-    color: #ffffff;
+/* =========================================================
+   1. FEATURED STARS (KHÔNG KHUNG + SỬA LỖI NÚT CUỘN < >)
+   ========================================================= */
+.featured-stars-wrapper-bg {
+    width: 100%;
+    padding: 0;
+    margin-top: 35px;
+    background: transparent !important;
+    border: none !important;
 }
 
-.section-title-wrapper {
-    margin-bottom: 20px;
-}
-
-.section-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #ffffff;
+.stars-header-row {
     display: flex;
     align-items: center;
+    margin-bottom: 16px;
+}
+
+.stars-title-link {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    cursor: pointer;
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    transition: color 0.2s ease;
 }
 
-.star-icon {
-    color: #ffc107;
-}
-
-.title-arrow {
-    font-size: 14px;
+.stars-title-link:hover {
     color: #26c973;
 }
 
-/* Slider Layout */
+.stars-title-link .star-icon {
+    color: #f7b500;
+    font-size: 18px;
+}
+
+.stars-title-link .title-arrow {
+    color: #26c973;
+    font-size: 13px;
+}
+
+/* Khung bao slider bắt buộc có position: relative để neo 2 nút < > */
 .stars-slider-wrapper {
     position: relative;
+    width: 100%;
     display: flex;
     align-items: center;
 }
 
 .stars-track {
     display: flex;
-    gap: 16px;
+    gap: 14px;
+    width: 100%;
     overflow-x: auto;
     scroll-behavior: smooth;
-    padding: 10px 5px;
     scrollbar-width: none;
-    /* Firefox */
+    padding: 6px 0;
 }
 
 .stars-track::-webkit-scrollbar {
     display: none;
-    /* Chrome, Safari, Opera */
 }
 
-/* Star Card Component */
 .star-card {
-    flex: 0 0 calc(100% / 8 - 14px);
-    /* Hiển thị ~8 item trên màn hình lớn */
-    min-width: 130px;
-    background: #1e1e1e;
-    border: 1px solid rgba(38, 201, 115, 0.3);
-    border-radius: 12px;
-    padding: 16px 10px;
+    flex: 0 0 calc((100% - 98px) / 8);
+    min-width: 120px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 6px 4px;
+    text-decoration: none;
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
+    justify-content: center;
+    gap: 10px;
+    box-sizing: border-box;
+    transition: transform 0.22s ease;
 }
 
-.star-card:hover {
-    transform: translateY(-4px);
-    border-color: #26c973;
-    box-shadow: 0 4px 15px rgba(38, 201, 115, 0.25);
+.star-card:hover,
+.star-card:focus {
+    transform: translateY(-3px);
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
 }
 
-/* Avatar vòng tròn viền xanh */
 .avatar-ring {
-    width: 90px;
-    height: 90px;
+    width: 86px;
+    height: 86px;
     border-radius: 50%;
-    padding: 3px;
-    background: linear-gradient(135deg, #26c973, #157342);
-    margin-bottom: 12px;
+    padding: 2px;
+    background: linear-gradient(135deg, #26c973, #00b14f);
+    box-shadow: 0 0 14px rgba(38, 201, 115, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.star-card:hover .avatar-ring {
+    transform: scale(1.05);
+    box-shadow: 0 0 22px rgba(38, 201, 115, 0.5);
 }
 
 .star-avatar {
@@ -673,66 +696,642 @@ a {
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    background-color: #000;
+    background: #16181d;
+    display: block;
 }
 
-/* Tên & Badge */
 .star-info {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 4px;
     width: 100%;
+    padding: 0 2px;
+    box-sizing: border-box;
 }
 
 .star-name {
-    color: #ffffff;
     font-size: 13px;
     font-weight: 600;
+    color: #e5e7eb;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 85px;
+    transition: color 0.2s ease;
+}
+
+.star-card:hover .star-name {
+    color: #26c973;
 }
 
 .verified-badge {
     color: #26c973;
-    font-size: 13px;
+    font-size: 12px;
     flex-shrink: 0;
 }
 
-/* Navigation Buttons */
-.slider-btn {
+/* Định vị lại 2 nút cuộn trái/phải chuẩn giữa hàng avatar */
+.star-nav-btn {
     position: absolute;
-    top: 50%;
+    top: 44px;
     transform: translateY(-50%);
-    width: 36px;
-    height: 50px;
-    background: rgba(0, 0, 0, 0.85);
-    border: 1px solid #333;
-    color: #fff;
-    border-radius: 6px;
+    width: 32px;
+    height: 44px;
+    background: rgba(18, 20, 26, 0.85);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ffffff;
     cursor: pointer;
-    z-index: 5;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 13px;
+    padding: 0;
+    outline: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.star-nav-btn:hover {
+    background: #26c973;
+    border-color: #26c973;
+    color: #111111;
+}
+
+.star-nav-prev {
+    left: -6px;
+    border-radius: 0 8px 8px 0;
+    display: none;
+}
+
+.star-nav-next {
+    right: -6px;
+    border-radius: 8px 0 0 8px;
+}
+
+/* =========================================================
+   TRANG HỒ SƠ STAR - CHUẨN 100% GIAO DIỆN TICKETSTARS
+   ========================================================= */
+/* Ẩn header mặc định của trang chủ khi đang ở trang chi tiết Star */
+body.is-star-detail-page > header,
+body.is-star-detail-page > nav,
+body.is-star-detail-page .main-header,
+body.is-star-detail-page .category-bar,
+body.is-star-detail-page .navbar {
+    display: none !important;
+}
+
+body.is-star-detail-page {
+    overflow-x: clip;
+    background-color: #121316;
+}
+
+/* Thanh Header riêng của Star - Luôn treo cố định (Sticky) khi cuộn */
+.star-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    height: 64px;
+    background: rgba(18, 19, 22, 0.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.star-sticky-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.star-brand-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.tkb-square-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    background: #26c973;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 10px;
+    line-height: 1.05;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+}
+
+.star-brand-title {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.star-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    overflow: hidden;
+}
+
+.star-nav-links a {
+    color: #e5e7eb;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.star-nav-links a:hover,
+.star-nav-links a.active {
+    color: #26c973;
+}
+
+.star-auth-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.star-auth-group a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.star-auth-group a:hover {
+    color: #26c973;
+}
+
+.star-user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.star-user-chip img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid #26c973;
+}
+
+.star-badge-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #d9381e;
+    color: #f7b500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+/* Banner tràn 100% chiều ngang màn hình (không gây thanh cuộn ngang) */
+.star-banner-section {
+    width: 100%;
+    height: 460px;
+    background: radial-gradient(circle at 50% 40%, #1d3528 0%, #111317 80%);
+    position: relative;
+    overflow: hidden;
+}
+
+.star-banner-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.star-banner-section::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 130px;
+    background: linear-gradient(to bottom, rgba(18, 19, 22, 0) 0%, rgba(18, 19, 22, 0.88) 78%, #121316 100%);
+    pointer-events: none;
+}
+
+/* Bố cục 2 cột đè nhẹ lên mép dưới Banner */
+.star-profile-grid {
+    position: relative;
+    z-index: 15;
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    gap: 24px;
+    margin-top: -85px;
+    align-items: start;
+}
+
+/* Cột trái cũng treo cố định ngay dưới thanh Header khi lướt xuống */
+.star-left-col {
+    position: sticky;
+    top: 84px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.star-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.star-box-card {
+    background: #23252c;
+    border: 1px solid #30333d;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.star-sidebar-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.star-sidebar-avatar {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #121316;
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    flex-shrink: 0;
+}
+
+.star-sidebar-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.star-role-pill {
+    display: inline-block;
+    background: #ffffff;
+    color: #18191e;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 20px;
+}
+
+.btn-star-follow-full {
+    width: 100%;
+    background: #26c973;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     transition: background 0.2s ease;
 }
 
-.slider-btn:hover {
-    background: #26c973;
+.btn-star-follow-full:hover {
+    background: #21b566;
+}
+
+.btn-star-follow-full.is-following {
+    background: #323540;
+    color: #e5e7eb;
+}
+
+.star-featured-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.star-featured-title i {
+    color: #26c973;
+    font-size: 16px;
+}
+
+.star-featured-poster {
+    display: block;
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.22s ease, border-color 0.22s ease;
+}
+
+.star-featured-poster:hover {
+    transform: translateY(-2px);
     border-color: #26c973;
 }
 
-.prev-btn {
-    left: -15px;
+.star-featured-poster img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
 }
 
-.next-btn {
-    right: -15px;
+.star-mem-heading {
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 10px;
 }
 
+.star-mem-greet {
+    color: #26c973;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 6px;
+}
+
+.star-mem-sub {
+    color: #9ca3af;
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin: 0 0 18px;
+}
+
+.star-mem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 310px));
+    gap: 18px;
+}
+
+.star-mem-item {
+    background: #2b2d36;
+    border: 1px solid #383b47;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.star-mem-item-thumb {
+    width: 100%;
+    height: 155px;
+    display: block;
+    background: #14151a;
+}
+
+.star-mem-item-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.star-mem-item-body {
+    padding: 14px 16px 16px;
+}
+
+.star-mem-item-name {
+    display: block;
+    color: #26c973;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 8px;
+}
+
+.star-mem-item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.btn-star-mem-yellow {
+    display: inline-block;
+    background: #f7b500;
+    color: #111111;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.btn-star-mem-yellow:hover {
+    background: #ffca28;
+}
+
+.star-notice-heading {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.star-notice-heading i {
+    color: #26c973;
+}
+
+.star-activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.star-activity-header h2 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.star-timeline {
+    position: relative;
+    padding-left: 22px;
+    border-left: 2px solid #383b46;
+    margin-left: 6px;
+}
+
+.star-timeline-item {
+    position: relative;
+    margin-bottom: 22px;
+}
+
+.star-timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.star-timeline-dot {
+    position: absolute;
+    left: -29px;
+    top: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #26c973;
+    box-shadow: 0 0 0 4px rgba(38, 201, 115, 0.2);
+}
+
+.star-timeline-date {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e5e7eb;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.star-event-row-card {
+    background: #2a2c34;
+    border: 1px solid #383b46;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: border-color 0.2s ease;
+}
+
+.star-event-row-card:hover {
+    border-color: #26c973;
+}
+
+.star-event-thumb {
+    position: relative;
+    width: 190px;
+    height: 108px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #141519;
+}
+
+.star-event-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.badge-event-ended {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #e67e22;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.star-event-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.star-event-title {
+    display: block;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.star-event-title:hover {
+    color: #26c973;
+}
+
+.star-event-price {
+    color: #26c973;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.btn-star-buy {
+    display: inline-block;
+    background: #26c973;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-star-buy:hover {
+    background: #21b265;
+}
+
+.btn-star-soldout {
+    display: inline-block;
+    background: #d1d5db;
+    color: #4b5563;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+@media (max-width: 960px) {
+    .star-nav-links { display: none; }
+    .star-profile-grid { grid-template-columns: 1fr; margin-top: -40px; }
+    .star-left-col { position: static; }
+    .star-banner-section { height: 260px; }
+}
+
+@media (max-width: 600px) {
+    .star-event-row-card { flex-direction: column; }
+    .star-event-thumb { width: 100%; height: 160px; }
+}
+/* =========================================================
+   KHỐI MEMBERSHIP
+   ========================================================= */
 .membership-section {
     box-sizing: border-box;
 }

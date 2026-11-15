@@ -93,111 +93,76 @@ include '../templates/header.php';
 </main>
 
 
-<!-- FEATURED STARS / BAN TỔ CHỨC NỔI BẬT (CHUẨN GIAO DIỆN TICKETBOX) -->
-<section class="container featured-stars-section" style="margin-top: 35px;">
-    <div class="section-title-wrapper">
-        <h2 class="section-title">
-            <i class="fa-solid fa-star star-icon"></i>
-            Featured Stars
-            <i class="fa-solid fa-chevron-right title-arrow"></i>
-        </h2>
-    </div>
-
-    <div class="stars-slider-wrapper">
-        <button type="button" class="slider-btn prev-btn" id="starPrevBtn" aria-label="Previous">
-            <i class="fa-solid fa-chevron-left"></i>
-        </button>
-
-        <div class="stars-track" id="starsTrack">
-            <?php
-            $organizers = [];
-
-            // 1. Lấy danh sách Ban tổ chức từ CSDL (Nếu đã kết nối PDO)
-            if (isset($pdo)) {
-                try {
-                    $stmtOrg = $pdo->prepare("SELECT id, ho_ten, avatar FROM nguoidung WHERE vai_tro IN ('Organizer', 'Admin', 'NhaToChuc') ORDER BY id DESC LIMIT 15");
-                    $stmtOrg->execute();
-                    $organizers = $stmtOrg->fetchAll(PDO::FETCH_ASSOC);
-                } catch (PDOException $e) {
-                    $organizers = [];
-                }
-            }
-
-            // 2. Danh sách ảnh mẫu chuẩn cho các BTC/Nghệ sĩ
-            $sampleAvatars = [
-                'Yeah1 Family' => '../assets/images/stars/yeah1.jpg',
-                'Vie Concert'  => '../assets/images/stars/vieconcert.jpg',
-                'SS Label'     => '../assets/images/stars/sslabel.jpg',
-                'GAI MEET'     => '../assets/images/stars/gaimeet.jpg',
-                'Quốc Thiên'   => '../assets/images/stars/quocthien.jpg',
-                'Kịch IDECAF'  => '../assets/images/stars/idecaf.jpg',
-            ];
-
-            // Nếu CSDL rỗng -> Dùng dữ liệu giả lập chuẩn khớp với trang organizer.php
-            if (empty($organizers)) {
-                $organizers = [
-                    ['id' => 'yeah1-family', 'ho_ten' => 'Yeah1 Family'],
-                    ['id' => 'vie-concert',  'ho_ten' => 'Vie Concert'],
-                    ['id' => 'ss-label',     'ho_ten' => 'SS Label'],
-                    ['id' => 'gai-meet',     'ho_ten' => 'GAI MEET'],
-                    ['id' => 'quoc-thien',   'ho_ten' => 'Quốc Thiên'],
-                    ['id' => 'idecaf',       'ho_ten' => 'Kịch IDECAF'],
-                    ['id' => 7,              'ho_ten' => 'Phùng Khá...'],
-                    ['id' => 8,              'ho_ten' => 'Những Thà...'],
-                    ['id' => 9,              'ho_ten' => 'Jun Phạm'],
-                    ['id' => 10,             'ho_ten' => 'Suboi'],
-                    ['id' => 11,             'ho_ten' => 'Hoàng Dũng'],
-                    ['id' => 12,             'ho_ten' => 'Cheng'],
-                    ['id' => 13,             'ho_ten' => 'Mr. Siro']
-                ];
-            }
-
-            foreach ($organizers as $org):
-                $name = $org['ho_ten'];
-                // Ưu tiên: Ảnh từ DB -> Ảnh mẫu -> Ảnh avatar mặc định
-                $avatarSrc = !empty($org['avatar']) ? $org['avatar'] : ($sampleAvatars[$name] ?? '../assets/images/default-avatar.png');
-                $orgId = $org['id'];
-            ?>
-                <a href="organizer.php?id=<?php echo urlencode((string)$orgId); ?>" class="star-card">
-                    <div class="avatar-ring">
-                        <img src="<?php echo htmlspecialchars($avatarSrc); ?>" 
-                             alt="<?php echo htmlspecialchars($name); ?>" 
-                             class="star-avatar" 
-                             onerror="this.src='https://via.placeholder.com/90/000/26c973?text=<?php echo urlencode(mb_substr($name, 0, 2, 'UTF-8')); ?>'">
-                    </div>
-                    <div class="star-info">
-                        <span class="star-name"><?php echo htmlspecialchars($name); ?></span>
-                        <i class="fa-solid fa-circle-check verified-badge"></i>
-                    </div>
-                </a>
-            <?php endforeach; ?>
+<!-- FEATURED STARS / BAN TỔ CHỨC NỔI BẬT -->
+<div class="featured-stars-wrapper-bg">
+    <section class="container">
+        <div class="stars-header-row">
+            <a href="organizer.php" class="stars-title-link">
+                <i class="fa-solid fa-star star-icon"></i>
+                <span>Featured Stars</span>
+                <i class="fa-solid fa-chevron-right title-arrow"></i>
+            </a>
         </div>
 
-        <button type="button" class="slider-btn next-btn" id="starNextBtn" aria-label="Next">
-            <i class="fa-solid fa-chevron-right"></i>
-        </button>
-    </div>
-</section>
+        <div class="stars-slider-wrapper">
+            <button type="button" class="star-nav-btn star-nav-prev" id="starPrevBtn" onclick="scrollStars(-1)">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
 
-<!-- Script xử lý sự kiện cuộn Slider cho nút Mũi tên -->
+            <div class="stars-track" id="starsTrack" onscroll="updateStarArrows()">
+                <?php
+                $starsList = [];
+                if (isset($pdo)) {
+                    $stmtStars = $pdo->query("SELECT * FROM ticketstars ORDER BY thu_tu ASC, id ASC");
+                    $starsList = $stmtStars->fetchAll(PDO::FETCH_ASSOC);
+                }
+                foreach ($starsList as $star):
+                    $initials = mb_strtoupper(mb_substr($star['ten_hien_thi'], 0, 2, 'UTF-8'), 'UTF-8');
+                ?>
+                    <a href="organizer.php?slug=<?php echo urlencode($star['slug']); ?>" class="star-card" title="<?php echo htmlspecialchars($star['ten_hien_thi']); ?>">
+                        <div class="avatar-ring">
+                            <img src="<?php echo htmlspecialchars($star['avatar']); ?>"
+                                 alt="<?php echo htmlspecialchars($star['ten_hien_thi']); ?>"
+                                 class="star-avatar"
+                                 onerror="this.src='https://via.placeholder.com/150/16181d/26c973?text=<?php echo urlencode($initials); ?>'">
+                        </div>
+                        <div class="star-info">
+                            <span class="star-name"><?php echo htmlspecialchars($star['ten_hien_thi']); ?></span>
+                            <i class="fa-solid fa-circle-check verified-badge"></i>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+            <button type="button" class="star-nav-btn star-nav-next" id="starNextBtn" onclick="scrollStars(1)">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </section>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+function updateStarArrows() {
     const track = document.getElementById('starsTrack');
     const prevBtn = document.getElementById('starPrevBtn');
     const nextBtn = document.getElementById('starNextBtn');
+    if (!track || !prevBtn || !nextBtn) return;
 
-    if (track && prevBtn && nextBtn) {
-        const scrollStep = 320; // Khoảng cách cuộn mỗi lần nhấp
+    prevBtn.style.display = track.scrollLeft > 10 ? 'flex' : 'none';
+    const isAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+    nextBtn.style.display = isAtEnd ? 'none' : 'flex';
+}
 
-        prevBtn.addEventListener('click', function() {
-            track.scrollBy({ left: -scrollStep, behavior: 'smooth' });
-        });
+function scrollStars(direction) {
+    const track = document.getElementById('starsTrack');
+    if (!track) return;
+    const card = track.querySelector('.star-card');
+    const step = card ? (card.offsetWidth + 12) * 5 : 680;
+    track.scrollBy({ left: direction * step, behavior: 'smooth' });
+}
 
-        nextBtn.addEventListener('click', function() {
-            track.scrollBy({ left: scrollStep, behavior: 'smooth' });
-        });
-    }
-});
+document.addEventListener('DOMContentLoaded', updateStarArrows);
+window.addEventListener('resize', updateStarArrows);
 </script>
 <!-- Section: Thẻ thành viên -->
 <?php
