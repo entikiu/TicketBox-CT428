@@ -16,6 +16,10 @@ $errors = [
     'terms' => ''
 ];
 
+// Khai báo biến lưu giá trị cũ để điền lại form khi có lỗi
+$fullname = '';
+$email = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullname = trim($_POST['fullname'] ?? '');
     $email = trim($_POST['email'] ?? '');

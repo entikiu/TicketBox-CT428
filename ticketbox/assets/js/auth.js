@@ -421,3 +421,39 @@ function parseJwt(token) {
     }).join(''));
     return JSON.parse(jsonPayload);
 }
+
+/**
+ * Kiểm tra tính hợp lệ của mật khẩu theo 4 tiêu chí
+ * @param {string} password 
+ * @returns {object} { isValid: boolean, message: string }
+ */
+function validatePassword(password) {
+    if (password.length < 8 || password.length > 32) {
+        return { isValid: false, message: "Mật khẩu phải có độ dài từ 8 đến 32 ký tự." };
+    }
+    if (!/[A-Z]/.test(password)) {
+        return { isValid: false, message: "Mật khẩu phải chứa ít nhất một chữ cái viết hoa (A-Z)." };
+    }
+    if (!/[a-z]/.test(password)) {
+        return { isValid: false, message: "Mật khẩu phải chứa ít nhất một chữ cái viết thường (a-z)." };
+    }
+    if (!/\d/.test(password)) {
+        return { isValid: false, message: "Mật khẩu phải chứa ít nhất một chữ số (0-9)." };
+    }
+    if (!/[^a-zA-Z0-9]/.test(password)) {
+        return { isValid: false, message: "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (VD: @, #, $, !,...). " };
+    }
+
+    return { isValid: true, message: "" };
+}
+
+// Ví dụ bắt sự kiện khi submit form đăng ký hoặc khi nhập liệu (oninput)
+document.getElementById('registerForm')?.addEventListener('submit', function(e) {
+    const passwordInput = document.getElementById('password').value;
+    const validation = validatePassword(passwordInput);
+    
+    if (!validation.isValid) {
+        e.preventDefault();
+        alert(validation.message); // Hoặc hiển thị thông báo lỗi vào DOM UI tương ứng
+    }
+});
