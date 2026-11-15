@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 class User
 {
@@ -8,7 +9,7 @@ class User
 
     public function findById(int $id): array|false
     {
-        $sql = 'SELECT id, ho_ten, email, vai_tro
+        $sql = 'SELECT id, ho_ten, email, phone, dob, gender, avatar, mat_khau, vai_tro, ngay_tao
                 FROM nguoidung
                 WHERE id = :id
                 LIMIT 1';
@@ -21,10 +22,10 @@ class User
 
     public function findByEmail(string $email): array|false
     {
-        $sql = "SELECT id, ho_ten, email, mat_khau, vai_tro
+        $sql = 'SELECT id, ho_ten, email, phone, dob, gender, avatar, mat_khau, vai_tro, ngay_tao
                 FROM nguoidung
                 WHERE email = :email
-                LIMIT 1";
+                LIMIT 1';
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['email' => $email]);
@@ -35,17 +36,18 @@ class User
     public function create(
         string $hoTen,
         string $email,
-        string $matKhauHash
+        string $matKhauHash,
+        string $vaiTro = 'Attendee'
     ): int {
-        $sql = "INSERT INTO nguoidung
-                    (ho_ten, email, mat_khau)
-                VALUES (:ho_ten, :email, :mat_khau)";
+        $sql = 'INSERT INTO nguoidung (ho_ten, email, mat_khau, vai_tro)
+                VALUES (:ho_ten, :email, :mat_khau, :vai_tro)';
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            'ho_ten' => $hoTen,
-            'email' => $email,
-            'mat_khau' => $matKhauHash
+            'ho_ten'   => $hoTen,
+            'email'    => $email,
+            'mat_khau' => $matKhauHash,
+            'vai_tro'  => $vaiTro
         ]);
 
         return (int) $this->pdo->lastInsertId();

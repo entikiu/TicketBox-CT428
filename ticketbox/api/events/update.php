@@ -21,12 +21,11 @@ if (!$id || $id < 1) {
 }
 
 require_fields($data, [
-    'title', 'description', 'location',
-    'time', 'capacity'
+    'title', 'location', 'time', 'capacity'
 ]);
 
 $eventModel = new Event($pdo);
-$event = $eventModel->find($id);
+$event      = $eventModel->find($id);
 
 if (!$event) {
     api_response(404, [
@@ -46,7 +45,7 @@ if ($userRole !== 'admin' && (int)($event['nguoi_tao'] ?? 0) !== $userId) {
 }
 
 $title       = trim((string)$data['title']);
-$description = trim((string)$data['description']);
+$description = trim((string)($data['description'] ?? ''));
 $location    = trim((string)$data['location']);
 $time        = strtotime((string)$data['time']);
 $capacity    = filter_var($data['capacity'], FILTER_VALIDATE_INT);
@@ -72,15 +71,37 @@ $updateData = [
     'so_luong_toi_da' => $capacity
 ];
 
-if (array_key_exists('hinh_anh', $data) || array_key_exists('image', $data)) {
-    $image = trim((string)($data['hinh_anh'] ?? $data['image'] ?? ''));
-    if (mb_strlen($image, 'UTF-8') > 255) {
-        api_response(422, [
-            'success' => false,
-            'message' => 'Đường dẫn hình ảnh quá dài (tối đa 255 ký tự).'
-        ]);
+$stringFieldMap = [
+    'hinh_anh'          => ['keys' => ['hinh_anh', 'image'], 'max' => 255],
+    'thoi_gian_hien_thi'=> ['keys' => ['thoi_gian_hien_thi', 'display_time'], 'max' => 150],
+    'ten_dia_diem'      => ['keys' => ['ten_dia_diem', 'venue_name'], 'max' => 200],
+    'ten_ban_to_chuc'   => ['keys' => ['ten_ban_to_chuc', 'organizer_name'], 'max' => 200],
+    'mo_ta_ban_to_chuc' => ['keys' => ['mo_ta_ban_to_chuc', 'organizer_desc'], 'max' => 255],
+];
+
+foreach ($stringFieldMap as $col => $cfg) {
+    foreach ($cfg['keys'] as $k) {
+        if (array_key_exists($k, $data)) {
+            $val = trim((string)($data[$k] ?? ''));
+            if (mb_strlen($val, 'UTF-8') > $cfg['max']) {
+                api_response(422, [
+                    'success' => false,
+                    'message' => "Trường {$col} vượt quá {$cfg['max']} ký tự."
+                ]);
+            }
+            $updateData[$col] = $val !== '' ? $val : null;
+            break;
+        }
     }
-    $updateData['hinh_anh'] = $image !== '' ? $image : null;
+}
+
+if (array_key_exists('gia_thap_nhat', $data)) {
+    $updateData['gia_thap_nhat'] = max(0, (int)$data['gia_thap_nhat']);
+}
+
+if (array_key_exists('danh_muc_id', $data)) {
+    $catId = filter_var($data['danh_muc_id'], FILTER_VALIDATE_INT);
+    $updateData['danh_muc_id'] = ($catId && $catId > 0) ? $catId : null;
 }
 
 try {

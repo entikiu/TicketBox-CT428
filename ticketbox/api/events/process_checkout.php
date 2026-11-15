@@ -34,7 +34,7 @@ try {
 
         $pdo->beginTransaction();
 
-        $stmtMem = $pdo->prepare('SELECT * FROM the_thanh_vien WHERE id = :id LIMIT 1');
+        $stmtMem = $pdo->prepare('SELECT * FROM the_thanh_vien WHERE id = :id FOR UPDATE');
         $stmtMem->execute(['id' => $membershipId]);
         $memInfo = $stmtMem->fetch(PDO::FETCH_ASSOC);
 
@@ -45,8 +45,35 @@ try {
             exit;
         }
 
+        if (($memInfo['trang_thai'] ?? '') !== 'dang-ban') {
+            $pdo->rollBack();
+            $_SESSION['flash_error'] = 'Gói thẻ thành viên này hiện đã bán hết hoặc đóng bán.';
+            header('Location: ../../pages/home.php');
+            exit;
+        }
+
+        // Kiểm tra tài khoản đã có thẻ thành viên gói này đang hoạt động chưa
+        $stmtCheckActive = $pdo->prepare("
+            SELECT id FROM the_thanh_vien_nguoidung
+            WHERE nguoi_dung_id = :user_id
+              AND the_id = :the_id
+              AND trang_thai = 'dang-hoat-dong'
+              AND ngay_het_han > NOW()
+            LIMIT 1
+        ");
+        $stmtCheckActive->execute([
+            'user_id' => $userId,
+            'the_id'  => $membershipId
+        ]);
+        if ($stmtCheckActive->fetch()) {
+            $pdo->rollBack();
+            $_SESSION['flash_error'] = 'Bạn đã sở hữu gói thẻ thành viên này và thẻ vẫn đang còn hiệu lực.';
+            header('Location: ../../pages/my-tickets.php?tab=membership');
+            exit;
+        }
+
         $cardCode   = 'MB-' . date('Ymd') . '-' . random_int(1000, 9999);
-        $months     = max(1, (int)($memInfo['thoi_han_thang'] ?? 1));
+        $months     = max(1, (int)($memInfo['thoi_han_thang'] ?? 6));
         $ngayHetHan = date('Y-m-d H:i:s', strtotime("+{$months} months"));
 
         $stmtInsMem = $pdo->prepare("
@@ -85,9 +112,11 @@ try {
 
     $pdo->beginTransaction();
 
-    // 1. Khóa bản ghi sự kiện trong bảng `sukien`
     $stmtEvent = $pdo->prepare(
-        'SELECT id, ten_su_kien, dia_diem, thoi_gian, so_luong_toi_da, hinh_anh FROM sukien WHERE id = :id FOR UPDATE'
+        'SELECT id, ten_su_kien, dia_diem, ten_dia_diem, thoi_gian, thoi_gian_hien_thi, so_luong_toi_da, hinh_anh
+         FROM sukien
+         WHERE id = :id
+         FOR UPDATE'
     );
     $stmtEvent->execute(['id' => $suKienId]);
     $event = $stmtEvent->fetch(PDO::FETCH_ASSOC);
@@ -99,7 +128,6 @@ try {
         exit;
     }
 
-    // 2. Kiểm tra tổng số vé đã bán của toàn sự kiện so với `so_luong_toi_da`
     $maxCapacity = (int)$event['so_luong_toi_da'];
     $stmtCount = $pdo->prepare(
         "SELECT COUNT(*) FROM ve WHERE su_kien_id = :id AND trang_thai != 'da-huy'"
@@ -114,7 +142,6 @@ try {
         exit;
     }
 
-    // 3. Tìm và khóa hạng vé tương ứng trong bảng `loaive`
     $ticketTier = null;
     if ($loaiVeId && $loaiVeId > 0) {
         $stmtTier = $pdo->prepare(
@@ -146,7 +173,6 @@ try {
         $category = mb_substr(trim((string)$ticketTier['ten_loai_ve']), 0, 100, 'UTF-8');
         $tierMax  = (int)$ticketTier['so_luong'];
 
-        // Kiểm tra cờ `da_het_ve`
         if ((int)$ticketTier['da_het_ve'] === 1) {
             $pdo->rollBack();
             $_SESSION['flash_error'] = "Hạng vé \"{$category}\" đã hết.";
@@ -154,7 +180,6 @@ try {
             exit;
         }
 
-        // Đếm số vé đã bán của riêng hạng vé này
         $stmtTierCount = $pdo->prepare(
             "SELECT COUNT(*) FROM ve WHERE su_kien_id = :su_kien_id AND loai_ve = :loai_ve AND trang_thai != 'da-huy'"
         );
@@ -182,15 +207,14 @@ try {
         : '0 đ';
 
     $eventTitle = (string)$event['ten_su_kien'];
-    $time       = (string)$event['thoi_gian'];
-    $location   = (string)($event['dia_diem'] ?? 'Chưa cập nhật');
+    $time       = (string)($event['thoi_gian_hien_thi'] ?: $event['thoi_gian']);
+    $location   = (string)($event['ten_dia_diem'] ?: $event['dia_diem'] ?: 'Chưa cập nhật');
     $image      = !empty($event['hinh_anh'])
         ? (string)$event['hinh_anh']
         : '../assets/images/events/banner-tinh-ha.jpg';
 
     $ticketCode = 'TKB-' . date('Ymd') . '-' . random_int(1000, 9999);
 
-    // 4. Lưu vé mới vào bảng `ve`
     $stmtVe = $pdo->prepare("
         INSERT INTO ve (ma_ve, su_kien_id, nguoi_dung_id, loai_ve, gia_ve, trang_thai, ngay_dat)
         VALUES (:ma_ve, :su_kien_id, :nguoi_dung_id, :loai_ve, :gia_ve, 'thanh-cong', NOW())
@@ -204,7 +228,6 @@ try {
     ]);
     $insertedId = (int)$pdo->lastInsertId();
 
-    // 5. Cập nhật `da_het_ve = 1` nếu hạng vé vừa bán hết suất cuối cùng
     if ($ticketTier && $tierMax > 0 && ($tierSold + 1) >= $tierMax) {
         $stmtMarkSoldOut = $pdo->prepare('UPDATE loaive SET da_het_ve = 1 WHERE id = :id');
         $stmtMarkSoldOut->execute(['id' => (int)$ticketTier['id']]);
@@ -212,7 +235,6 @@ try {
 
     $pdo->commit();
 
-    // 6. Đồng bộ vé vào Session
     if (!isset($_SESSION['my_tickets']) || !is_array($_SESSION['my_tickets'])) {
         $_SESSION['my_tickets'] = [];
     }

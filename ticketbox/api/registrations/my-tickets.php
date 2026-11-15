@@ -31,7 +31,10 @@ try {
             e.id AS event_id,
             e.ten_su_kien,
             e.dia_diem,
+            e.ten_dia_diem,
             e.thoi_gian,
+            e.thoi_gian_hien_thi,
+            e.ten_ban_to_chuc,
             e.hinh_anh
         FROM ve r
         INNER JOIN sukien e ON r.su_kien_id = e.id
@@ -51,7 +54,6 @@ try {
     $stmt->execute($params);
     $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Lấy kèm danh sách thẻ thành viên của người dùng (nếu có)
     $stmtMem = $pdo->prepare("
         SELECT 
             m.id,
