@@ -200,7 +200,7 @@ include '../templates/header.php';
             <section>
                 <?php if ($tab === 'about'): ?>
                     <div class="star-box-card">
-                        <h3 style="margin-top: 0; color: #fff;">Giới thiệu về <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></h3>
+                        <h3 style="margin: 0 0 12px; color: #fff;">Giới thiệu về <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></h3>
                         <p style="color: #d1d5db; line-height: 1.7; margin-bottom: 16px;">
                             <?php echo nl2br(htmlspecialchars($currentStar['mo_ta'] ?: 'Đang cập nhật thông tin giới thiệu.')); ?>
                         </p>

@@ -157,11 +157,9 @@ a {
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     padding: 0 0 8px 0;
-    /* Sửa: Đã xóa padding-top để nút dán chặt lề trên */
     display: none;
     z-index: 2000;
     overflow: hidden;
-    /* Thêm: Giúp nút ôm sát theo 2 góc bo tròn trên cùng */
 }
 
 .dropdown-menu.show {
@@ -208,7 +206,6 @@ a {
     background-color: #000000 !important;
     color: #ffffff !important;
     border-radius: 40px !important;
-    /* Bo góc tròn dạng viên thuốc */
     padding: 10px 16px !important;
     font-weight: 700;
     font-size: 14px;
@@ -770,445 +767,7 @@ a {
 }
 
 /* =========================================================
-   TRANG HỒ SƠ STAR - CHUẨN 100% GIAO DIỆN TICKETSTARS
-   ========================================================= */
-
-.star-subnav {
-    background: #141518;
-    border-bottom: 1px solid #26282e;
-    position: sticky;
-    top: 0;
-    z-index: 90;
-}
-
-.star-subnav-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    min-height: 54px;
-    flex-wrap: wrap;
-}
-
-.star-subnav-brand {
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 700;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.star-subnav-tabs {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    overflow-x: auto;
-}
-
-.star-subnav-tab {
-    color: #a1a5b0;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 16px 0;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-    transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.star-subnav-tab:hover,
-.star-subnav-tab.active {
-    color: #26c973;
-    border-bottom-color: #26c973;
-}
-
-/* Bố cục 2 cột */
-.star-page-container {
-    max-width: 1200px;
-    margin: 28px auto 60px;
-    padding: 0 20px;
-}
-
-.star-layout-grid {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 28px;
-    align-items: start;
-}
-
-/* Cột trái: Profile & Sự kiện nổi bật */
-.star-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: sticky;
-    top: 74px;
-}
-
-.star-box-card {
-    background: #23252a;
-    border: 1px solid #2f3239;
-    border-radius: 14px;
-    padding: 22px;
-}
-
-.star-profile-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.star-profile-avatar {
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #353841;
-    flex-shrink: 0;
-    background: #18191d;
-}
-
-.star-profile-info h1 {
-    margin: 0 0 8px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    line-height: 1.3;
-}
-
-.star-verified-icon {
-    color: #26c973;
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.star-role-badge {
-    display: inline-block;
-    background: #ffffff;
-    color: #18191d;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 999px;
-}
-
-.star-follow-btn {
-    width: 100%;
-    padding: 11px 16px;
-    border-radius: 8px;
-    border: none;
-    background: #26c973;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.star-follow-btn:hover {
-    background: #20b264;
-}
-
-.star-follow-btn.following {
-    background: #32353d;
-    color: #e4e6eb;
-    border: 1px solid #454954;
-}
-
-.star-follow-meta {
-    margin-top: 10px;
-    text-align: center;
-    font-size: 12.5px;
-    color: #9ca0ab;
-}
-
-/* Sự kiện nổi bật bên cột trái */
-.star-featured-title {
-    margin: 0 0 14px;
-    font-size: 16px;
-    font-weight: 700;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.star-featured-title i {
-    color: #26c973;
-}
-
-.star-featured-poster {
-    display: block;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #18191d;
-}
-
-.star-featured-poster img {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.25s ease;
-}
-
-.star-featured-poster:hover img {
-    transform: scale(1.03);
-}
-
-.star-featured-name {
-    display: block;
-    color: #ffffff;
-    font-size: 14.5px;
-    font-weight: 700;
-    text-decoration: none;
-    margin-top: 14px;
-    line-height: 1.4;
-    transition: color 0.2s ease;
-}
-
-.star-featured-name:hover {
-    color: #26c973;
-}
-
-.star-featured-price {
-    color: #26c973;
-    font-size: 14px;
-    font-weight: 700;
-    margin-top: 8px;
-}
-
-/* Cột phải: Thông báo & Timeline sự kiện */
-.star-notice-banner {
-    background: rgba(38, 201, 115, 0.1);
-    border: 1px solid rgba(38, 201, 115, 0.35);
-    color: #d8f8e6;
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 22px;
-    font-size: 14px;
-    line-height: 1.5;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.star-notice-banner i {
-    color: #26c973;
-    margin-top: 3px;
-}
-
-.star-timeline {
-    position: relative;
-    padding-left: 26px;
-}
-
-.star-timeline::before {
-    content: "";
-    position: absolute;
-    left: 6px;
-    top: 8px;
-    bottom: 8px;
-    width: 2px;
-    background: #353841;
-}
-
-.star-timeline-item {
-    position: relative;
-    margin-bottom: 24px;
-}
-
-.star-timeline-dot {
-    position: absolute;
-    left: -25px;
-    top: 4px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #26c973;
-    box-shadow: 0 0 0 4px #18191d;
-}
-
-.star-timeline-date {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: #d1d5db;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.star-timeline-date i {
-    color: #9ca0ab;
-}
-
-.star-event-card {
-    background: #23252a;
-    border: 1px solid #2f3239;
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    gap: 18px;
-    align-items: center;
-    transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.star-event-card:hover {
-    border-color: #3f434d;
-}
-
-.star-event-thumb {
-    position: relative;
-    width: 220px;
-    aspect-ratio: 16 / 9;
-    border-radius: 8px;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: #141518;
-    display: block;
-}
-
-.star-event-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.star-badge-ended {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: #f59e0b;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 5px;
-}
-
-.star-event-body {
-    flex: 1;
-    min-width: 0;
-}
-
-.star-event-title {
-    display: block;
-    color: #ffffff;
-    font-size: 15.5px;
-    font-weight: 700;
-    text-decoration: none;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    transition: color 0.2s ease;
-}
-
-.star-event-title:hover {
-    color: #26c973;
-}
-
-.star-event-price {
-    color: #26c973;
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 12px;
-}
-
-.star-btn-buy {
-    display: inline-block;
-    background: #26c973;
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 8px 18px;
-    border-radius: 6px;
-    text-decoration: none;
-    transition: background 0.2s ease;
-}
-
-.star-btn-buy:hover {
-    background: #20b264;
-}
-
-.star-btn-soldout {
-    display: inline-block;
-    background: #e5e7eb;
-    color: #6b7280;
-    font-size: 13px;
-    font-weight: 700;
-    padding: 8px 18px;
-    border-radius: 6px;
-    cursor: not-allowed;
-}
-
-/* Danh sách tất cả TicketStars */
-.stars-directory-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-}
-
-.star-dir-card {
-    background: #23252a;
-    border: 1px solid #2f3239;
-    border-radius: 14px;
-    padding: 20px;
-    text-align: center;
-    text-decoration: none;
-    color: #ffffff;
-    transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.star-dir-card:hover {
-    transform: translateY(-3px);
-    border-color: #26c973;
-}
-
-.star-dir-card img {
-    width: 86px;
-    height: 86px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 12px;
-    border: 2px solid #353841;
-}
-
-@media (max-width: 900px) {
-    .star-layout-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .star-sidebar {
-        position: static;
-    }
-}
-
-@media (max-width: 600px) {
-    .star-event-card {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .star-event-thumb {
-        width: 100%;
-    }
-}
-/* =========================================================
-   KHỐI MEMBERSHIP
+   2. KHỐI MEMBERSHIP
    ========================================================= */
 .membership-section {
     box-sizing: border-box;
@@ -1922,7 +1481,6 @@ a {
     top: 0;
     z-index: 1000;
     overflow: visible !important;
-    /* Giúp menu thả xuống không bị đứt đoạn */
 }
 
 .user-account-dropdown {
@@ -1940,7 +1498,6 @@ a {
     position: absolute;
     right: 0;
     top: calc(100% + 10px);
-    /* Hiển thị ngay phía dưới nút tài khoản */
     background: #ffffff !important;
     color: #333333 !important;
     width: 210px;
@@ -1948,9 +1505,7 @@ a {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     padding: 10px 0;
     display: none;
-    /* Mặc định ẩn */
     z-index: 9999 !important;
-    /* Đảm bảo menu nổi lên trên cùng */
 }
 
 /* Class kích hoạt hiển thị khi bấm nút */
@@ -2099,7 +1654,6 @@ a {
 
 .btn-load-more {
     background-color: #26c973;
-    /* Màu xanh lục đặc trưng */
     color: #ffffff;
     font-size: 15px;
     font-weight: 700;
@@ -2154,7 +1708,6 @@ a {
 
 .status-tab-btn.active {
     background-color: #26c973;
-    /* Màu xanh chuẩn Ticketbox */
     color: #ffffff;
     border-color: #26c973;
 }
@@ -2267,7 +1820,6 @@ a {
     font-size: 13px;
     line-height: 1.6;
     background-color: #2b2f3e;
-    /* Tông xám nhạt phần trên */
 }
 
 /* 1. Phần Trên Footer */
@@ -2304,7 +1856,6 @@ a {
 
 .hotline-number {
     color: #26c973;
-    /* Xanh lá rực đặc trưng */
     font-size: 22px;
     font-weight: 800;
     text-decoration: none;
@@ -2440,7 +1991,6 @@ a {
     object-fit: contain;
     display: block;
     border-radius: 50%;
-    /* Bo tròn nếu logo là dạng hình vuông */
 }
 
 /* Trường hợp dùng 1 file ảnh gộp thong-tin-mxh.png */
@@ -2495,7 +2045,6 @@ a {
 /* 3. Phần Dưới Footer (Nền tối) */
 .footer-bottom {
     background-color: #1a1d26;
-    /* Tông nền đen xám đậm bên dưới */
     padding: 30px 0;
 }
 
@@ -2522,7 +2071,6 @@ a {
 
 .ticketbox-logo-footer img {
     max-height: 38px;
-    /* Tối ưu độ cao logo chuẩn khung footer */
     width: auto;
     display: block;
     object-fit: contain;
@@ -2572,7 +2120,6 @@ a {
 
 .bct-badge-img {
     height: 38px;
-    /* Tối ưu chiều cao huy hiệu vừa vặn khung footer */
     width: auto;
     max-width: 160px;
     display: block;
@@ -2594,7 +2141,6 @@ a {
 .terms-pdf-page {
     width: 100%;
     background-color: #f2f4f7;
-    /* Nền xám sáng bao quanh khung PDF chuẩn Ticketbox */
     padding: 20px 0;
     box-sizing: border-box;
     display: flex;
@@ -2605,13 +2151,10 @@ a {
 .terms-pdf-container {
     width: 90%;
     max-width: 1280px;
-    /* Độ rộng khung vừa vặn chuẩn thiết kế */
     height: 85vh;
     min-height: 780px;
     background-color: #323639;
-    /* Nền tối của PDF Viewer */
     border-radius: 0;
-    /* Vuông góc chuẩn theo đúng hình ảnh mẫu */
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
@@ -2644,281 +2187,502 @@ a {
    ORGANIZER PROFILE PAGE STYLES (DỰNG THEO TICKETBOX)
    ========================================================= */
 
-.organizer-profile-layout {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 30px;
-    align-items: start;
+/* 1. Thanh Sub-navigation của Star */
+.star-subnav {
+    background: #141518;
+    border-bottom: 1px solid #26282e;
+    position: sticky;
+    top: 70px;
+    z-index: 950;
 }
 
-/* 1. Sidebar Card (Bên trái) */
-.organizer-sidebar-card {
-    background: #1e1e24;
-    border: 1px solid #2d2d35;
-    border-radius: 16px;
-    padding: 35px 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.organizer-avatar-wrap {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin-bottom: 18px;
-    background: #000;
-    border: 2px solid #3a3a45;
-}
-
-.organizer-avatar-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.organizer-avatar-fallback {
-    width: 100%;
-    height: 100%;
+.star-subnav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: #0d0614;
-    color: #e11b74;
-    font-weight: 800;
-    font-size: 20px;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 54px;
 }
 
-.organizer-title {
-    font-size: 20px;
-    font-weight: 700;
+.star-subnav-brand {
     color: #ffffff;
-    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 }
 
-.verified-badge {
+.star-subnav-brand:hover {
+    color: #26c973;
+}
+
+.star-subnav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.star-subnav-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.star-subnav-tab {
+    color: #a1a5b0;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 16px 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.star-subnav-tab:hover,
+.star-subnav-tab.active {
+    color: #26c973;
+    border-bottom-color: #26c973;
+}
+
+/* 2. Bố cục 2 cột & Sidebar Card (Bên trái) */
+.star-page-container {
+    max-width: 1200px;
+    margin: 28px auto 60px;
+    padding: 0 20px;
+}
+
+.star-layout-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+.star-layout-grid>section {
+    min-width: 0;
+}
+
+.star-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 140px;
+    min-width: 0;
+}
+
+.star-box-card {
+    background: #23252a;
+    border: 1px solid #2f3239;
+    border-radius: 14px;
+    padding: 22px;
+}
+
+.star-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.star-profile-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(38, 201, 115, 0.45);
+    flex-shrink: 0;
+    background: #18191d;
+}
+
+.star-profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.star-profile-info h1 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.star-verified-icon {
     color: #26c973;
     font-size: 16px;
+    flex-shrink: 0;
 }
 
-.organizer-tag-pill {
-    background: rgba(255, 255, 255, 0.08);
-    color: #a0a3bd;
+.star-role-badge {
+    display: inline-block;
+    background: #ffffff;
+    color: #18191d;
     font-size: 12px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    margin-bottom: 25px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
 }
 
-.btn-follow-organizer {
+.star-follow-btn {
     width: 100%;
-    padding: 12px;
+    padding: 11px 16px;
+    border-radius: 8px;
+    border: none;
     background: #26c973;
     color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
     font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.btn-follow-organizer:hover {
-    background: #20ad63;
+.star-follow-btn:hover {
+    background: #20b264;
 }
 
-/* 2. Timeline Section (Bên phải) */
-.organizer-timeline-section {
-    background: #1e1e24;
-    border: 1px solid #2d2d35;
-    border-radius: 16px;
-    padding: 30px;
+.star-follow-btn.following {
+    background: #32353d;
+    color: #e4e6eb;
+    border: 1px solid #454954;
 }
 
-.timeline-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
+.star-follow-btn.following:hover {
+    background: #3d414b;
+    border-color: #565b68;
 }
 
-.timeline-header h3 {
-    font-size: 20px;
+.star-follow-meta {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12.5px;
+    color: #9ca0ab;
+}
+
+/* 3. Khối Sự kiện nổi bật (Bên cột trái) */
+.star-featured-title {
+    margin: 0 0 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #ffffff;
-    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.view-all-link {
+.star-featured-title i {
     color: #26c973;
+}
+
+.star-featured-poster {
+    display: block;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #18191d;
+}
+
+.star-featured-poster img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.25s ease;
+}
+
+.star-featured-poster:hover img {
+    transform: scale(1.03);
+}
+
+.star-featured-name {
+    display: block;
+    color: #ffffff;
+    font-size: 14.5px;
+    font-weight: 700;
     text-decoration: none;
-    font-size: 13.5px;
-    font-weight: 600;
+    margin-top: 14px;
+    line-height: 1.4;
+    transition: color 0.2s ease;
 }
 
-/* Timeline vertical line */
-.timeline-container {
+.star-featured-name:hover {
+    color: #26c973;
+}
+
+.star-featured-price {
+    color: #26c973;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+/* 4. Timeline Section & Event Cards (Bên phải) */
+.star-notice-banner {
+    background: rgba(38, 201, 115, 0.1);
+    border: 1px solid rgba(38, 201, 115, 0.35);
+    color: #d8f8e6;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.star-notice-banner i {
+    color: #26c973;
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+.star-timeline {
     position: relative;
-    padding-left: 25px;
+    padding-left: 26px;
 }
 
-.timeline-container::before {
-    content: '';
+.star-timeline::before {
+    content: "";
     position: absolute;
     left: 6px;
-    top: 10px;
-    bottom: 10px;
+    top: 8px;
+    bottom: 8px;
     width: 2px;
-    background: #2d2d35;
+    background: #353841;
 }
 
-.timeline-item {
+.star-timeline-item {
     position: relative;
-    margin-bottom: 35px;
+    margin-bottom: 24px;
 }
 
-.timeline-item:last-child {
+.star-timeline-item:last-child {
     margin-bottom: 0;
 }
 
-.timeline-dot {
+.star-timeline-dot {
     position: absolute;
     left: -25px;
-    top: 2px;
-    width: 14px;
-    height: 14px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: #26c973;
-    box-shadow: 0 0 0 4px #1e1e24;
+    box-shadow: 0 0 0 4px var(--bg-dark);
 }
 
-.timeline-date {
-    color: #a0a3bd;
+.star-timeline-date {
     font-size: 13.5px;
     font-weight: 600;
+    color: #d1d5db;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-/* Event Card inside Timeline */
-.timeline-event-card {
-    background: #272730;
-    border: 1px solid #3a3a45;
+.star-timeline-date i {
+    color: #9ca0ab;
+}
+
+.star-event-card {
+    background: #23252a;
+    border: 1px solid #2f3239;
     border-radius: 12px;
     padding: 16px;
     display: flex;
-    gap: 20px;
+    gap: 18px;
     align-items: center;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.event-thumb {
+.star-event-card:hover {
+    border-color: rgba(38, 201, 115, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.star-event-thumb {
     position: relative;
-    width: 180px;
-    height: 100px;
+    width: 220px;
+    aspect-ratio: 16 / 9;
     border-radius: 8px;
     overflow: hidden;
     flex-shrink: 0;
+    background: #141518;
+    display: block;
 }
 
-.event-thumb img {
+.star-event-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+    transition: transform 0.25s ease;
 }
 
-.badge-event-status.ended {
+.star-event-card:hover .star-event-thumb img {
+    transform: scale(1.04);
+}
+
+.star-badge-ended {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    background: #e67e22;
-    color: #fff;
+    top: 8px;
+    right: 8px;
+    background: #f59e0b;
+    color: #ffffff;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 8px;
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
-.event-details {
+.star-event-body {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    min-width: 0;
 }
 
-.event-name {
-    font-size: 15px;
-    font-weight: 700;
+.star-event-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     color: #ffffff;
-    margin: 0;
+    font-size: 15.5px;
+    font-weight: 700;
+    text-decoration: none;
     line-height: 1.4;
+    margin-bottom: 8px;
+    transition: color 0.2s ease;
 }
 
-.event-price-text {
+.star-event-title:hover {
+    color: #26c973;
+}
+
+.star-event-price {
     color: #26c973;
     font-size: 14px;
     font-weight: 700;
+    margin-bottom: 12px;
 }
 
-.event-action-wrap {
-    margin-top: 6px;
-}
-
-.btn-event-action {
+.star-btn-buy {
     display: inline-block;
-    padding: 8px 20px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-buy-now {
     background: #26c973;
     color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s ease;
 }
 
-.btn-buy-now:hover {
-    background: #20ad63;
+.star-btn-buy:hover {
+    background: #20b264;
 }
 
-.btn-sold-out {
-    background: #3a3a45;
-    color: #a0a3bd;
+.star-btn-soldout {
+    display: inline-block;
+    background: #38393e;
+    color: #9ca0ab;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 6px;
     cursor: not-allowed;
 }
 
-.btn-view-detail {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+/* 5. Danh sách tất cả TicketStars */
+.stars-directory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 20px;
 }
 
-/* Responsive */
+.star-dir-card {
+    background: #23252a;
+    border: 1px solid #2f3239;
+    border-radius: 14px;
+    padding: 22px 18px;
+    text-align: center;
+    text-decoration: none;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.star-dir-card:hover {
+    transform: translateY(-3px);
+    border-color: #26c973;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.star-dir-card img {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 12px;
+    border: 2px solid rgba(38, 201, 115, 0.45);
+    background: #18191d;
+}
+
+/* 6. Responsive Mobile & Tablet */
 @media (max-width: 900px) {
-    .organizer-profile-layout {
+    .star-layout-grid {
         grid-template-columns: 1fr;
     }
 
-    .timeline-event-card {
+    .star-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .star-subnav {
+        position: static;
+    }
+
+    .star-subnav-inner {
+        padding-top: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .star-subnav-tabs {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .star-event-card {
         flex-direction: column;
         align-items: flex-start;
     }
 
-    .event-thumb {
+    .star-event-thumb {
         width: 100%;
-        height: 160px;
     }
 }
-
