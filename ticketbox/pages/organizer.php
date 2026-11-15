@@ -46,152 +46,133 @@ if (!empty($_SESSION['user']) && is_array($_SESSION['user'])) {
     $loggedUser = $stmtU->fetch(PDO::FETCH_ASSOC);
 }
 
-include '../templates/header.php';
-?>
+// Chuẩn bị dữ liệu cho trang chi tiết Star hoặc trang danh sách tất cả Star
+$featuredEvent = null;
+$starEvents    = [];
+$allStars      = [];
+$isFollowing   = false;
+$roleLabels    = [
+    'NgheSi'    => 'Nghệ sĩ',
+    'BanToChuc' => 'Ban tổ chức',
+    'SanKhau'   => 'Sân khấu'
+];
 
-<?php if ($currentStar): ?>
-    <script>
-        document.body.classList.add('is-star-detail-page');
-        document.title = <?php echo json_encode('Trang chủ nghệ sĩ | ' . $currentStar['ten_hien_thi']); ?>;
-    </script>
-
-    <?php
+if ($currentStar) {
     $isFollowing = in_array($currentStar['slug'], $_SESSION['followed_stars'], true);
-    $roleMap = [
-        'BanToChuc' => 'Ban tổ chức',
-        'NgheSi'    => 'Nghệ sĩ',
-        'SanKhau'   => 'Sân khấu'
-    ];
-    $roleLabel = $roleMap[$currentStar['loai']] ?? 'Ban tổ chức';
-    $initials  = mb_strtoupper(mb_substr($currentStar['ten_hien_thi'], 0, 2, 'UTF-8'), 'UTF-8');
 
     // 1. Lấy Sự kiện nổi bật (chỉ hiện nếu su_kien_noi_bat_id có dữ liệu)
-    $featuredEvent = null;
     if (!empty($currentStar['su_kien_noi_bat_id'])) {
-        $stmtFeat = $pdo->prepare("SELECT id, ten_su_kien, hinh_anh FROM sukien WHERE id = :eid LIMIT 1");
+        $stmtFeat = $pdo->prepare("SELECT id, ten_su_kien, hinh_anh, gia_thap_nhat FROM sukien WHERE id = :eid LIMIT 1");
         $stmtFeat->execute(['eid' => (int)$currentStar['su_kien_noi_bat_id']]);
         $featuredEvent = $stmtFeat->fetch(PDO::FETCH_ASSOC);
     }
 
-    // 2. Lấy Thẻ thành viên của Star (chỉ hiện nếu Star có gói Membership)
-    $starMemberships = [];
-    if (!empty($currentStar['nghe_si_membership'])) {
-        $stmtMem = $pdo->prepare("SELECT * FROM the_thanh_vien WHERE nghe_si LIKE :ns ORDER BY id ASC");
-        $stmtMem->execute(['ns' => '%' . $currentStar['nghe_si_membership'] . '%']);
-        $starMemberships = $stmtMem->fetchAll(PDO::FETCH_ASSOC);
+    // 2. Kiểm tra bảng liên kết nhiều-nhiều ticketstar_sukien
+    $hasLinkTable = false;
+    try {
+        $pdo->query("SELECT 1 FROM ticketstar_sukien LIMIT 1");
+        $hasLinkTable = true;
+    } catch (Exception $e) {
+        $hasLinkTable = false;
     }
 
-    // 3. Lấy toàn bộ Lịch hoạt động (sự kiện của Star từ bảng sukien)
-    $starEvents = [];
+    // 3. Lấy toàn bộ Lịch hoạt động (ưu tiên bảng ticketstar_sukien + từ khóa)
+    $conds  = [];
+    $params = [];
+
+    if ($hasLinkTable) {
+        $conds[]        = "s.id IN (SELECT su_kien_id FROM ticketstar_sukien WHERE star_id = :sid)";
+        $params[':sid'] = (int)$currentStar['id'];
+    }
+
     $keywords = array_filter(array_map('trim', explode('|', (string)$currentStar['tu_khoa_su_kien'])));
-    if (!empty($keywords)) {
-        $conds = [];
-        $params = [];
-        foreach ($keywords as $i => $kw) {
-            $conds[] = "(s.ten_su_kien LIKE :k1_{$i} OR s.ten_ban_to_chuc LIKE :k2_{$i})";
-            $params[":k1_{$i}"] = '%' . $kw . '%';
-            $params[":k2_{$i}"] = '%' . $kw . '%';
-        }
-        $sql = "SELECT s.*,
+    foreach ($keywords as $i => $kw) {
+        $conds[]            = "(s.ten_su_kien LIKE :k1_{$i} OR s.ten_ban_to_chuc LIKE :k2_{$i})";
+        $params[":k1_{$i}"] = '%' . $kw . '%';
+        $params[":k2_{$i}"] = '%' . $kw . '%';
+    }
+
+    if (!empty($conds)) {
+        $sql = "SELECT DISTINCT s.*,
                        (SELECT COUNT(*) FROM loaive lv WHERE lv.su_kien_id = s.id AND lv.da_het_ve = 0) AS ve_con_ban
                 FROM sukien s
                 WHERE " . implode(' OR ', $conds) . "
-                ORDER BY s.thoi_gian DESC";
+                ORDER BY s.thoi_gian DESC, s.id DESC";
         $stmtEvt = $pdo->prepare($sql);
         $stmtEvt->execute($params);
         $starEvents = $stmtEvt->fetchAll(PDO::FETCH_ASSOC);
     }
+} elseif ($slug === '') {
+    $stmtAll = $pdo->query("SELECT * FROM ticketstars ORDER BY thu_tu ASC, id ASC");
+    $allStars = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
+}
+
+include '../templates/header.php';
+?>
+
+<?php if ($currentStar): ?>
+    <?php
+    $roleText = $roleLabels[$currentStar['loai']] ?? 'Ban tổ chức';
+    $baseUrl  = 'organizer.php?slug=' . urlencode($currentStar['slug']);
     ?>
 
-    <!-- THANH HEADER RIÊNG CỦA STAR (LUÔN TREO CỐ ĐỊNH KHI CUỘN XUỐNG) -->
-    <div class="star-sticky-header">
-        <div class="container star-sticky-inner">
-            <!-- Bên trái: Logo Ticketbox vuông xanh + Tên Star -->
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <a href="home.php" class="tkb-square-logo" title="Về trang chủ Ticketbox">
-                    <span>ticket</span>
-                    <span>box</span>
-                </a>
-                <a href="organizer.php?slug=<?php echo urlencode($currentStar['slug']); ?>" class="star-brand-title" style="text-decoration: none;">
-                    <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>
-                </a>
-            </div>
+    <!-- Thanh Sub-navigation của Star -->
+    <div class="star-subnav">
+        <div class="star-subnav-inner">
+            <a href="<?php echo $baseUrl; ?>" class="star-subnav-brand">
+                <span><?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></span>
+            </a>
 
-            <!-- Ở giữa: Các tab điều hướng -->
-            <nav class="star-nav-links">
-                <a href="organizer.php?slug=<?php echo urlencode($currentStar['slug']); ?>&tab=all" class="<?php echo $tab === 'all' ? 'active' : ''; ?>">Tất cả</a>
-                <a href="organizer.php?slug=<?php echo urlencode($currentStar['slug']); ?>&tab=events" class="<?php echo $tab === 'events' ? 'active' : ''; ?>">Sự kiện</a>
-                <a href="organizer.php?slug=<?php echo urlencode($currentStar['slug']); ?>&tab=news" class="<?php echo $tab === 'news' ? 'active' : ''; ?>">Tin tức</a>
-                <a href="organizer.php?slug=<?php echo urlencode($currentStar['slug']); ?>&tab=community" class="<?php echo $tab === 'community' ? 'active' : ''; ?>">Cộng đồng</a>
-                <a href="organizer.php?slug=<?php echo urlencode($currentStar['slug']); ?>&tab=about" class="<?php echo $tab === 'about' ? 'active' : ''; ?>">Về <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></a>
+            <nav class="star-subnav-tabs">
+                <a href="<?php echo $baseUrl; ?>&tab=all" class="star-subnav-tab <?php echo $tab === 'all' ? 'active' : ''; ?>">Tất cả</a>
+                <a href="<?php echo $baseUrl; ?>&tab=events" class="star-subnav-tab <?php echo $tab === 'events' ? 'active' : ''; ?>">Sự kiện</a>
+                <a href="<?php echo $baseUrl; ?>&tab=news" class="star-subnav-tab <?php echo $tab === 'news' ? 'active' : ''; ?>">Tin tức</a>
+                <a href="<?php echo $baseUrl; ?>&tab=community" class="star-subnav-tab <?php echo $tab === 'community' ? 'active' : ''; ?>">Cộng đồng</a>
+                <a href="<?php echo $baseUrl; ?>&tab=about" class="star-subnav-tab <?php echo $tab === 'about' ? 'active' : ''; ?>">
+                    Về <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>
+                </a>
             </nav>
-
-            <!-- Bên phải: Tài khoản / Đăng nhập | Đăng ký -->
-            <div class="star-auth-group">
-                <?php if ($loggedUser): ?>
-                    <a href="my-tickets.php" class="star-user-chip">
-                        <img src="<?php echo htmlspecialchars($loggedUser['avatar'] ?: 'https://via.placeholder.com/60/26c973/ffffff?text=U'); ?>"
-                             alt="Avatar"
-                             onerror="this.src='https://via.placeholder.com/60/26c973/ffffff?text=U'">
-                        <span><?php echo htmlspecialchars($loggedUser['ho_ten'] ?? 'Tài khoản'); ?></span>
-                    </a>
-                <?php else: ?>
-                    <a href="login.php">Đăng nhập</a>
-                    <span style="color: #6b7280;">|</span>
-                    <a href="register.php">Đăng ký</a>
-                <?php endif; ?>
-                <span class="star-badge-circle"><i class="fa-solid fa-star"></i></span>
-            </div>
         </div>
     </div>
 
-    <!-- BANNER STAR TRÀN MÀN HÌNH -->
-    <div class="star-banner-section">
-        <?php if (!empty($currentStar['banner_star'])): ?>
-            <img src="<?php echo htmlspecialchars($currentStar['banner_star']); ?>"
-                 alt="Banner <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>"
-                 onerror="this.style.display='none'">
-        <?php endif; ?>
-    </div>
-
-    <!-- NỘI DUNG CHÍNH 2 CỘT -->
-    <main class="container" style="padding-bottom: 60px;">
-        <div class="star-profile-grid">
-
-            <!-- ================= CỘT TRÁI (TREO CỐ ĐỊNH KHI LƯỚT XUỐNG) ================= -->
-            <aside class="star-left-col">
-                <!-- 1. Thẻ thông tin Star -->
+    <main class="star-page-container">
+        <div class="star-layout-grid">
+            <!-- CỘT TRÁI: Thông tin Star + Sự kiện nổi bật -->
+            <aside class="star-sidebar">
                 <div class="star-box-card">
-                    <div class="star-sidebar-top">
+                    <div class="star-profile-header">
                         <img src="<?php echo htmlspecialchars($currentStar['avatar']); ?>"
                              alt="<?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>"
-                             class="star-sidebar-avatar"
-                             onerror="this.src='https://via.placeholder.com/150/16181d/26c973?text=<?php echo urlencode($initials); ?>'">
-                        <div>
-                            <h1 class="star-sidebar-name">
-                                <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>
-                                <i class="fa-solid fa-circle-check" style="color: #26c973; font-size: 16px;"></i>
+                             class="star-profile-avatar"
+                             onerror="this.src='https://via.placeholder.com/150/18191d/26c973?text=Star'">
+                        <div class="star-profile-info">
+                            <h1>
+                                <span><?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></span>
+                                <?php if (!empty($currentStar['da_xac_minh'])): ?>
+                                    <i class="fa-solid fa-circle-check star-verified-icon" title="Đã xác minh"></i>
+                                <?php endif; ?>
                             </h1>
-                            <span class="star-role-pill"><?php echo $roleLabel; ?></span>
-                            <div style="color: #9ca3af; font-size: 12.5px; margin-top: 8px;">
-                                <strong style="color: #fff;"><?php echo number_format((int)$currentStar['luot_theo_doi'], 0, ',', '.'); ?></strong> người theo dõi
-                            </div>
+                            <span class="star-role-badge"><?php echo htmlspecialchars($roleText); ?></span>
                         </div>
                     </div>
 
-                    <form method="POST" style="margin: 0;">
+                    <form method="POST" action="<?php echo $baseUrl; ?>">
                         <input type="hidden" name="toggle_follow_slug" value="<?php echo htmlspecialchars($currentStar['slug']); ?>">
-                        <button type="submit" class="btn-star-follow-full <?php echo $isFollowing ? 'is-following' : ''; ?>">
+                        <button type="submit" class="star-follow-btn <?php echo $isFollowing ? 'following' : ''; ?>">
                             <?php if ($isFollowing): ?>
-                                <i class="fa-solid fa-user-check"></i> Đang theo dõi
+                                <i class="fa-solid fa-check"></i> Đang theo dõi
                             <?php else: ?>
                                 <i class="fa-solid fa-user-plus"></i> Theo dõi
                             <?php endif; ?>
                         </button>
                     </form>
+
+                    <div class="star-follow-meta">
+                        <strong><?php echo number_format((int)$currentStar['luot_theo_doi'], 0, ',', '.'); ?></strong> người theo dõi
+                    </div>
                 </div>
 
-                <!-- 2. Khối Sự kiện nổi bật (CHỈ HIỆN NẾU CÓ) -->
+                <!-- Khối Sự kiện nổi bật (chỉ hiển thị nếu có) -->
                 <?php if ($featuredEvent): ?>
                     <div class="star-box-card">
                         <h3 class="star-featured-title">
@@ -205,205 +186,161 @@ include '../templates/header.php';
                                  alt="<?php echo htmlspecialchars($featuredEvent['ten_su_kien']); ?>"
                                  onerror="this.src='https://via.placeholder.com/600x340/18191d/26c973?text=Ticketbox'">
                         </a>
+                        <a href="event-detail.php?id=<?php echo (int)$featuredEvent['id']; ?>" class="star-featured-name">
+                            <?php echo htmlspecialchars($featuredEvent['ten_su_kien']); ?>
+                        </a>
+                        <div class="star-featured-price">
+                            Từ <?php echo number_format((int)$featuredEvent['gia_thap_nhat'], 0, ',', '.'); ?> đ
+                        </div>
                     </div>
                 <?php endif; ?>
             </aside>
 
-            <!-- ================= CỘT PHẢI ================= -->
-            <div class="star-right-col">
-
+            <!-- CỘT PHẢI: Nội dung theo Tab -->
+            <section>
                 <?php if ($tab === 'about'): ?>
                     <div class="star-box-card">
-                        <div class="star-activity-header">
-                            <h2>Về <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></h2>
-                        </div>
-                        <p style="color: #d1d5db; line-height: 1.7; margin: 0;">
-                            <?php echo nl2br(htmlspecialchars($currentStar['mo_ta'] ?: 'Đơn vị hoạt động nghệ thuật chính thức trên hệ thống Ticketbox.')); ?>
+                        <h3 style="margin-top: 0; color: #fff;">Giới thiệu về <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></h3>
+                        <p style="color: #d1d5db; line-height: 1.7; margin-bottom: 16px;">
+                            <?php echo nl2br(htmlspecialchars($currentStar['mo_ta'] ?: 'Đang cập nhật thông tin giới thiệu.')); ?>
                         </p>
+                        <div style="color: #9ca0ab; font-size: 13.5px;">
+                            <div>• Phân loại: <strong style="color: #fff;"><?php echo htmlspecialchars($roleText); ?></strong></div>
+                            <div style="margin-top: 6px;">• Lượt theo dõi: <strong style="color: #26c973;"><?php echo number_format((int)$currentStar['luot_theo_doi'], 0, ',', '.'); ?></strong></div>
+                        </div>
                     </div>
 
                 <?php elseif ($tab === 'news'): ?>
                     <div class="star-box-card">
-                        <h2 class="star-notice-heading">
-                            <i class="fa-solid fa-bullhorn"></i>
-                            <span>Tin tức & Thông báo</span>
-                        </h2>
-                        <p style="color: #d1d5db; line-height: 1.7; margin: 0;">
-                            <?php echo nl2br(htmlspecialchars($currentStar['thong_bao'] ?: 'Hiện chưa có thông báo mới từ ' . $currentStar['ten_hien_thi'] . '.')); ?>
-                        </p>
+                        <h3 style="margin-top: 0; color: #fff;">Tin tức & Thông báo</h3>
+                        <?php if (!empty($currentStar['thong_bao'])): ?>
+                            <div class="star-notice-banner" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-bullhorn"></i>
+                                <div><?php echo nl2br(htmlspecialchars($currentStar['thong_bao'])); ?></div>
+                            </div>
+                        <?php else: ?>
+                            <p style="color: #9ca0ab; margin: 0;">Chưa có tin tức mới từ <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>.</p>
+                        <?php endif; ?>
                     </div>
 
                 <?php elseif ($tab === 'community'): ?>
                     <div class="star-box-card">
-                        <h2 class="star-notice-heading">
-                            <i class="fa-solid fa-users"></i>
-                            <span>Cộng đồng người hâm mộ <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></span>
-                        </h2>
-                        <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin: 0;">
-                            Hiện có <strong style="color: #26c973;"><?php echo number_format((int)$currentStar['luot_theo_doi'], 0, ',', '.'); ?></strong> thành viên đang theo dõi kênh chính thức của <strong><?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></strong>.
+                        <h3 style="margin-top: 0; color: #fff;">Cộng đồng người hâm mộ</h3>
+                        <p style="color: #d1d5db; line-height: 1.6;">
+                            Hiện có <strong style="color: #26c973;"><?php echo number_format((int)$currentStar['luot_theo_doi'], 0, ',', '.'); ?></strong> thành viên đang theo dõi <strong><?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></strong> trên Ticketbox.
                         </p>
+                        <?php if (!empty($currentStar['nghe_si_membership'])): ?>
+                            <div class="star-notice-banner" style="margin-bottom: 0;">
+                                <i class="fa-solid fa-crown"></i>
+                                <div>Gói hội viên độc quyền <strong><?php echo htmlspecialchars($currentStar['nghe_si_membership']); ?> Membership</strong> đang hoạt động với đặc quyền đặt vé sớm Presale.</div>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                 <?php else: ?>
-                    <!-- 1. Khối Thẻ thành viên (CHỈ HIỆN NẾU STAR CÓ GÓI MEMBERSHIP) -->
-                    <?php if ($tab === 'all' && !empty($starMemberships)): ?>
-                        <div class="star-box-card">
-                            <h2 class="star-mem-heading">Thẻ thành viên</h2>
-                            <p class="star-mem-greet">Xin chào, bạn iu!</p>
-                            <p class="star-mem-sub">
-                                Hãy nâng cấp tài khoản Membership để sở hữu đặc quyền từ <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>
-                            </p>
+                    <!-- Tab 'all' hoặc 'events' -->
+                    <?php if ($tab === 'all' && !empty($currentStar['thong_bao'])): ?>
+                        <div class="star-notice-banner">
+                            <i class="fa-solid fa-bullhorn"></i>
+                            <div><?php echo nl2br(htmlspecialchars($currentStar['thong_bao'])); ?></div>
+                        </div>
+                    <?php endif; ?>
 
-                            <div class="star-mem-grid">
-                                <?php foreach ($starMemberships as $mem): ?>
-                                    <div class="star-mem-item">
-                                        <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="star-mem-item-thumb">
-                                            <img src="<?php echo htmlspecialchars($mem['hinh_anh']); ?>"
-                                                 alt="<?php echo htmlspecialchars($mem['ten_the']); ?>"
-                                                 onerror="this.src='https://via.placeholder.com/480x260/18191d/26c973?text=<?php echo urlencode($mem['ten_the']); ?>'">
+                    <?php if (empty($starEvents)): ?>
+                        <div class="star-box-card" style="text-align: center; padding: 50px 20px; color: #9ca0ab;">
+                            <i class="fa-regular fa-calendar-xmark" style="font-size: 36px; margin-bottom: 12px; display: block;"></i>
+                            Chưa có sự kiện nào được cập nhật cho <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>.
+                        </div>
+                    <?php else: ?>
+                        <div class="star-timeline">
+                            <?php foreach ($starEvents as $ev): ?>
+                                <?php
+                                $eventTs       = strtotime($ev['thoi_gian']);
+                                $isMerchandise = (stripos($ev['ten_su_kien'], 'MERCHANDISE') !== false);
+                                $isEnded       = ($eventTs < time()) && !$isMerchandise;
+                                $veConBan      = (int)($ev['ve_con_ban'] ?? 0);
+                                $formattedDate = date('d', $eventTs) . ' Tháng ' . date('m, Y', $eventTs);
+                                ?>
+                                <div class="star-timeline-item">
+                                    <span class="star-timeline-dot"></span>
+                                    <div class="star-timeline-date">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span><?php echo htmlspecialchars($formattedDate); ?></span>
+                                    </div>
+
+                                    <div class="star-event-card">
+                                        <a href="event-detail.php?id=<?php echo (int)$ev['id']; ?>" class="star-event-thumb">
+                                            <img src="<?php echo htmlspecialchars($ev['hinh_anh']); ?>"
+                                                 alt="<?php echo htmlspecialchars($ev['ten_su_kien']); ?>"
+                                                 onerror="this.src='https://via.placeholder.com/400x225/18191d/26c973?text=Ticketbox'">
+                                            <?php if ($isEnded): ?>
+                                                <span class="star-badge-ended">Đã diễn ra</span>
+                                            <?php endif; ?>
                                         </a>
-                                        <div class="star-mem-item-body">
-                                            <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="star-mem-item-name">
-                                                <?php echo htmlspecialchars($mem['ten_the']); ?>
+
+                                        <div class="star-event-body">
+                                            <a href="event-detail.php?id=<?php echo (int)$ev['id']; ?>" class="star-event-title">
+                                                <?php echo htmlspecialchars($ev['ten_su_kien']); ?>
                                             </a>
-                                            <div class="star-mem-item-meta">
-                                                <span><?php echo number_format((int)$mem['gia'], 0, ',', '.'); ?> đ</span>
-                                                <span><?php echo (int)$mem['thoi_han_thang']; ?> tháng</span>
+                                            <div class="star-event-price">
+                                                Từ <?php echo number_format((int)$ev['gia_thap_nhat'], 0, ',', '.'); ?> đ
                                             </div>
-                                            <?php if ($mem['trang_thai'] === 'dang-ban'): ?>
-                                                <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="btn-star-mem-yellow">Tham gia ngay</a>
-                                            <?php else: ?>
-                                                <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="btn-star-soldout">
-                                                    <?php echo $mem['trang_thai'] === 'da-ban-het' ? 'Đã bán hết' : 'Đã đóng bán'; ?>
-                                                </a>
+
+                                            <?php if (!$isEnded): ?>
+                                                <?php if ($veConBan > 0): ?>
+                                                    <a href="event-detail.php?id=<?php echo (int)$ev['id']; ?>" class="star-btn-buy">
+                                                        Mua vé ngay
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="star-btn-soldout">Hết vé</span>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </div>
                                     </div>
-                                <?php endforeach; ?>
-                            </div>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
+                <?php endif; ?>
+            </section>
+        </div>
+    </main>
 
-                    <!-- 2. Khối Thông báo (CHỈ HIỆN NẾU CÓ THÔNG BÁO) -->
-                    <?php if ($tab === 'all' && !empty($currentStar['thong_bao'])): ?>
-                        <div class="star-box-card">
-                            <h2 class="star-notice-heading">
-                                <i class="fa-solid fa-bullhorn"></i>
-                                <span>Thông báo</span>
-                            </h2>
-                            <p style="color: #d1d5db; font-size: 14px; line-height: 1.6; margin: 0;">
-                                <?php echo nl2br(htmlspecialchars($currentStar['thong_bao'])); ?>
-                            </p>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- 3. Khối Lịch hoạt động (Truy xuất từ bảng sukien) -->
-                    <div class="star-box-card">
-                        <div class="star-activity-header">
-                            <h2>Lịch hoạt động</h2>
-                            <a href="organizer.php?slug=<?php echo urlencode($currentStar['slug']); ?>&tab=events" style="color: #26c973; font-size: 13.5px; font-weight: 600; text-decoration: none;">
-                                Xem tất cả <i class="fa-solid fa-chevron-right" style="font-size: 11px;"></i>
-                            </a>
-                        </div>
-
-                        <?php if (!empty($starEvents)): ?>
-                            <div class="star-timeline">
-                                <?php foreach ($starEvents as $ev):
-                                    $eventTs   = strtotime($ev['thoi_gian']);
-                                    $isEnded   = $eventTs < time();
-                                    $isSoldOut = ((int)$ev['ve_con_ban'] === 0);
-                                    $dateLabel = date('d', $eventTs) . ' Tháng ' . date('m, Y', $eventTs);
-                                ?>
-                                    <div class="star-timeline-item">
-                                        <span class="star-timeline-dot"></span>
-                                        <div class="star-timeline-date">
-                                            <i class="fa-regular fa-calendar"></i>
-                                            <span><?php echo $dateLabel; ?></span>
-                                        </div>
-
-                                        <div class="star-event-row-card">
-                                            <a href="event-detail.php?id=<?php echo (int)$ev['id']; ?>" class="star-event-thumb">
-                                                <img src="<?php echo htmlspecialchars($ev['hinh_anh']); ?>"
-                                                     alt="<?php echo htmlspecialchars($ev['ten_su_kien']); ?>"
-                                                     onerror="this.src='https://via.placeholder.com/380x216/18191d/26c973?text=Ticketbox'">
-                                                <?php if ($isEnded): ?>
-                                                    <span class="badge-event-ended">Đã diễn ra</span>
-                                                <?php endif; ?>
-                                            </a>
-
-                                            <div class="star-event-info">
-                                                <a href="event-detail.php?id=<?php echo (int)$ev['id']; ?>" class="star-event-title">
-                                                    <?php echo htmlspecialchars($ev['ten_su_kien']); ?>
-                                                </a>
-                                                <div class="star-event-price">
-                                                    Từ <?php echo number_format((int)$ev['gia_thap_nhat'], 0, ',', '.'); ?> đ
-                                                </div>
-
-                                                <?php if (!$isEnded): ?>
-                                                    <?php if ($isSoldOut): ?>
-                                                        <a href="event-detail.php?id=<?php echo (int)$ev['id']; ?>" class="btn-star-soldout">Hết vé</a>
-                                                    <?php else: ?>
-                                                        <a href="event-detail.php?id=<?php echo (int)$ev['id']; ?>" class="btn-star-buy">Mua vé ngay</a>
-                                                    <?php endif; ?>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php else: ?>
-                            <p style="color: #9ca3af; text-align: center; padding: 24px 0; margin: 0;">
-                                Chưa có lịch hoạt động mới từ <?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?>.
-                            </p>
+<?php elseif ($slug === ''): ?>
+    <!-- Trang danh sách tất cả TicketStars nếu không truyền ?slug= -->
+    <main class="star-page-container">
+        <h2 style="color: #fff; margin: 0 0 22px; font-size: 22px;">
+            <i class="fa-solid fa-star" style="color: #26c973;"></i> Khám phá TicketStars
+        </h2>
+        <div class="stars-directory-grid">
+            <?php foreach ($allStars as $st): ?>
+                <a href="organizer.php?slug=<?php echo urlencode($st['slug']); ?>" class="star-dir-card">
+                    <img src="<?php echo htmlspecialchars($st['avatar']); ?>"
+                         alt="<?php echo htmlspecialchars($st['ten_hien_thi']); ?>"
+                         onerror="this.src='https://via.placeholder.com/150/18191d/26c973?text=Star'">
+                    <div style="font-weight: 700; font-size: 16px; margin-bottom: 6px;">
+                        <?php echo htmlspecialchars($st['ten_hien_thi']); ?>
+                        <?php if (!empty($st['da_xac_minh'])): ?>
+                            <i class="fa-solid fa-circle-check" style="color: #26c973; font-size: 14px;"></i>
                         <?php endif; ?>
                     </div>
-                <?php endif; ?>
-
-            </div>
+                    <div style="font-size: 12.5px; color: #9ca0ab; margin-bottom: 8px;">
+                        <?php echo htmlspecialchars($roleLabels[$st['loai']] ?? 'Ban tổ chức'); ?>
+                    </div>
+                    <div style="font-size: 13px; color: #26c973; font-weight: 600;">
+                        <?php echo number_format((int)$st['luot_theo_doi'], 0, ',', '.'); ?> người theo dõi
+                    </div>
+                </a>
+            <?php endforeach; ?>
         </div>
     </main>
 
 <?php else: ?>
-    <!-- Danh bạ toàn bộ 28 TicketStars -->
-    <?php
-    $q = trim($_GET['q'] ?? '');
-    if ($q !== '') {
-        $stmtAll = $pdo->prepare("SELECT * FROM ticketstars WHERE ten_hien_thi LIKE :q ORDER BY thu_tu ASC");
-        $stmtAll->execute(['q' => '%' . $q . '%']);
-    } else {
-        $stmtAll = $pdo->query("SELECT * FROM ticketstars ORDER BY thu_tu ASC");
-    }
-    $allStars = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
-    ?>
-    <main class="container" style="padding: 32px 15px 60px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 24px;">
-            <h1 class="section-title" style="margin: 0;">
-                <i class="fa-solid fa-star" style="color: #f7b500;"></i> Tất cả Featured Stars (<?php echo count($allStars); ?>)
-            </h1>
-            <form method="GET" style="display: flex; gap: 8px;">
-                <input type="text" name="q" value="<?php echo htmlspecialchars($q); ?>" placeholder="Tìm nghệ sĩ, ban tổ chức..."
-                       style="background: #1c1e24; border: 1px solid #353844; color: #fff; padding: 9px 14px; border-radius: 8px; outline: none;">
-                <button type="submit" class="btn-star-buy" style="border: none; cursor: pointer;">Tìm kiếm</button>
-            </form>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px;">
-            <?php foreach ($allStars as $st):
-                $ini = mb_strtoupper(mb_substr($st['ten_hien_thi'], 0, 2, 'UTF-8'), 'UTF-8');
-            ?>
-                <a href="organizer.php?slug=<?php echo urlencode($st['slug']); ?>" class="star-card" title="<?php echo htmlspecialchars($st['ten_hien_thi']); ?>">
-                    <div class="avatar-ring">
-                        <img src="<?php echo htmlspecialchars($st['avatar']); ?>" alt="<?php echo htmlspecialchars($st['ten_hien_thi']); ?>" class="star-avatar"
-                             onerror="this.src='https://via.placeholder.com/150/16181d/26c973?text=<?php echo urlencode($ini); ?>'">
-                    </div>
-                    <div class="star-info">
-                        <span class="star-name"><?php echo htmlspecialchars($st['ten_hien_thi']); ?></span>
-                        <i class="fa-solid fa-circle-check verified-badge"></i>
-                    </div>
-                    <span style="font-size: 11.5px; color: #9ca3af;"><?php echo number_format((int)$st['luot_theo_doi'], 0, ',', '.'); ?> theo dõi</span>
-                </a>
-            <?php endforeach; ?>
-        </div>
+    <!-- Trường hợp slug không tồn tại -->
+    <main class="star-page-container" style="text-align: center; padding: 70px 20px; color: #9ca0ab;">
+        <i class="fa-solid fa-user-slash" style="font-size: 46px; margin-bottom: 14px; display: block;"></i>
+        <p style="font-size: 16px; margin-bottom: 16px;">Không tìm thấy nghệ sĩ hoặc ban tổ chức này.</p>
+        <a href="organizer.php" class="star-btn-buy">Xem tất cả TicketStars</a>
     </main>
 <?php endif; ?>
 

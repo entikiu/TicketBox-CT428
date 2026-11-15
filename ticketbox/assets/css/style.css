@@ -772,247 +772,142 @@ a {
 /* =========================================================
    TRANG HỒ SƠ STAR - CHUẨN 100% GIAO DIỆN TICKETSTARS
    ========================================================= */
-/* Ẩn header mặc định của trang chủ khi đang ở trang chi tiết Star */
-body.is-star-detail-page > header,
-body.is-star-detail-page > nav,
-body.is-star-detail-page .main-header,
-body.is-star-detail-page .category-bar,
-body.is-star-detail-page .navbar {
-    display: none !important;
-}
 
-body.is-star-detail-page {
-    overflow-x: clip;
-    background-color: #121316;
-}
-
-/* Thanh Header riêng của Star - Luôn treo cố định (Sticky) khi cuộn */
-.star-sticky-header {
+.star-subnav {
+    background: #141518;
+    border-bottom: 1px solid #26282e;
     position: sticky;
     top: 0;
-    z-index: 1000;
-    width: 100%;
-    height: 64px;
-    background: rgba(18, 19, 22, 0.96);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    z-index: 90;
 }
 
-.star-sticky-inner {
-    height: 100%;
+.star-subnav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
+    min-height: 54px;
+    flex-wrap: wrap;
 }
 
-.star-brand-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    flex-shrink: 0;
-}
-
-.tkb-square-logo {
-    width: 34px;
-    height: 34px;
-    border-radius: 6px;
-    background: #26c973;
+.star-subnav-brand {
     color: #ffffff;
-    font-weight: 800;
-    font-size: 10px;
-    line-height: 1.05;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: -0.3px;
-    flex-shrink: 0;
-}
-
-.star-brand-title {
-    color: #ffffff;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
-    white-space: nowrap;
-}
-
-.star-nav-links {
+    text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 28px;
-    overflow: hidden;
+    gap: 8px;
 }
 
-.star-nav-links a {
-    color: #e5e7eb;
+.star-subnav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    overflow-x: auto;
+}
+
+.star-subnav-tab {
+    color: #a1a5b0;
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
+    padding: 16px 0;
+    border-bottom: 2px solid transparent;
     white-space: nowrap;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.star-nav-links a:hover,
-.star-nav-links a.active {
+.star-subnav-tab:hover,
+.star-subnav-tab.active {
     color: #26c973;
+    border-bottom-color: #26c973;
 }
 
-.star-auth-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: #ffffff;
+/* Bố cục 2 cột */
+.star-page-container {
+    max-width: 1200px;
+    margin: 28px auto 60px;
+    padding: 0 20px;
 }
 
-.star-auth-group a {
-    color: #ffffff;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.star-auth-group a:hover {
-    color: #26c973;
-}
-
-.star-user-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #ffffff;
-    text-decoration: none;
-}
-
-.star-user-chip img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1.5px solid #26c973;
-}
-
-.star-badge-circle {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #d9381e;
-    color: #f7b500;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-}
-
-/* Banner tràn 100% chiều ngang màn hình (không gây thanh cuộn ngang) */
-.star-banner-section {
-    width: 100%;
-    height: 460px;
-    background: radial-gradient(circle at 50% 40%, #1d3528 0%, #111317 80%);
-    position: relative;
-    overflow: hidden;
-}
-
-.star-banner-section img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    display: block;
-}
-
-.star-banner-section::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 130px;
-    background: linear-gradient(to bottom, rgba(18, 19, 22, 0) 0%, rgba(18, 19, 22, 0.88) 78%, #121316 100%);
-    pointer-events: none;
-}
-
-/* Bố cục 2 cột đè nhẹ lên mép dưới Banner */
-.star-profile-grid {
-    position: relative;
-    z-index: 15;
+.star-layout-grid {
     display: grid;
-    grid-template-columns: 330px 1fr;
-    gap: 24px;
-    margin-top: -85px;
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
     align-items: start;
 }
 
-/* Cột trái cũng treo cố định ngay dưới thanh Header khi lướt xuống */
-.star-left-col {
+/* Cột trái: Profile & Sự kiện nổi bật */
+.star-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     position: sticky;
-    top: 84px;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.star-right-col {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
+    top: 74px;
 }
 
 .star-box-card {
-    background: #23252c;
-    border: 1px solid #30333d;
-    border-radius: 12px;
+    background: #23252a;
+    border: 1px solid #2f3239;
+    border-radius: 14px;
     padding: 22px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
-.star-sidebar-top {
+.star-profile-header {
     display: flex;
     align-items: center;
     gap: 16px;
     margin-bottom: 20px;
 }
 
-.star-sidebar-avatar {
-    width: 86px;
-    height: 86px;
+.star-profile-avatar {
+    width: 84px;
+    height: 84px;
     border-radius: 50%;
     object-fit: cover;
-    background: #121316;
-    border: 2px solid rgba(255, 255, 255, 0.14);
+    border: 2px solid #353841;
     flex-shrink: 0;
+    background: #18191d;
 }
 
-.star-sidebar-name {
+.star-profile-info h1 {
+    margin: 0 0 8px;
     font-size: 18px;
     font-weight: 700;
     color: #ffffff;
-    margin: 0 0 8px;
     display: flex;
     align-items: center;
     gap: 6px;
+    line-height: 1.3;
 }
 
-.star-role-pill {
+.star-verified-icon {
+    color: #26c973;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.star-role-badge {
     display: inline-block;
     background: #ffffff;
-    color: #18191e;
+    color: #18191d;
     font-size: 12px;
     font-weight: 700;
-    padding: 3px 12px;
-    border-radius: 20px;
+    padding: 4px 12px;
+    border-radius: 999px;
 }
 
-.btn-star-follow-full {
+.star-follow-btn {
     width: 100%;
+    padding: 11px 16px;
+    border-radius: 8px;
+    border: none;
     background: #26c973;
     color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 11px 16px;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
@@ -1020,23 +915,32 @@ body.is-star-detail-page {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.15s ease;
 }
 
-.btn-star-follow-full:hover {
-    background: #21b566;
+.star-follow-btn:hover {
+    background: #20b264;
 }
 
-.btn-star-follow-full.is-following {
-    background: #323540;
-    color: #e5e7eb;
+.star-follow-btn.following {
+    background: #32353d;
+    color: #e4e6eb;
+    border: 1px solid #454954;
 }
 
+.star-follow-meta {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12.5px;
+    color: #9ca0ab;
+}
+
+/* Sự kiện nổi bật bên cột trái */
 .star-featured-title {
-    font-size: 17px;
+    margin: 0 0 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #ffffff;
-    margin: 0 0 14px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1044,207 +948,138 @@ body.is-star-detail-page {
 
 .star-featured-title i {
     color: #26c973;
-    font-size: 16px;
 }
 
 .star-featured-poster {
     display: block;
-    width: 100%;
     border-radius: 10px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: transform 0.22s ease, border-color 0.22s ease;
-}
-
-.star-featured-poster:hover {
-    transform: translateY(-2px);
-    border-color: #26c973;
+    background: #18191d;
 }
 
 .star-featured-poster img {
     width: 100%;
-    height: auto;
-    display: block;
+    aspect-ratio: 16 / 9;
     object-fit: cover;
+    display: block;
+    transition: transform 0.25s ease;
 }
 
-.star-mem-heading {
-    font-size: 19px;
-    font-weight: 700;
+.star-featured-poster:hover img {
+    transform: scale(1.03);
+}
+
+.star-featured-name {
+    display: block;
     color: #ffffff;
-    margin: 0 0 10px;
-}
-
-.star-mem-greet {
-    color: #26c973;
-    font-size: 15px;
-    font-weight: 700;
-    margin: 0 0 6px;
-}
-
-.star-mem-sub {
-    color: #9ca3af;
-    font-size: 13.5px;
-    line-height: 1.5;
-    margin: 0 0 18px;
-}
-
-.star-mem-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 310px));
-    gap: 18px;
-}
-
-.star-mem-item {
-    background: #2b2d36;
-    border: 1px solid #383b47;
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.star-mem-item-thumb {
-    width: 100%;
-    height: 155px;
-    display: block;
-    background: #14151a;
-}
-
-.star-mem-item-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.star-mem-item-body {
-    padding: 14px 16px 16px;
-}
-
-.star-mem-item-name {
-    display: block;
-    color: #26c973;
-    font-size: 16px;
+    font-size: 14.5px;
     font-weight: 700;
     text-decoration: none;
-    margin-bottom: 8px;
+    margin-top: 14px;
+    line-height: 1.4;
+    transition: color 0.2s ease;
 }
 
-.star-mem-item-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #ffffff;
+.star-featured-name:hover {
+    color: #26c973;
+}
+
+.star-featured-price {
+    color: #26c973;
     font-size: 14px;
     font-weight: 700;
-    margin-bottom: 14px;
+    margin-top: 8px;
 }
 
-.btn-star-mem-yellow {
-    display: inline-block;
-    background: #f7b500;
-    color: #111111;
-    font-size: 13.5px;
-    font-weight: 700;
-    padding: 8px 20px;
-    border-radius: 6px;
-    text-decoration: none;
-    transition: background 0.2s ease;
-}
-
-.btn-star-mem-yellow:hover {
-    background: #ffca28;
-}
-
-.star-notice-heading {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ffffff;
-    margin: 0 0 12px;
+/* Cột phải: Thông báo & Timeline sự kiện */
+.star-notice-banner {
+    background: rgba(38, 201, 115, 0.1);
+    border: 1px solid rgba(38, 201, 115, 0.35);
+    color: #d8f8e6;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    line-height: 1.5;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
 }
 
-.star-notice-heading i {
+.star-notice-banner i {
     color: #26c973;
-}
-
-.star-activity-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.star-activity-header h2 {
-    font-size: 19px;
-    font-weight: 700;
-    color: #ffffff;
-    margin: 0;
+    margin-top: 3px;
 }
 
 .star-timeline {
     position: relative;
-    padding-left: 22px;
-    border-left: 2px solid #383b46;
-    margin-left: 6px;
+    padding-left: 26px;
+}
+
+.star-timeline::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: #353841;
 }
 
 .star-timeline-item {
     position: relative;
-    margin-bottom: 22px;
-}
-
-.star-timeline-item:last-child {
-    margin-bottom: 0;
+    margin-bottom: 24px;
 }
 
 .star-timeline-dot {
     position: absolute;
-    left: -29px;
-    top: 3px;
+    left: -25px;
+    top: 4px;
     width: 12px;
     height: 12px;
     border-radius: 50%;
     background: #26c973;
-    box-shadow: 0 0 0 4px rgba(38, 201, 115, 0.2);
+    box-shadow: 0 0 0 4px #18191d;
 }
 
 .star-timeline-date {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #d1d5db;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #e5e7eb;
-    font-size: 13.5px;
-    font-weight: 600;
-    margin-bottom: 10px;
 }
 
-.star-event-row-card {
-    background: #2a2c34;
-    border: 1px solid #383b46;
-    border-radius: 10px;
-    padding: 14px;
+.star-timeline-date i {
+    color: #9ca0ab;
+}
+
+.star-event-card {
+    background: #23252a;
+    border: 1px solid #2f3239;
+    border-radius: 12px;
+    padding: 16px;
     display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    transition: border-color 0.2s ease;
+    gap: 18px;
+    align-items: center;
+    transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.star-event-row-card:hover {
-    border-color: #26c973;
+.star-event-card:hover {
+    border-color: #3f434d;
 }
 
 .star-event-thumb {
     position: relative;
-    width: 190px;
-    height: 108px;
+    width: 220px;
+    aspect-ratio: 16 / 9;
     border-radius: 8px;
     overflow: hidden;
     flex-shrink: 0;
-    background: #141519;
+    background: #141518;
+    display: block;
 }
 
 .star-event-thumb img {
@@ -1254,19 +1089,19 @@ body.is-star-detail-page {
     display: block;
 }
 
-.badge-event-ended {
+.star-badge-ended {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    background: #e67e22;
+    top: 8px;
+    right: 8px;
+    background: #f59e0b;
     color: #ffffff;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 8px;
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
-.star-event-info {
+.star-event-body {
     flex: 1;
     min-width: 0;
 }
@@ -1274,11 +1109,12 @@ body.is-star-detail-page {
 .star-event-title {
     display: block;
     color: #ffffff;
-    font-size: 15px;
+    font-size: 15.5px;
     font-weight: 700;
     text-decoration: none;
-    margin-bottom: 6px;
     line-height: 1.4;
+    margin-bottom: 8px;
+    transition: color 0.2s ease;
 }
 
 .star-event-title:hover {
@@ -1292,42 +1128,84 @@ body.is-star-detail-page {
     margin-bottom: 12px;
 }
 
-.btn-star-buy {
+.star-btn-buy {
     display: inline-block;
     background: #26c973;
     color: #ffffff;
     font-size: 13px;
     font-weight: 700;
-    padding: 7px 16px;
+    padding: 8px 18px;
     border-radius: 6px;
     text-decoration: none;
+    transition: background 0.2s ease;
 }
 
-.btn-star-buy:hover {
-    background: #21b265;
+.star-btn-buy:hover {
+    background: #20b264;
 }
 
-.btn-star-soldout {
+.star-btn-soldout {
     display: inline-block;
-    background: #d1d5db;
-    color: #4b5563;
+    background: #e5e7eb;
+    color: #6b7280;
     font-size: 13px;
     font-weight: 700;
-    padding: 7px 18px;
+    padding: 8px 18px;
     border-radius: 6px;
-    text-decoration: none;
+    cursor: not-allowed;
 }
 
-@media (max-width: 960px) {
-    .star-nav-links { display: none; }
-    .star-profile-grid { grid-template-columns: 1fr; margin-top: -40px; }
-    .star-left-col { position: static; }
-    .star-banner-section { height: 260px; }
+/* Danh sách tất cả TicketStars */
+.stars-directory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.star-dir-card {
+    background: #23252a;
+    border: 1px solid #2f3239;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    color: #ffffff;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.star-dir-card:hover {
+    transform: translateY(-3px);
+    border-color: #26c973;
+}
+
+.star-dir-card img {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 12px;
+    border: 2px solid #353841;
+}
+
+@media (max-width: 900px) {
+    .star-layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .star-sidebar {
+        position: static;
+    }
 }
 
 @media (max-width: 600px) {
-    .star-event-row-card { flex-direction: column; }
-    .star-event-thumb { width: 100%; height: 160px; }
+    .star-event-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .star-event-thumb {
+        width: 100%;
+    }
 }
 /* =========================================================
    KHỐI MEMBERSHIP
