@@ -380,7 +380,6 @@
                 <div class="form-section">
                     <div class="section-title"><span>*</span> Upload hình ảnh <a href="#" style="color:#26c973; font-weight:normal; margin-left: 10px; text-decoration: none;">Xem vị trí hiển thị các ảnh</a></div>
 
-                    <!-- Cập nhật lại phần Upload Box -->
                     <div class="upload-wrapper">
                         <!-- Khung Poster -->
                         <div class="upload-box poster" id="boxPoster" onclick="document.getElementById('inputPoster').click()">
@@ -397,7 +396,7 @@
                         <input type="file" id="inputBanner" name="banner" accept="image/jpeg, image/png, image/webp" hidden>
                     </div>
 
-                    <!-- Cập nhật Tên sự kiện (Thêm ID để JS nhận diện) -->
+                    <!-- Tên sự kiện -->
                     <div class="form-group">
                         <label><span>*</span> Tên sự kiện</label>
                         <div style="position: relative;">
@@ -406,32 +405,51 @@
                         </div>
                     </div>
 
-                    <!-- Thêm Trình soạn thảo văn bản (Quill.js / CKEditor) -->
+                    <!-- Trình soạn thảo văn bản (Quill.js) -->
                     <div class="form-group">
                         <label><span>*</span> Thông tin sự kiện</label>
-                        <!-- Nhúng thư viện Quill JS -->
                         <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
                         <div id="editor-container" style="height: 300px; background: #fff; color: #333; border-radius: 0 0 4px 4px;"></div>
                         <input type="hidden" name="event_description" id="eventDescription">
                     </div>
+                </div>
 
+                <!-- ĐỊA ĐIỂM -->
+                <div class="form-section">
+                    <div class="section-title"><span>*</span> Hình thức & Địa chỉ sự kiện</div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button type="button" id="btnOffline" style="background:#26c973; color:#fff; border:none; padding:8px 25px; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fa-regular fa-map" style="margin-right:5px;"></i> Offline</button>
+                        <button type="button" id="btnOnline" style="background:#3a3a45; color:#fff; border:none; padding:8px 25px; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fa-regular fa-circle-play" style="margin-right:5px;"></i> Online</button>
+                    </div>
 
-                    <!-- ĐỊA ĐIỂM -->
-                    <div class="form-section">
-                        <div class="section-title"><span>*</span> Địa chỉ sự kiện</div>
-                        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                            <button type="button" style="background:#26c973; color:#fff; border:none; padding:8px 25px; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fa-regular fa-map" style="margin-right:5px;"></i> Offline</button>
-                            <button type="button" style="background:#3a3a45; color:#fff; border:none; padding:8px 25px; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fa-regular fa-circle-play" style="margin-right:5px;"></i> Online</button>
+                    <!-- Khu vực thay đổi động giữa Offline và Online -->
+                    <div id="locationFields">
+                        <div class="form-group">
+                            <label>Tên tòa nhà / Địa điểm cụ thể</label>
+                            <input type="text" class="form-control" name="venue_name" placeholder="Ví dụ: Hội trường A - Trường Đại học Cần Thơ">
                         </div>
 
                         <div class="form-group">
-                            <label><span>*</span> Tên địa điểm</label>
-                            <div style="position: relative;">
-                                <input type="text" class="form-control" placeholder="Tên địa điểm">
-                                <span style="position: absolute; right: 15px; top: 12px; font-size: 12px; color: #a0a3bd;">0 / 80</span>
-                            </div>
+                            <label><span>*</span> Số nhà, tên đường</label>
+                            <input type="text" class="form-control" name="street_address" placeholder="Ví dụ: Số 3 đường 3/2">
+                        </div>
+
+                        <div class="form-group">
+                            <label><span>*</span> Phường / Xã</label>
+                            <input type="text" class="form-control" name="ward" placeholder="Ví dụ: Phường Xuân Khánh">
+                        </div>
+
+                        <div class="form-group">
+                            <label><span>*</span> Quận / Huyện</label>
+                            <input type="text" class="form-control" name="district" placeholder="Ví dụ: Quận Ninh Kiều">
+                        </div>
+
+                        <div class="form-group">
+                            <label><span>*</span> Tỉnh / Thành phố</label>
+                            <input type="text" class="form-control" name="city" placeholder="Ví dụ: Thành phố Cần Thơ">
                         </div>
                     </div>
+                </div>
 
             </form>
         </div>
@@ -472,7 +490,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Validate chuẩn doanh nghiệp: Chỉ nhận ảnh, tối đa 5MB
             if (!file.type.startsWith('image/')) {
                 alert('Vui lòng tải lên định dạng hình ảnh (JPG, PNG).');
                 input.value = '';
@@ -484,14 +501,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // Preview ảnh bằng FileReader
             const reader = new FileReader();
             reader.onload = function(event) {
                 box.style.backgroundImage = `url('${event.target.result}')`;
                 box.style.backgroundSize = 'cover';
                 box.style.backgroundPosition = 'center';
-                box.innerHTML = ''; // Xóa text hướng dẫn bên trong
-                box.style.border = 'none'; // Bỏ viền nét đứt
+                box.innerHTML = ''; 
+                box.style.border = 'none'; 
             };
             reader.readAsDataURL(file);
         });
@@ -507,7 +523,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const len = this.value.length;
         eventNameCount.textContent = `${len} / 100`;
         if (len >= 100) {
-            eventNameCount.style.color = '#ff4d4f'; // Báo đỏ khi đạt giới hạn
+            eventNameCount.style.color = '#ff4d4f'; 
         } else {
             eventNameCount.style.color = '#a0a3bd';
         }
@@ -516,15 +532,14 @@ document.addEventListener("DOMContentLoaded", function() {
     // 4. CHUYỂN ĐỔI OFFLINE / ONLINE
     const btnOffline = document.getElementById('btnOffline');
     const btnOnline = document.getElementById('btnOnline');
-    const locationFields = document.getElementById('locationFields'); // Div chứa Tỉnh/Thành, Địa chỉ
+    const locationFields = document.getElementById('locationFields'); 
 
     btnOnline.addEventListener('click', function() {
         btnOnline.style.background = '#26c973';
         btnOffline.style.background = '#3a3a45';
-        // Hiển thị ô nhập Link Meeting, ẩn ô nhập Địa chỉ
         locationFields.innerHTML = `
             <div class="form-group">
-                <label><span>*</span> Đường dẫn sự kiện trực tuyến (Zoom, Meet,...)</label>
+                <label><span>*</span> Đường dẫn sự kiện trực tuyến (Zoom, Google Meet, Microsoft Teams,...)</label>
                 <input type="url" class="form-control" name="online_url" placeholder="https://...">
             </div>
         `;
@@ -533,10 +548,32 @@ document.addEventListener("DOMContentLoaded", function() {
     btnOffline.addEventListener('click', function() {
         btnOffline.style.background = '#26c973';
         btnOnline.style.background = '#3a3a45';
-        // Trả lại form nhập địa chỉ truyền thống
-        locationFields.innerHTML = `...Form địa chỉ cũ...`;
+        locationFields.innerHTML = `
+            <div class="form-group">
+                <label>Tên tòa nhà / Địa điểm cụ thể</label>
+                <input type="text" class="form-control" name="venue_name" placeholder="Ví dụ: Hội trường A - Trường Đại học Cần Thơ">
+            </div>
+            <div class="form-group">
+                <label><span>*</span> Số nhà, tên đường</label>
+                <input type="text" class="form-control" name="street_address" placeholder="Ví dụ: Số 3 đường 3/2">
+            </div>
+            <div class="form-group">
+                <label><span>*</span> Phường / Xã</label>
+                <input type="text" class="form-control" name="ward" placeholder="Ví dụ: Phường Xuân Khánh">
+            </div>
+            <div class="form-group">
+                <label><span>*</span> Quận / Huyện</label>
+                <input type="text" class="form-control" name="district" placeholder="Ví dụ: Quận Ninh Kiều">
+            </div>
+            <div class="form-group">
+                <label><span>*</span> Tỉnh / Thành phố</label>
+                <input type="text" class="form-control" name="city" placeholder="Ví dụ: Thành phố Cần Thơ">
+            </div>
+        `;
     });
 });
+
+// Xử lý nút Lưu (AJAX)
 document.querySelector('.btn-save').addEventListener('click', function(e) {
     e.preventDefault();
     
@@ -544,13 +581,11 @@ document.querySelector('.btn-save').addEventListener('click', function(e) {
     formData.append('event_name', document.getElementById('eventName').value);
     formData.append('event_description', document.getElementById('eventDescription').value);
     
-    // Đính kèm file ảnh
     const posterInput = document.getElementById('inputPoster');
     if(posterInput.files.length > 0) {
         formData.append('poster', posterInput.files[0]);
     }
 
-    // Hiển thị trạng thái đang lưu...
     const btn = this;
     const originalText = btn.innerText;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
@@ -564,7 +599,6 @@ document.querySelector('.btn-save').addEventListener('click', function(e) {
     .then(data => {
         if(data.status === 'success') {
             alert('Đã lưu thông tin sự kiện!');
-            // Gắn ID sự kiện vừa tạo vào form để update cho các bước sau
         } else {
             alert('Lỗi: ' + data.message);
         }
