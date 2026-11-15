@@ -34,9 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 2. Kiểm tra Email / SĐT
     if (empty($email)) {
-        $errors['email'] = 'Vui lòng nhập email hoặc số điện thoại.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) && !preg_match('/^(0[3|5|7|8|9])+([0-9]{8})$/', $email)) {
-        $errors['email'] = 'Email hoặc số điện thoại không hợp lệ.';
+        $errors['email'] = 'Vui lòng nhập email.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'Email không hợp lệ.';
     }
 
     // 3. KIỂM TRA MẬT KHẨU CHUẨN 4 TIÊU CHÍ (SERVER-SIDE)
