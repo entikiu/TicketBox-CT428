@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($exists) {
-            $errors['email'] = 'Email hoặc số điện thoại này đã được đăng ký.';
+            $errors['email'] = 'Email này đã được đăng ký.';
         } else {
             $_SESSION['registered_users'][] = [
                 'name' => $fullname,
@@ -125,8 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Email / SĐT -->
     <div class="form-group <?php echo !empty($errors['email']) ? 'has-error' : ''; ?>">
-        <label class="form-label">Email hoặc Số điện thoại</label>
-        <input type="text" id="regEmail" name="email" class="form-input" placeholder="Nhập email hoặc SĐT" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+        <label class="form-label">Email </label>
+        <input type="text" id="regEmail" name="email" class="form-input" placeholder="Nhập email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
         <span class="field-error" id="error-regEmail"><?php echo $errors['email'] ?? ''; ?></span>
     </div>
 
