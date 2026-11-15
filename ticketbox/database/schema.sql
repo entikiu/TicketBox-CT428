@@ -28,6 +28,7 @@ DROP TABLE IF EXISTS `the_thanh_vien_nguoidung`;
 DROP TABLE IF EXISTS `the_thanh_vien`;
 DROP TABLE IF EXISTS `loaive`;
 DROP TABLE IF EXISTS `sukien`;
+DROP TABLE IF EXISTS `danh_muc`;
 DROP TABLE IF EXISTS `nguoidung`;
 
 -- ============================================================================
@@ -58,24 +59,25 @@ INSERT INTO `nguoidung` (`id`, `ho_ten`, `email`, `phone`, `dob`, `gender`, `ava
 
 
 -- ----------------------------------------------------------------------------
--- 2. BẢNG SỰ KIỆN (52 sự kiện thuộc đầy đủ các danh mục)
+-- 2. BẢNG DANH MỤC SỰ KIỆN
 -- ----------------------------------------------------------------------------
 
--- Đặt đoạn này ở phần trên (trước bảng sukien)
-CREATE TABLE IF NOT EXISTS danh_muc (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    ten_danh_muc VARCHAR(100) NOT NULL,
-    slug VARCHAR(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE `danh_muc` (
+  `id` int(11) NOT NULL,
+  `ten_danh_muc` varchar(100) NOT NULL,
+  `slug` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Khi tạo bảng sukien, bổ sung trực tiếp cột danh_muc_id và khóa ngoại vào trong:
-CREATE TABLE IF NOT EXISTS sukien (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    ten_su_kien VARCHAR(255) NOT NULL,
-    -- ... các trường khác của bảng sukien ...
-    danh_muc_id INT DEFAULT NULL,
-    CONSTRAINT fk_sukien_danhmuc FOREIGN KEY (danh_muc_id) REFERENCES danh_muc(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO `danh_muc` (`id`, `ten_danh_muc`, `slug`) VALUES
+(1, 'Concert & Âm nhạc', 'concert-am-nhac'),
+(2, 'Thể thao & Giải trí', 'the-thao-giai-tri'),
+(3, 'Workshop & Sáng tạo', 'workshop-sang-tao'),
+(4, 'Sân khấu & Nghệ thuật', 'san-khau-nghe-thuat');
+
+
+-- ----------------------------------------------------------------------------
+-- 3. BẢNG SỰ KIỆN (52 sự kiện liên kết với bảng danh mục)
+-- ----------------------------------------------------------------------------
 
 CREATE TABLE `sukien` (
   `id` int(11) NOT NULL,
@@ -91,66 +93,67 @@ CREATE TABLE `sukien` (
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `hinh_anh` varchar(255) DEFAULT NULL,
   `ten_ban_to_chuc` varchar(200) DEFAULT NULL,
-  `mo_ta_ban_to_chuc` varchar(255) DEFAULT NULL
+  `mo_ta_ban_to_chuc` varchar(255) DEFAULT NULL,
+  `danh_muc_id` int(11) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `sukien` (`id`, `ten_su_kien`, `mo_ta`, `dia_diem`, `gia_thap_nhat`, `thoi_gian`, `thoi_gian_hien_thi`, `ten_dia_diem`, `so_luong_toi_da`, `nguoi_tao`, `ngay_tao`, `hinh_anh`, `ten_ban_to_chuc`, `mo_ta_ban_to_chuc`) VALUES
-(1, 'Live Concert SKYNOTE - Quốc Thiên', NULL, 'Phạm Hùng, Mễ Trì, Nam Từ Liêm, Hà Nội', 880000, '2026-11-29 19:30:00', '19:30 - 23:00, 29 Tháng 11, 2026', 'Trung tâm Hội nghị Quốc gia', 1000, 2, '2026-11-11 13:47:35', '../assets/images/events/banner-skynote.jpg', 'SKYNOTE Entertainment', 'Đơn vị sản xuất & Tổ chức đêm nhạc'),
-(2, 'Những Thành Phố Mộng Mơ Year End 2026', NULL, '799 Nguyễn Văn Linh, Tân Phú, Quận 7, TP. Hồ Chí Minh', 499000, '2026-12-12 15:00:00', '15:00 - 22:30, 12 Tháng 12, 2026', 'SECC - Trung tâm Hội chợ & Triển lãm Sài Gòn', 2000, 2, '2026-11-11 13:47:48', '../assets/images/events/banner-ntpmm.jpg', 'Mộng Mơ Studio', 'Ban tổ chức chuỗi sự kiện âm nhạc Indie'),
-(3, 'Mắt Nhắm Mắt Mở Concert', NULL, 'Văn Cao, Liễu Giai, Ba Đình, Hà Nội', 1600000, '2026-11-01 18:00:00', '18:00 - 22:00, 01 Tháng 11, 2026', 'Cung Thể Thao Quần Ngựa', 1000, 2, '2026-11-11 13:54:52', '../assets/images/events/banner-mnmm.jpg', '1PRODUCTION', 'Đơn vị quản lý & sản xuất'),
-(4, 'Tinh Hà \"Say Hi\" Concert - Đêm 4', NULL, 'Đường Cầu Tứ Liên, Xã Đông Anh, Thành phố Hà Nội', 800000, '2026-11-15 19:00:00', '19:00 - 23:00, 15 Tháng 11, 2026', 'Trung tâm triển lãm Việt Nam (VEC)', 3000, 2, '2026-11-12 13:15:08', '../assets/images/events/banner-tinh-ha.jpg', 'Vie Channel', 'VieChannel: Đơn vị sản xuất'),
-(5, 'The Starry - S\'NOW', NULL, '116 Nguyễn Du, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh', 800000, '2026-12-19 18:30:00', '18:30 - 22:30, 19 Tháng 12, 2026', 'Nhà thi đấu Nguyễn Du', 600, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-snow.jpg', 'The Starry Entertainment', 'Đơn vị tổ chức đêm nhạc giáng sinh'),
-(6, 'GAI MEET - NHÀ RỰC RỠ', NULL, 'Vũ Tông Phan, An Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 1500000, '2026-10-18 18:30:00', '18:30 - 22:00, 18 Tháng 10, 2026', 'The Ants Studio', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nha-ruc-ro.jpg', 'YEAH1 x 1PRODUCTION', 'Đơn vị hợp tác sản xuất chuỗi show'),
-(7, '(S)TRONG \'DỊ KIỀU\' SHOW 2026: ĐẾN GIÂY CUỐI CÙNG', NULL, '8 Nguyễn Công Hoan, Ngọc Khánh, Ba Đình, Hà Nội', 1450000, '2026-11-07 19:00:00', '19:00 - 22:30, 07 Tháng 11, 2026', 'SOL 8 Live Stage', 350, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-strong.jpg', 'Strong Entertainment', 'Ban tổ chức show diễn âm nhạc'),
-(8, 'GAI MEET - DỰ ÁN NHÂN TỐ X', NULL, 'Vũ Tông Phan, An Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 1500000, '2026-11-01 18:30:00', '18:30 - 22:00, 01 Tháng 11, 2026', 'The Ants Studio', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nhan-to-x.jpg', 'YEAH1 x 1PRODUCTION', 'Đơn vị hợp tác sản xuất'),
-(9, '[CONCERT] ANH TRAI VƯỢT NGÀN CHÔNG GAI 2026 - DAY 1 & DAY 2', NULL, 'Đỗ Xuân Hợp, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 1000000, '2026-10-18 17:00:00', '17:00 - 23:00, 18 Tháng 10, 2026', 'The Global City', 5000, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-anh-trai.jpg', 'YeaH1 Group', 'Đơn vị sản xuất độc quyền'),
-(10, 'HIỆN DIỆN - UPRIZE CONCERT', NULL, 'Đường Trần Hữu Dực, Cầu Diễn, Nam Từ Liêm, Hà Nội', 800000, '2026-12-12 19:00:00', '19:00 - 22:30, 12 Tháng 12, 2026', 'Cung Điền kinh Mỹ Đình', 1500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-uprize.jpg', 'UPRIZE Entertainment', 'Đơn vị sản xuất & Tổ chức sự kiện'),
-(11, 'Trải nghiệm bay dù lượn tại Sapa', NULL, 'Đèo Ô Quy Hồ, Sapa, Lào Cai', 2190000, '2026-08-01 08:00:00', '08:00 - 17:00, 01 Tháng 08, 2026', 'Điểm bay dù lượn Sapa', 100, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-du-luon-sapa.jpg', 'Sapa Paragliding Club', 'Đơn vị tổ chức trải nghiệm thể thao mạo hiểm'),
-(12, 'SAIGON PRO-AM BASKETBALL CUP 2026 OFFICIAL MERCHANDISE', NULL, '2 Hồ Xuân Hương, Phường 6, Quận 3, TP. Hồ Chí Minh', 25000, '2026-09-30 09:00:00', '09:00 - 21:00, 30 Tháng 09, 2026', 'Nhà thi đấu Hồ Xuân Hương', 500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-saigon-basketball.jpg', 'New Sports', 'Đơn vị tổ chức giải bóng rổ Saigon Pro-Am'),
-(13, 'TRẢI NGHIỆM ĐƯỜNG ĐUA GO - KART ĐA TẦNG TRONG NHÀ ĐẦU TIÊN TẠI VIỆT NAM', NULL, 'Tầng 5, 161 Xa lộ Hà Nội, Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh', 0, '2026-10-19 10:00:00', '10:00 - 22:00 hàng ngày, 19 Tháng 10, 2026', 'Vincom Mega Mall Thảo Điền', 500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-go-kart.jpg', 'INFINITY RACING', 'Hệ thống đua xe Go-Kart đa tầng trong nhà'),
-(14, 'Queens Of Glory - Giải Thể Thao Điện Tử Vinh Quang Nữ Hoàng', NULL, '479B Hoàng Quốc Việt, Phường 13, Quận 10, TP. Hồ Chí Minh', 199000, '2026-10-30 14:00:00', '14:00 - 21:00, 30 Tháng 10, 2026', 'VPS ARENA', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-queens-glory.jpg', 'VPS Esports', 'Đơn vị sản xuất giải đấu Esport nữ'),
-(15, 'LCP 2026 Promotion Series', NULL, '479B Hoàng Quốc Việt, Phường 13, Quận 10, TP. Hồ Chí Minh', 199000, '2026-11-10 13:00:00', '13:00 - 21:00, 10 Tháng 11, 2026', 'VPS ARENA', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-lcp-2026.jpg', 'Riot Games & VPS Entertainment', 'Ban tổ chức giải đấu Liên Minh Huyền Thoại LCP'),
-(16, 'Lion Championship 37 - 2026', NULL, '101 Võ Chí Công, Tây Hồ, Hà Nội', 350000, '2026-11-21 19:00:00', '19:00 - 23:00, 21 Tháng 11, 2026', 'Nhà thi đấu Tây Hồ', 1200, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-lion-championship.jpg', 'Liên đoàn Võ thuật tổng hợp Việt Nam (VMMAF)', 'Giải vô địch MMA chuyên nghiệp Việt Nam'),
-(17, 'VIEWING PARTY CHUNG KẾT TỔNG GIẢI ĐẤU VALORANT CHAMPIONS 2026', NULL, '101 Võ Chí Công, Phường Xuân La, Quận Tây Hồ, Hà Nội', 259000, '2026-10-18 11:00:00', '11:00 - 20:00, 18 Tháng 10, 2026', 'Nhà thi đấu Tây Hồ', 1000, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-valorant-viewing-party.jpg', 'Riot Games & VNG Games', 'Đơn vị phát hành & Ban tổ chức giải đấu Valorant tại Việt Nam'),
-(18, 'LOALOA SHOW: VIỆT NAM BỪNG SÁNG', NULL, 'Quận 1, TP. Hồ Chí Minh', 1600000, '2026-10-27 19:00:00', '19:00 - 21:00, 27 Tháng 10, 2026', 'Nhà hát Sân khấu Nghệ thuật', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-loaloa-bung-sang.jpg', 'LoaLoa Entertainment', 'Đơn vị tổ chức show nghệ thuật văn hóa dân gian'),
-(19, 'A LITTLE AUTUMN BAKING WORKSHOP: \"PUMPKIN SPICE CINNAMON ROLL\"', NULL, 'Quận 3, TP. Hồ Chí Minh', 400000, '2026-10-27 09:30:00', '09:30 - 12:00, 27 Tháng 10, 2026', 'Bakery Studio & Academy', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-baking-pumpkin.jpg', 'Little Autumn Studio', 'Lớp học làm bánh nghệ thuật & trải nghiệm'),
-(20, 'The \"Traditional Water Puppet Show\" - Múa rối nước', NULL, '55B Nguyễn Thị Minh Khai, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh', 350000, '2026-10-27 18:30:00', '18:30 - 19:30, 27 Tháng 10, 2026', 'Nhà hát Múa rối nước Rồng Vàng', 250, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-mua-roi-nuoc.jpg', 'Nhà hát Múa rối nước Rồng Vàng', 'Đơn vị biểu diễn nghệ thuật múa rối nước truyền thống'),
-(21, 'LOALOA SHOW: KHI DI SẢN HÓA VŨ ĐIỆU - Live The Legacy', NULL, 'Quận 1, TP. Hồ Chí Minh', 1600000, '2026-10-27 19:30:00', '19:30 - 21:30, 27 Tháng 10, 2026', 'Sân khấu Nghệ thuật Truyền thống', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-loaloa-di-san.jpg', 'LoaLoa Entertainment', 'Đơn vị sản xuất chuỗi show vũ điệu di sản'),
-(22, 'Chào Show - The Sound of Vietnam', NULL, '2 Nguyễn Bỉnh Khiêm, Bến Nghé, Quận 1, TP. Hồ Chí Minh', 1300000, '2026-10-27 19:15:00', '19:15 - 21:00, 27 Tháng 10, 2026', 'Bảo tàng Lịch sử TP. Hồ Chí Minh', 150, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-chao-show.jpg', 'Chào Show Production', 'Đêm nhạc trình diễn âm nhạc dân tộc Việt Nam'),
-(23, '[GARDEN ART] - ART WORKSHOP \"FRUIT MOCHI CHEESECAKE\"', NULL, 'Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh', 370000, '2026-10-28 14:00:00', '14:00 - 17:00, 28 Tháng 10, 2026', 'Garden Art Space', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-mochi-cheesecake.jpg', 'Garden Art Studio', 'Xưởng sáng tạo nghệ thuật & làm bánh'),
-(24, 'ART WORKSHOP \"UJI MATCHA CHEESECAKE TARTE\"', NULL, 'Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh', 420000, '2026-10-28 09:00:00', '09:00 - 12:00, 28 Tháng 10, 2026', 'Garden Art Space', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-matcha-tarte.jpg', 'Garden Art Studio', 'Xưởng sáng tạo nghệ thuật & làm bánh'),
-(25, 'ART WORKSHOP OIL PASTEL PAINTING \"MELTED THOUGHTS\"', NULL, 'Quận 3, TP. Hồ Chí Minh', 420000, '2026-10-28 14:30:00', '14:30 - 17:30, 28 Tháng 10, 2026', 'Atelier Painting Studio', 25, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-oil-pastel.jpg', 'Atelier Studio', 'Lớp học vẽ tranh sáp dầu nghệ thuật'),
-(26, '[DỄ GARDEN] Moss Frame Workshop', NULL, 'Quận 1, TP. Hồ Chí Minh', 450000, '2026-09-16 09:00:00', '09:00 - 12:00, 16 Tháng 09, 2026', 'Dễ Garden Studio', 25, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-moss-frame.jpg', 'Dễ Garden', 'Xưởng thiết kế & sáng tạo không gian xanh'),
-(27, '[LÁ NHÀ GARDEN] Workshop Decor bí ngô Halloween', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 293000, '2026-10-27 14:00:00', '14:00 - 17:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-decor-bi-ngo.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh'),
-(28, '[LÁ NHÀ GARDEN] Workshop Terrarium Mini', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 395000, '2026-10-27 09:30:00', '09:30 - 11:30, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-terrarium-mini.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh'),
-(29, '[LÁ NHÀ GARDEN] Tiểu cảnh Sen đá', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 385000, '2026-10-27 14:00:00', '14:00 - 16:30, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tieu-canh-sen-da.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh'),
-(30, '[LÁ NHÀ GARDEN] Workshop Nương gỗ', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 465000, '2026-10-27 09:00:00', '09:00 - 12:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nuong-go.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh'),
-(31, '[LÁ NHÀ GARDEN] Workshop Tranh thực vật ép Botanical art', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 305000, '2026-10-27 14:00:00', '14:00 - 16:30, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-botanical-art.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh'),
-(32, '[LÁ NHÀ GARDEN] Workshop Tranh rêu độc bản', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 370000, '2026-10-27 09:30:00', '09:30 - 12:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tranh-reu.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh'),
-(33, '[LÁ NHÀ GARDEN] Workshop Túi thơm thảo mộc healing', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 215000, '2026-10-27 15:00:00', '15:00 - 17:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tui-thom-thao-moc.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh'),
-(34, 'Trải Nghiệm Bay Dù Lượn Mù Cang Chải', NULL, 'Đèo Khau Phạ, Huyện Mù Cang Chải, Tỉnh Yên Bái', 2190000, '2026-02-01 07:30:00', '07:30 - 17:00, 01 Tháng 02, 2026', 'Đèo Khau Phạ', 100, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-du-luon-mu-cang-chai.jpg', 'VietWings Paragliding', 'Đơn vị tổ chức dù lượn hàng đầu Việt Nam'),
-(35, 'KHU VUI CHƠI NHÀ CHEN - ƯỚC MƠ XANH', NULL, 'Quận 7, TP. Hồ Chí Minh', 60000, '2026-07-28 08:00:00', '08:00 - 21:00 hàng ngày, 28 Tháng 07, 2026', 'Khu Vui Chơi Nhà Chen', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nha-chen.jpg', 'Nhà Chen Kids', 'Khu vui chơi trải nghiệm sáng tạo dành cho gia đình'),
-(36, 'DU LỊCH VĂN HÓA SUỐI TIÊN', NULL, '120 Xa lộ Hà Nội, Phường Tân Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 60000, '2026-10-01 07:30:00', '07:30 - 17:30 hàng ngày, 01 Tháng 10, 2026', 'Khu Du Lịch Văn Hóa Suối Tiên', 2000, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-suoi-tien.jpg', 'Suối Tiên Theme Park', 'Tập đoàn Du lịch Văn hóa Suối Tiên'),
-(37, 'Bảo Tàng Phở - Bảo Tàng Ẩm Thực Đầu Tiên tại Việt Nam', NULL, 'Thành phố Nam Định, Tỉnh Nam Định', 200000, '2026-10-01 08:30:00', '08:30 - 18:00 hàng ngày, 01 Tháng 10, 2026', 'Bảo Tàng Phở Việt Nam', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-bao-tang-pho.jpg', 'Hiệp hội Văn hóa Ẩm thực Việt Nam', 'Đơn vị bảo tồn & phát triển văn hóa ẩm thực'),
-(38, 'PHẬT BÁO NGHIỆM TRẤN - TRIỂN LÃM DI SẢN VĂN HOÁ PHẬT GIÁO ĐỘC BẢN', NULL, 'Quận 1, TP. Hồ Chí Minh', 150000, '2026-10-27 09:00:00', '09:00 - 21:00, 27 Tháng 10, 2026', 'Trung tâm Triển lãm Nghệ thuật', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-phat-bao-nghiem-tran.jpg', 'Phật Báo Nghiệm Trấn', 'Ban tổ chức triển lãm di sản văn hóa Phật giáo'),
-(39, 'City Sightseeing SaiGon: Xe Buýt 2 Tầng', NULL, 'Công trường Lam Sơn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 105000, '2026-10-27 08:00:00', '08:00 - 22:30 hàng ngày, 27 Tháng 10, 2026', 'Trạm Nhà Hát Thành Phố', 500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-bus-2-tang.jpg', 'City Sightseeing Vietnam', 'Thương hiệu xe buýt ngắm cảnh thành phố 2 tầng'),
-(40, 'TOUR ĐÊM VĂN MIẾU - VAN MIEU NIGHT TOUR', NULL, '58 Quốc Tử Giám, Văn Miếu, Đống Đa, Hà Nội', 0, '2026-10-28 19:00:00', '19:00 - 22:00 (Thứ 4, 6, 7 & CN), 28 Tháng 10, 2026', 'Di tích Quốc gia đặc biệt Văn Miếu - Quốc Tử Giám', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tour-dem-van-mieu.jpg', 'Trung tâm Hoạt động VHKH Văn Miếu - Quốc Tử Giám', 'Đơn vị quản lý & tổ chức trải nghiệm đêm Đạo Học'),
-(41, 'Vé Trải Nghiệm GenZania 2 tiếng', NULL, 'Quận 2, TP. Thủ Đức, TP. Hồ Chí Minh', 190000, '2026-10-30 10:00:00', '10:00 - 21:00, 30 Tháng 10, 2026', 'Tổ hợp Trải nghiệm GenZania', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-genzania.jpg', 'GenZania Entertainment', 'Thế giới trò chơi & giải trí tương tác cho giới trẻ'),
-(42, 'KỊCH ĐOÀN THÀNH LỘC: CÔ GIÁO DUYÊN', NULL, '62 Trần Hưng Đạo, Phường Phạm Ngũ Lão, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-28 19:30:00', '19:30 - 22:00, 28 Tháng 10, 2026', 'Sân khấu kịch Thiên Đăng', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-co-giao-duyen.jpg', 'Sân khấu kịch Thiên Đăng', 'Kịch đoàn nghệ sĩ Ưu tú Thành Lộc'),
-(43, 'Hà Nội - Eifman Ballet Of ST. Petersubrg World Tour 2026', NULL, '1 Tràng Tiền, Phường Tràng Tiền, Quận Hoàn Kiếm, Hà Nội', 500000, '2026-10-28 19:30:00', '19:30 - 21:30, 28 Tháng 10, 2026', 'Nhà hát Lớn Hà Nội', 600, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-eifman-ballet.jpg', 'SPO & Eifman Ballet', 'Đoàn múa Ballet Hàn lâm Saint Petersburg'),
-(44, 'KỊCH ĐOÀN THÀNH LỘC: NGŨ QUÝ TƯƠNG PHÙNG', NULL, '62 Trần Hưng Đạo, Phường Phạm Ngũ Lão, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-29 19:30:00', '19:30 - 22:00, 29 Tháng 10, 2026', 'Sân khấu kịch Thiên Đăng', 300, 2, '2026-11-12 13:41:35', '../assets/images/events/banner-ngu-quy-tuong-phung.jpg', 'Sân khấu kịch Thiên Đăng', 'Kịch đoàn nghệ sĩ Ưu tú Thành Lộc'),
-(45, 'Nhà Hát Kịch IDECAF: Hồn Ai Nấy Giữ', NULL, '28 Lê Thánh Tôn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-29 19:30:00', '19:30 - 22:00, 29 Tháng 10, 2026', 'Nhà hát kịch IDECAF', 350, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-hon-ai-nay-giu.jpg', 'Nhà hát kịch IDECAF', 'Sân khấu kịch nói chuyên nghiệp tại TP. Hồ Chí Minh'),
-(46, 'Show Thực Cảnh Anh Hùng Cờ Lau - Đinh Bộ Lĩnh', NULL, 'Quận Hoàn Kiếm, Hà Nội', 175000, '2026-10-29 19:30:00', '19:30 - 21:00, 29 Tháng 10, 2026', 'Sân khấu Thực cảnh Di sản Hà Nội', 500, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-anh-hung-co-lau.jpg', 'Nhà hát Nghệ thuật Đương đại', 'Đơn vị sản xuất chương trình nghệ thuật thực cảnh lịch sử'),
-(47, 'CADAO Collective - New Taste Of Heritage', NULL, 'Quận 1, TP. Hồ Chí Minh', 500000, '2026-10-30 19:30:00', '19:30 - 22:00, 30 Tháng 10, 2026', 'Không gian Nghệ thuật Đương đại Sài Gòn', 250, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-cadao-collective.jpg', 'CADAO Collective', 'Dự án nghệ thuật giao thoa di sản và âm nhạc đương đại'),
-(48, 'Nhà Hát Kịch IDECAF: Mẹ Tôi Là Đàn Ông', NULL, '28 Lê Thánh Tôn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-30 19:30:00', '19:30 - 22:00, 30 Tháng 10, 2026', 'Nhà hát kịch IDECAF', 350, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-me-toi-la-dan-ong.jpg', 'Nhà hát kịch IDECAF', 'Sân khấu kịch nói chuyên nghiệp tại TP. Hồ Chí Minh'),
-(49, 'BÓNG MA RẠP HÁT LỆ HOA - SÂN KHẨU MỚI', NULL, 'Quận 5, TP. Hồ Chí Minh', 250000, '2026-10-30 19:30:00', '19:30 - 22:00, 30 Tháng 10, 2026', 'Sân khấu kịch Lệ Hoa', 300, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-bong-ma-le-hoa.jpg', 'Sân khấu Mới', 'Đơn vị sản xuất kịch tâm lý & kinh dị sân khấu'),
-(50, 'Sân Khấu Thế Giới Trẻ: Mật Mã Cầu Cơ', NULL, '125 Cống Quỳnh, Phường Nguyễn Cư Trinh, Quận 1, TP. Hồ Chí Minh', 330000, '2026-10-30 20:00:00', '20:00 - 22:30, 30 Tháng 10, 2026', 'Sân khấu Thế Giới Trẻ', 350, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-mat-ma-cau-co.jpg', 'Sân khấu Nghệ thuật Thế Giới Trẻ', 'Sân khấu kịch giải trí dành cho khán giả trẻ'),
-(51, 'Mystic Night Show - Magic & Comedy in Saigon', NULL, 'Quận 1, TP. Hồ Chí Minh', 850000, '2026-10-30 20:00:00', '20:00 - 22:00, 30 Tháng 10, 2026', 'Saigon Comedy & Magic Lounge', 200, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-mystic-night-show.jpg', 'Mystic Entertainment', 'Chương trình biểu diễn ảo thuật & hài kịch tương tác'),
-(52, 'Cuộc Phiêu Lưu Kỳ Thú', NULL, 'Quận 1, TP. Hồ Chí Minh', 120000, '2026-10-31 16:00:00', '16:00 - 18:00, 31 Tháng 10, 2026', 'Nhà hát Thiếu nhi TP. Hồ Chí Minh', 300, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-cuoc-phieu-luu-ky-thu.jpg', 'Sân khấu Kịch Thiếu Nhi', 'Chương trình kịch nghệ thuật dành cho gia đình & thiếu nhi');
+INSERT INTO `sukien` (`id`, `ten_su_kien`, `mo_ta`, `dia_diem`, `gia_thap_nhat`, `thoi_gian`, `thoi_gian_hien_thi`, `ten_dia_diem`, `so_luong_toi_da`, `nguoi_tao`, `ngay_tao`, `hinh_anh`, `ten_ban_to_chuc`, `mo_ta_ban_to_chuc`, `danh_muc_id`) VALUES
+(1, 'Live Concert SKYNOTE - Quốc Thiên', NULL, 'Phạm Hùng, Mễ Trì, Nam Từ Liêm, Hà Nội', 880000, '2026-11-29 19:30:00', '19:30 - 23:00, 29 Tháng 11, 2026', 'Trung tâm Hội nghị Quốc gia', 1000, 2, '2026-11-11 13:47:35', '../assets/images/events/banner-skynote.jpg', 'SKYNOTE Entertainment', 'Đơn vị sản xuất & Tổ chức đêm nhạc', 1),
+(2, 'Những Thành Phố Mộng Mơ Year End 2026', NULL, '799 Nguyễn Văn Linh, Tân Phú, Quận 7, TP. Hồ Chí Minh', 499000, '2026-12-12 15:00:00', '15:00 - 22:30, 12 Tháng 12, 2026', 'SECC - Trung tâm Hội chợ & Triển lãm Sài Gòn', 2000, 2, '2026-11-11 13:47:48', '../assets/images/events/banner-ntpmm.jpg', 'Mộng Mơ Studio', 'Ban tổ chức chuỗi sự kiện âm nhạc Indie', 1),
+(3, 'Mắt Nhắm Mắt Mở Concert', NULL, 'Văn Cao, Liễu Giai, Ba Đình, Hà Nội', 1600000, '2026-11-01 18:00:00', '18:00 - 22:00, 01 Tháng 11, 2026', 'Cung Thể Thao Quần Ngựa', 1000, 2, '2026-11-11 13:54:52', '../assets/images/events/banner-mnmm.jpg', '1PRODUCTION', 'Đơn vị quản lý & sản xuất', 1),
+(4, 'Tinh Hà \"Say Hi\" Concert - Đêm 4', NULL, 'Đường Cầu Tứ Liên, Xã Đông Anh, Thành phố Hà Nội', 800000, '2026-11-15 19:00:00', '19:00 - 23:00, 15 Tháng 11, 2026', 'Trung tâm triển lãm Việt Nam (VEC)', 3000, 2, '2026-11-12 13:15:08', '../assets/images/events/banner-tinh-ha.jpg', 'Vie Channel', 'VieChannel: Đơn vị sản xuất', 1),
+(5, 'The Starry - S\'NOW', NULL, '116 Nguyễn Du, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh', 800000, '2026-12-19 18:30:00', '18:30 - 22:30, 19 Tháng 12, 2026', 'Nhà thi đấu Nguyễn Du', 600, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-snow.jpg', 'The Starry Entertainment', 'Đơn vị tổ chức đêm nhạc giáng sinh', 1),
+(6, 'GAI MEET - NHÀ RỰC RỠ', NULL, 'Vũ Tông Phan, An Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 1500000, '2026-10-18 18:30:00', '18:30 - 22:00, 18 Tháng 10, 2026', 'The Ants Studio', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nha-ruc-ro.jpg', 'YEAH1 x 1PRODUCTION', 'Đơn vị hợp tác sản xuất chuỗi show', 1),
+(7, '(S)TRONG \'DỊ KIỀU\' SHOW 2026: ĐẾN GIÂY CUỐI CÙNG', NULL, '8 Nguyễn Công Hoan, Ngọc Khánh, Ba Đình, Hà Nội', 1450000, '2026-11-07 19:00:00', '19:00 - 22:30, 07 Tháng 11, 2026', 'SOL 8 Live Stage', 350, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-strong.jpg', 'Strong Entertainment', 'Ban tổ chức show diễn âm nhạc', 1),
+(8, 'GAI MEET - DỰ ÁN NHÂN TỐ X', NULL, 'Vũ Tông Phan, An Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 1500000, '2026-11-01 18:30:00', '18:30 - 22:00, 01 Tháng 11, 2026', 'The Ants Studio', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nhan-to-x.jpg', 'YEAH1 x 1PRODUCTION', 'Đơn vị hợp tác sản xuất', 1),
+(9, '[CONCERT] ANH TRAI VƯỢT NGÀN CHÔNG GAI 2026 - DAY 1 & DAY 2', NULL, 'Đỗ Xuân Hợp, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 1000000, '2026-10-18 17:00:00', '17:00 - 23:00, 18 Tháng 10, 2026', 'The Global City', 5000, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-anh-trai.jpg', 'YeaH1 Group', 'Đơn vị sản xuất độc quyền', 1),
+(10, 'HIỆN DIỆN - UPRIZE CONCERT', NULL, 'Đường Trần Hữu Dực, Cầu Diễn, Nam Từ Liêm, Hà Nội', 800000, '2026-12-12 19:00:00', '19:00 - 22:30, 12 Tháng 12, 2026', 'Cung Điền kinh Mỹ Đình', 1500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-uprize.jpg', 'UPRIZE Entertainment', 'Đơn vị sản xuất & Tổ chức sự kiện', 1),
+(11, 'Trải nghiệm bay dù lượn tại Sapa', NULL, 'Đèo Ô Quy Hồ, Sapa, Lào Cai', 2190000, '2026-08-01 08:00:00', '08:00 - 17:00, 01 Tháng 08, 2026', 'Điểm bay dù lượn Sapa', 100, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-du-luon-sapa.jpg', 'Sapa Paragliding Club', 'Đơn vị tổ chức trải nghiệm thể thao mạo hiểm', 2),
+(12, 'SAIGON PRO-AM BASKETBALL CUP 2026 OFFICIAL MERCHANDISE', NULL, '2 Hồ Xuân Hương, Phường 6, Quận 3, TP. Hồ Chí Minh', 25000, '2026-09-30 09:00:00', '09:00 - 21:00, 30 Tháng 09, 2026', 'Nhà thi đấu Hồ Xuân Hương', 500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-saigon-basketball.jpg', 'New Sports', 'Đơn vị tổ chức giải bóng rổ Saigon Pro-Am', 2),
+(13, 'TRẢI NGHIỆM ĐƯỜNG ĐUA GO - KART ĐA TẦNG TRONG NHÀ ĐẦU TIÊN TẠI VIỆT NAM', NULL, 'Tầng 5, 161 Xa lộ Hà Nội, Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh', 0, '2026-10-19 10:00:00', '10:00 - 22:00 hàng ngày, 19 Tháng 10, 2026', 'Vincom Mega Mall Thảo Điền', 500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-go-kart.jpg', 'INFINITY RACING', 'Hệ thống đua xe Go-Kart đa tầng trong nhà', 2),
+(14, 'Queens Of Glory - Giải Thể Thao Điện Tử Vinh Quang Nữ Hoàng', NULL, '479B Hoàng Quốc Việt, Phường 13, Quận 10, TP. Hồ Chí Minh', 199000, '2026-10-30 14:00:00', '14:00 - 21:00, 30 Tháng 10, 2026', 'VPS ARENA', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-queens-glory.jpg', 'VPS Esports', 'Đơn vị sản xuất giải đấu Esport nữ', 2),
+(15, 'LCP 2026 Promotion Series', NULL, '479B Hoàng Quốc Việt, Phường 13, Quận 10, TP. Hồ Chí Minh', 199000, '2026-11-10 13:00:00', '13:00 - 21:00, 10 Tháng 11, 2026', 'VPS ARENA', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-lcp-2026.jpg', 'Riot Games & VPS Entertainment', 'Ban tổ chức giải đấu Liên Minh Huyền Thoại LCP', 2),
+(16, 'Lion Championship 37 - 2026', NULL, '101 Võ Chí Công, Tây Hồ, Hà Nội', 350000, '2026-11-21 19:00:00', '19:00 - 23:00, 21 Tháng 11, 2026', 'Nhà thi đấu Tây Hồ', 1200, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-lion-championship.jpg', 'Liên đoàn Võ thuật tổng hợp Việt Nam (VMMAF)', 'Giải vô địch MMA chuyên nghiệp Việt Nam', 2),
+(17, 'VIEWING PARTY CHUNG KẾT TỔNG GIẢI ĐẤU VALORANT CHAMPIONS 2026', NULL, '101 Võ Chí Công, Phường Xuân La, Quận Tây Hồ, Hà Nội', 259000, '2026-10-18 11:00:00', '11:00 - 20:00, 18 Tháng 10, 2026', 'Nhà thi đấu Tây Hồ', 1000, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-valorant-viewing-party.jpg', 'Riot Games & VNG Games', 'Đơn vị phát hành & Ban tổ chức giải đấu Valorant tại Việt Nam', 2),
+(18, 'LOALOA SHOW: VIỆT NAM BỪNG SÁNG', NULL, 'Quận 1, TP. Hồ Chí Minh', 1600000, '2026-10-27 19:00:00', '19:00 - 21:00, 27 Tháng 10, 2026', 'Nhà hát Sân khấu Nghệ thuật', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-loaloa-bung-sang.jpg', 'LoaLoa Entertainment', 'Đơn vị tổ chức show nghệ thuật văn hóa dân gian', 4),
+(19, 'A LITTLE AUTUMN BAKING WORKSHOP: \"PUMPKIN SPICE CINNAMON ROLL\"', NULL, 'Quận 3, TP. Hồ Chí Minh', 400000, '2026-10-27 09:30:00', '09:30 - 12:00, 27 Tháng 10, 2026', 'Bakery Studio & Academy', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-baking-pumpkin.jpg', 'Little Autumn Studio', 'Lớp học làm bánh nghệ thuật & trải nghiệm', 3),
+(20, 'The \"Traditional Water Puppet Show\" - Múa rối nước', NULL, '55B Nguyễn Thị Minh Khai, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh', 350000, '2026-10-27 18:30:00', '18:30 - 19:30, 27 Tháng 10, 2026', 'Nhà hát Múa rối nước Rồng Vàng', 250, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-mua-roi-nuoc.jpg', 'Nhà hát Múa rối nước Rồng Vàng', 'Đơn vị biểu diễn nghệ thuật múa rối nước truyền thống', 4),
+(21, 'LOALOA SHOW: KHI DI SẢN HÓA VŨ ĐIỆU - Live The Legacy', NULL, 'Quận 1, TP. Hồ Chí Minh', 1600000, '2026-10-27 19:30:00', '19:30 - 21:30, 27 Tháng 10, 2026', 'Sân khấu Nghệ thuật Truyền thống', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-loaloa-di-san.jpg', 'LoaLoa Entertainment', 'Đơn vị sản xuất chuỗi show vũ điệu di sản', 4),
+(22, 'Chào Show - The Sound of Vietnam', NULL, '2 Nguyễn Bỉnh Khiêm, Bến Nghé, Quận 1, TP. Hồ Chí Minh', 1300000, '2026-10-27 19:15:00', '19:15 - 21:00, 27 Tháng 10, 2026', 'Bảo tàng Lịch sử TP. Hồ Chí Minh', 150, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-chao-show.jpg', 'Chào Show Production', 'Đêm nhạc trình diễn âm nhạc dân tộc Việt Nam', 1),
+(23, '[GARDEN ART] - ART WORKSHOP \"FRUIT MOCHI CHEESECAKE\"', NULL, 'Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh', 370000, '2026-10-28 14:00:00', '14:00 - 17:00, 28 Tháng 10, 2026', 'Garden Art Space', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-mochi-cheesecake.jpg', 'Garden Art Studio', 'Xưởng sáng tạo nghệ thuật & làm bánh', 3),
+(24, 'ART WORKSHOP \"UJI MATCHA CHEESECAKE TARTE\"', NULL, 'Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh', 420000, '2026-10-28 09:00:00', '09:00 - 12:00, 28 Tháng 10, 2026', 'Garden Art Space', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-matcha-tarte.jpg', 'Garden Art Studio', 'Xưởng sáng tạo nghệ thuật & làm bánh', 3),
+(25, 'ART WORKSHOP OIL PASTEL PAINTING \"MELTED THOUGHTS\"', NULL, 'Quận 3, TP. Hồ Chí Minh', 420000, '2026-10-28 14:30:00', '14:30 - 17:30, 28 Tháng 10, 2026', 'Atelier Painting Studio', 25, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-oil-pastel.jpg', 'Atelier Studio', 'Lớp học vẽ tranh sáp dầu nghệ thuật', 3),
+(26, '[DỄ GARDEN] Moss Frame Workshop', NULL, 'Quận 1, TP. Hồ Chí Minh', 450000, '2026-09-16 09:00:00', '09:00 - 12:00, 16 Tháng 09, 2026', 'Dễ Garden Studio', 25, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-moss-frame.jpg', 'Dễ Garden', 'Xưởng thiết kế & sáng tạo không gian xanh', 3),
+(27, '[LÁ NHÀ GARDEN] Workshop Decor bí ngô Halloween', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 293000, '2026-10-27 14:00:00', '14:00 - 17:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-decor-bi-ngo.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh', 3),
+(28, '[LÁ NHÀ GARDEN] Workshop Terrarium Mini', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 395000, '2026-10-27 09:30:00', '09:30 - 11:30, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-terrarium-mini.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh', 3),
+(29, '[LÁ NHÀ GARDEN] Tiểu cảnh Sen đá', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 385000, '2026-10-27 14:00:00', '14:00 - 16:30, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tieu-canh-sen-da.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh', 3),
+(30, '[LÁ NHÀ GARDEN] Workshop Nương gỗ', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 465000, '2026-10-27 09:00:00', '09:00 - 12:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nuong-go.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh', 3),
+(31, '[LÁ NHÀ GARDEN] Workshop Tranh thực vật ép Botanical art', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 305000, '2026-10-27 14:00:00', '14:00 - 16:30, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-botanical-art.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh', 3),
+(32, '[LÁ NHÀ GARDEN] Workshop Tranh rêu độc bản', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 370000, '2026-10-27 09:30:00', '09:30 - 12:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tranh-reu.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh', 3),
+(33, '[LÁ NHÀ GARDEN] Workshop Túi thơm thảo mộc healing', NULL, '355/4/12 Đường Bạch Đằng, Phường 14, Quận Bình Thạnh, TP. Hồ Chí Minh', 215000, '2026-10-27 15:00:00', '15:00 - 17:00, 27 Tháng 10, 2026', 'Lá Nhà Garden Studio', 30, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tui-thom-thao-moc.jpg', 'Lá Nhà Garden', 'Nhận tổ chức Workshop thủ công & cây cảnh', 3),
+(34, 'Trải Nghiệm Bay Dù Lượn Mù Cang Chải', NULL, 'Đèo Khau Phạ, Huyện Mù Cang Chải, Tỉnh Yên Bái', 2190000, '2026-02-01 07:30:00', '07:30 - 17:00, 01 Tháng 02, 2026', 'Đèo Khau Phạ', 100, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-du-luon-mu-cang-chai.jpg', 'VietWings Paragliding', 'Đơn vị tổ chức dù lượn hàng đầu Việt Nam', 2),
+(35, 'KHU VUI CHƠI NHÀ CHEN - ƯỚC MƠ XANH', NULL, 'Quận 7, TP. Hồ Chí Minh', 60000, '2026-07-28 08:00:00', '08:00 - 21:00 hàng ngày, 28 Tháng 07, 2026', 'Khu Vui Chơi Nhà Chen', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-nha-chen.jpg', 'Nhà Chen Kids', 'Khu vui chơi trải nghiệm sáng tạo dành cho gia đình', 2),
+(36, 'DU LỊCH VĂN HÓA SUỐI TIÊN', NULL, '120 Xa lộ Hà Nội, Phường Tân Phú, TP. Thủ Đức, TP. Hồ Chí Minh', 60000, '2026-10-01 07:30:00', '07:30 - 17:30 hàng ngày, 01 Tháng 10, 2026', 'Khu Du Lịch Văn Hóa Suối Tiên', 2000, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-suoi-tien.jpg', 'Suối Tiên Theme Park', 'Tập đoàn Du lịch Văn hóa Suối Tiên', 2),
+(37, 'Bảo Tàng Phở - Bảo Tàng Ẩm Thực Đầu Tiên tại Việt Nam', NULL, 'Thành phố Nam Định, Tỉnh Nam Định', 200000, '2026-10-01 08:30:00', '08:30 - 18:00 hàng ngày, 01 Tháng 10, 2026', 'Bảo Tàng Phở Việt Nam', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-bao-tang-pho.jpg', 'Hiệp hội Văn hóa Ẩm thực Việt Nam', 'Đơn vị bảo tồn & phát triển văn hóa ẩm thực', 4),
+(38, 'PHẬT BÁO NGHIỆM TRẤN - TRIỂN LÃM DI SẢN VĂN HOÁ PHẬT GIÁO ĐỘC BẢN', NULL, 'Quận 1, TP. Hồ Chí Minh', 150000, '2026-10-27 09:00:00', '09:00 - 21:00, 27 Tháng 10, 2026', 'Trung tâm Triển lãm Nghệ thuật', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-phat-bao-nghiem-tran.jpg', 'Phật Báo Nghiệm Trấn', 'Ban tổ chức triển lãm di sản văn hóa Phật giáo', 4),
+(39, 'City Sightseeing SaiGon: Xe Buýt 2 Tầng', NULL, 'Công trường Lam Sơn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 105000, '2026-10-27 08:00:00', '08:00 - 22:30 hàng ngày, 27 Tháng 10, 2026', 'Trạm Nhà Hát Thành Phố', 500, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-bus-2-tang.jpg', 'City Sightseeing Vietnam', 'Thương hiệu xe buýt ngắm cảnh thành phố 2 tầng', 2),
+(40, 'TOUR ĐÊM VĂN MIẾU - VAN MIEU NIGHT TOUR', NULL, '58 Quốc Tử Giám, Văn Miếu, Đống Đa, Hà Nội', 0, '2026-10-28 19:00:00', '19:00 - 22:00 (Thứ 4, 6, 7 & CN), 28 Tháng 10, 2026', 'Di tích Quốc gia đặc biệt Văn Miếu - Quốc Tử Giám', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-tour-dem-van-mieu.jpg', 'Trung tâm Hoạt động VHKH Văn Miếu - Quốc Tử Giám', 'Đơn vị quản lý & tổ chức trải nghiệm đêm Đạo Học', 4),
+(41, 'Vé Trải Nghiệm GenZania 2 tiếng', NULL, 'Quận 2, TP. Thủ Đức, TP. Hồ Chí Minh', 190000, '2026-10-30 10:00:00', '10:00 - 21:00, 30 Tháng 10, 2026', 'Tổ hợp Trải nghiệm GenZania', 400, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-genzania.jpg', 'GenZania Entertainment', 'Thế giới trò chơi & giải trí tương tác cho giới trẻ', 2),
+(42, 'KỊCH ĐOÀN THÀNH LỘC: CÔ GIÁO DUYÊN', NULL, '62 Trần Hưng Đạo, Phường Phạm Ngũ Lão, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-28 19:30:00', '19:30 - 22:00, 28 Tháng 10, 2026', 'Sân khấu kịch Thiên Đăng', 300, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-co-giao-duyen.jpg', 'Sân khấu kịch Thiên Đăng', 'Kịch đoàn nghệ sĩ Ưu tú Thành Lộc', 4),
+(43, 'Hà Nội - Eifman Ballet Of ST. Petersubrg World Tour 2026', NULL, '1 Tràng Tiền, Phường Tràng Tiền, Quận Hoàn Kiếm, Hà Nội', 500000, '2026-10-28 19:30:00', '19:30 - 21:30, 28 Tháng 10, 2026', 'Nhà hát Lớn Hà Nội', 600, 2, '2026-11-12 13:30:26', '../assets/images/events/banner-eifman-ballet.jpg', 'SPO & Eifman Ballet', 'Đoàn múa Ballet Hàn lâm Saint Petersburg', 4),
+(44, 'KỊCH ĐOÀN THÀNH LỘC: NGŨ QUÝ TƯƠNG PHÙNG', NULL, '62 Trần Hưng Đạo, Phường Phạm Ngũ Lão, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-29 19:30:00', '19:30 - 22:00, 29 Tháng 10, 2026', 'Sân khấu kịch Thiên Đăng', 300, 2, '2026-11-12 13:41:35', '../assets/images/events/banner-ngu-quy-tuong-phung.jpg', 'Sân khấu kịch Thiên Đăng', 'Kịch đoàn nghệ sĩ Ưu tú Thành Lộc', 4),
+(45, 'Nhà Hát Kịch IDECAF: Hồn Ai Nấy Giữ', NULL, '28 Lê Thánh Tôn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-29 19:30:00', '19:30 - 22:00, 29 Tháng 10, 2026', 'Nhà hát kịch IDECAF', 350, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-hon-ai-nay-giu.jpg', 'Nhà hát kịch IDECAF', 'Sân khấu kịch nói chuyên nghiệp tại TP. Hồ Chí Minh', 4),
+(46, 'Show Thực Cảnh Anh Hùng Cờ Lau - Đinh Bộ Lĩnh', NULL, 'Quận Hoàn Kiếm, Hà Nội', 175000, '2026-10-29 19:30:00', '19:30 - 21:00, 29 Tháng 10, 2026', 'Sân khấu Thực cảnh Di sản Hà Nội', 500, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-anh-hung-co-lau.jpg', 'Nhà hát Nghệ thuật Đương đại', 'Đơn vị sản xuất chương trình nghệ thuật thực cảnh lịch sử', 4),
+(47, 'CADAO Collective - New Taste Of Heritage', NULL, 'Quận 1, TP. Hồ Chí Minh', 500000, '2026-10-30 19:30:00', '19:30 - 22:00, 30 Tháng 10, 2026', 'Không gian Nghệ thuật Đương đại Sài Gòn', 250, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-cadao-collective.jpg', 'CADAO Collective', 'Dự án nghệ thuật giao thoa di sản và âm nhạc đương đại', 4),
+(48, 'Nhà Hát Kịch IDECAF: Mẹ Tôi Là Đàn Ông', NULL, '28 Lê Thánh Tôn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 300000, '2026-10-30 19:30:00', '19:30 - 22:00, 30 Tháng 10, 2026', 'Nhà hát kịch IDECAF', 350, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-me-toi-la-dan-ong.jpg', 'Nhà hát kịch IDECAF', 'Sân khấu kịch nói chuyên nghiệp tại TP. Hồ Chí Minh', 4),
+(49, 'BÓNG MA RẠP HÁT LỆ HOA - SÂN KHẤU MỚI', NULL, 'Quận 5, TP. Hồ Chí Minh', 250000, '2026-10-30 19:30:00', '19:30 - 22:00, 30 Tháng 10, 2026', 'Sân khấu kịch Lệ Hoa', 300, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-bong-ma-le-hoa.jpg', 'Sân khấu Mới', 'Đơn vị sản xuất kịch tâm lý & kinh dị sân khấu', 4),
+(50, 'Sân Khấu Thế Giới Trẻ: Mật Mã Cầu Cơ', NULL, '125 Cống Quỳnh, Phường Nguyễn Cư Trinh, Quận 1, TP. Hồ Chí Minh', 330000, '2026-10-30 20:00:00', '20:00 - 22:30, 30 Tháng 10, 2026', 'Sân khấu Thế Giới Trẻ', 350, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-mat-ma-cau-co.jpg', 'Sân khấu Nghệ thuật Thế Giới Trẻ', 'Sân khấu kịch giải trí dành cho khán giả trẻ', 4),
+(51, 'Mystic Night Show - Magic & Comedy in Saigon', NULL, 'Quận 1, TP. Hồ Chí Minh', 850000, '2026-10-30 20:00:00', '20:00 - 22:00, 30 Tháng 10, 2026', 'Saigon Comedy & Magic Lounge', 200, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-mystic-night-show.jpg', 'Mystic Entertainment', 'Chương trình biểu diễn ảo thuật & hài kịch tương tác', 4),
+(52, 'Cuộc Phiêu Lưu Kỳ Thú', NULL, 'Quận 1, TP. Hồ Chí Minh', 120000, '2026-10-31 16:00:00', '16:00 - 18:00, 31 Tháng 10, 2026', 'Nhà hát Thiếu nhi TP. Hồ Chí Minh', 300, 2, '2026-11-12 13:43:44', '../assets/images/events/banner-cuoc-phieu-luu-ky-thu.jpg', 'Sân khấu Kịch Thiếu Nhi', 'Chương trình kịch nghệ thuật dành cho gia đình & thiếu nhi', 4);
 
 
 -- ----------------------------------------------------------------------------
--- 3. BẢNG LOẠI VÉ (100 hạng vé chi tiết tương ứng 52 sự kiện)
+-- 4. BẢNG LOẠI VÉ (100 hạng vé chi tiết tương ứng 52 sự kiện)
 -- ----------------------------------------------------------------------------
 
 CREATE TABLE `loaive` (
@@ -266,7 +269,7 @@ INSERT INTO `loaive` (`id`, `su_kien_id`, `ten_loai_ve`, `gia_ve`, `da_het_ve`, 
 
 
 -- ----------------------------------------------------------------------------
--- 4. BẢNG THẺ THÀNH VIÊN (7 gói Membership của nghệ sĩ & nhãn hiệu)
+-- 5. BẢNG THẺ THÀNH VIÊN (7 gói Membership của nghệ sĩ & nhãn hiệu)
 -- ----------------------------------------------------------------------------
 
 CREATE TABLE `the_thanh_vien` (
@@ -292,7 +295,7 @@ INSERT INTO `the_thanh_vien` (`id`, `ten_the`, `nghe_si`, `gia`, `thoi_han_thang
 
 
 -- ----------------------------------------------------------------------------
--- 5. BẢNG THẺ THÀNH VIÊN NGƯỜI DÙNG (Lịch sử kích hoạt & thời hạn thẻ)
+-- 6. BẢNG THẺ THÀNH VIÊN NGƯỜI DÙNG (Lịch sử kích hoạt & thời hạn thẻ)
 -- ----------------------------------------------------------------------------
 
 CREATE TABLE `the_thanh_vien_nguoidung` (
@@ -310,7 +313,7 @@ INSERT INTO `the_thanh_vien_nguoidung` (`id`, `ma_the`, `the_id`, `nguoi_dung_id
 
 
 -- ----------------------------------------------------------------------------
--- 6. BẢNG VÉ ĐÃ ĐẶT (Lịch sử giao dịch đặt vé & trạng thái vé)
+-- 7. BẢNG VÉ ĐÃ ĐẶT (Lịch sử giao dịch đặt vé & trạng thái vé)
 -- ----------------------------------------------------------------------------
 
 CREATE TABLE `ve` (
@@ -357,9 +360,13 @@ ALTER TABLE `nguoidung`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
 
+ALTER TABLE `danh_muc`
+  ADD PRIMARY KEY (`id`);
+
 ALTER TABLE `sukien`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_sukien_nguoidung` (`nguoi_tao`);
+  ADD KEY `fk_sukien_nguoidung` (`nguoi_tao`),
+  ADD KEY `fk_sukien_danhmuc` (`danh_muc_id`);
 
 ALTER TABLE `loaive`
   ADD PRIMARY KEY (`id`),
@@ -387,6 +394,9 @@ ALTER TABLE `ve`
 ALTER TABLE `nguoidung`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
+ALTER TABLE `danh_muc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
 ALTER TABLE `sukien`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
@@ -407,7 +417,8 @@ ALTER TABLE `ve`
 -- ============================================================================
 
 ALTER TABLE `sukien`
-  ADD CONSTRAINT `fk_sukien_nguoidung` FOREIGN KEY (`nguoi_tao`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_sukien_nguoidung` FOREIGN KEY (`nguoi_tao`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_sukien_danhmuc` FOREIGN KEY (`danh_muc_id`) REFERENCES `danh_muc` (`id`) ON DELETE SET NULL;
 
 ALTER TABLE `loaive`
   ADD CONSTRAINT `fk_loaive_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE;
