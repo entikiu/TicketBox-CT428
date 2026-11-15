@@ -187,7 +187,7 @@ $first_char   = mb_strtoupper(mb_substr($header_name, 0, 1, 'UTF-8'), 'UTF-8');
                             $current_role = strtolower($user_data['vai_tro'] ?? '');
                             if ($current_role === 'admin'): 
                             ?>
-                                <a href="admin/index.php" style="color: #26c973; font-weight: bold; background: #f0fdf4;">
+                                <a href="../admin/index.php" style="color: #26c973; font-weight: bold; background: #f0fdf4;">
                                     <i class="fa-solid fa-shield-halved"></i> Trang quản trị
                                 </a>
                                 <div class="dropdown-divider"></div>
