@@ -210,7 +210,7 @@ include '../templates/header.php';
     <!-- Thanh Sub-navigation của Star -->
     <div class="star-subnav">
         <div class="star-subnav-inner">
-            <a href="index.php" class="star-subnav-brand" title="Về trang chủ Ticketbox">
+            <a href="home.php" class="star-subnav-brand" title="Về trang chủ Ticketbox">
                 <span class="star-brand-logo-box"><span>ticket</span><span>box</span></span>
                 <span><?php echo htmlspecialchars($currentStar['ten_hien_thi']); ?></span>
             </a>
@@ -227,7 +227,7 @@ include '../templates/header.php';
 
             <div class="star-subnav-auth">
                 <?php if ($loggedUser): ?>
-                    <a href="profile.php" class="star-subnav-user">
+                    <a href="my-tickets.php" class="star-subnav-user">
                         <img src="<?php echo htmlspecialchars(!empty($loggedUser['avatar']) ? $loggedUser['avatar'] : 'https://via.placeholder.com/60/26c973/ffffff?text=U'); ?>"
                              alt="<?php echo htmlspecialchars($loggedUser['ho_ten'] ?? 'Tài khoản'); ?>">
                         <span><?php echo htmlspecialchars($loggedUser['ho_ten'] ?? 'Tài khoản'); ?></span>

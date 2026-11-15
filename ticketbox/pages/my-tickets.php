@@ -580,12 +580,21 @@ include '../templates/header.php';
                                         </div>
                                         
                                         <?php if ($t_status !== 'da-huy' && !$t_is_ended): ?>
-                                            <div style="text-align: right; margin-top: 10px;">
-                                                <form method="POST" action="my-tickets.php?tab=tickets" style="display: inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?');">
+                                            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px;">
+                                                <!-- Nút Xem mã QR -->
+                                                <a href="ticket-qr.php?id=<?php echo (int) $t_db_id; ?>" 
+                                                style="background: #2b2f3e; color: #26c973; border: 1px solid #26c973; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                                    <i class="fa-solid fa-qrcode"></i> Xem mã QR
+                                                </a>
+
+                                                <!-- Form Hủy vé riêng biệt -->
+                                                <form method="POST" action="my-tickets.php?tab=tickets" style="display: inline-block; margin: 0;"
+                                                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?');">
                                                     <input type="hidden" name="action" value="cancel_ticket">
-                                                    <input type="hidden" name="ticket_db_id" value="<?php echo htmlspecialchars((string)$t_db_id); ?>">
-                                                    <input type="hidden" name="ticket_index" value="<?php echo (int)$t_orig_index; ?>">
-                                                    <button type="submit" style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                                    <input type="hidden" name="ticket_db_id" value="<?php echo htmlspecialchars((string) $t_db_id); ?>">
+                                                    <input type="hidden" name="ticket_index" value="<?php echo (int) $t_orig_index; ?>">
+                                                    <button type="submit"
+                                                        style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                                         <i class="fa-solid fa-ban"></i> Hủy vé
                                                     </button>
                                                 </form>

@@ -772,9 +772,6 @@ a {
 /* =========================================================
    TRANG HỒ SƠ STAR - CHUẨN 100% GIAO DIỆN TICKETSTARS
    ========================================================= */
-/* =========================================================
-   TRANG HỒ SƠ STAR - CHUẨN 100% GIAO DIỆN TICKETSTARS
-   ========================================================= */
 
 /* Tự động ẩn header xanh trang chủ khi đang ở trang chi tiết Star */
 body:has(.star-subnav) > header,

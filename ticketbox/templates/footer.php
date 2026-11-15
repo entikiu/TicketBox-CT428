@@ -159,6 +159,7 @@
 <script src="../assets/js/search-ajax.js"></script>
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/auth.js"></script>
+<script src="../assets/js/search-ajax.js?v=<?php echo time(); ?>"></script>
 </body>
 
 </html>
