@@ -88,33 +88,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     mat_khau: passwordVal
                 })
             })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.message || 'Email hoặc mật khẩu không chính xác.');
-                }
-                return data;
-            })
-            .then(data => {
-                if (data.success) {
-                    window.location.href = 'home.php';
-                }
-            })
-            .catch(error => {
-                if (alertError) {
-                    alertError.textContent = error.message;
-                    alertError.style.display = 'block';
-                } else {
-                    showFieldError('loginPassword', error.message);
-                }
-            })
-            .finally(() => {
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Tiếp tục';
-                    checkLoginFormFilled();
-                }
-            });
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Email hoặc mật khẩu không chính xác.');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'home.php';
+                    }
+                })
+                .catch(error => {
+                    if (alertError) {
+                        alertError.textContent = error.message;
+                        alertError.style.display = 'block';
+                    } else {
+                        showFieldError('loginPassword', error.message);
+                    }
+                })
+                .finally(() => {
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Tiếp tục';
+                        checkLoginFormFilled();
+                    }
+                });
         });
     }
 
@@ -289,38 +289,38 @@ document.addEventListener('DOMContentLoaded', function () {
                     mat_khau: passwordVal
                 })
             })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.message || 'Đăng ký thất bại. Vui lòng thử lại.');
-                }
-                return data;
-            })
-            .then(data => {
-                if (alertSuccess) {
-                    alertSuccess.textContent = data.message + ' Đang chuyển hướng sang trang đăng nhập...';
-                    alertSuccess.style.display = 'block';
-                }
-                registerForm.reset();
-                setTimeout(() => {
-                    window.location.href = 'login.php';
-                }, 1500);
-            })
-            .catch(error => {
-                if (alertError) {
-                    alertError.textContent = error.message;
-                    alertError.style.display = 'block';
-                } else {
-                    showFieldError('regEmail', error.message);
-                }
-            })
-            .finally(() => {
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = 'Đăng ký';
-                    checkRegisterFormFilled();
-                }
-            });
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if (alertSuccess) {
+                        alertSuccess.textContent = data.message + ' Đang chuyển hướng sang trang đăng nhập...';
+                        alertSuccess.style.display = 'block';
+                    }
+                    registerForm.reset();
+                    setTimeout(() => {
+                        window.location.href = 'login.php';
+                    }, 1500);
+                })
+                .catch(error => {
+                    if (alertError) {
+                        alertError.textContent = error.message;
+                        alertError.style.display = 'block';
+                    } else {
+                        showFieldError('regEmail', error.message);
+                    }
+                })
+                .finally(() => {
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Đăng ký';
+                        checkRegisterFormFilled();
+                    }
+                });
         });
     }
 
@@ -338,20 +338,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Accept': 'application/json'
                 }
             })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.message || 'Đã có lỗi xảy ra khi đăng xuất.');
-                }
-                return data;
-            })
-            .then(data => {
-                window.location.href = 'login.php';
-            })
-            .catch(error => {
-                console.error('Lỗi đăng xuất:', error);
-                alert(error.message);
-            });
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Đã có lỗi xảy ra khi đăng xuất.');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    window.location.href = 'login.php';
+                })
+                .catch(error => {
+                    console.error('Lỗi đăng xuất:', error);
+                    alert(error.message);
+                });
         });
     }
 });
@@ -405,12 +405,12 @@ function handleCredentialResponse(response) {
     formData.append('google_email', responsePayload.email);
 
     fetch('login.php', { method: 'POST', body: formData })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            window.location.href = 'home.php';
-        }
-    });
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = 'home.php';
+            }
+        });
 }
 
 function parseJwt(token) {
@@ -448,10 +448,10 @@ function validatePassword(password) {
 }
 
 // Ví dụ bắt sự kiện khi submit form đăng ký hoặc khi nhập liệu (oninput)
-document.getElementById('registerForm')?.addEventListener('submit', function(e) {
+document.getElementById('registerForm')?.addEventListener('submit', function (e) {
     const passwordInput = document.getElementById('password').value;
     const validation = validatePassword(passwordInput);
-    
+
     if (!validation.isValid) {
         e.preventDefault();
         alert(validation.message); // Hoặc hiển thị thông báo lỗi vào DOM UI tương ứng

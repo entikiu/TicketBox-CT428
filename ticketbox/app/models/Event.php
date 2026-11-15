@@ -97,26 +97,31 @@ class Event
      */
     public function update(int $id, array $data): bool
     {
-        $stmt = $this->pdo->prepare(
-            'UPDATE sukien SET
-                ten_su_kien = :ten_su_kien,
-                mo_ta = :mo_ta,
-                dia_diem = :dia_diem,
-                thoi_gian = :thoi_gian,
-                so_luong_toi_da = :so_luong_toi_da,
-                hinh_anh = :hinh_anh
-             WHERE id = :id'
-        );
+        $fields = [
+            'ten_su_kien = :ten_su_kien',
+            'mo_ta = :mo_ta',
+            'dia_diem = :dia_diem',
+            'thoi_gian = :thoi_gian',
+            'so_luong_toi_da = :so_luong_toi_da',
+        ];
 
-        $stmt->execute([
+        $params = [
             'ten_su_kien'     => $data['ten_su_kien'] ?? $data['title'],
             'mo_ta'           => $data['mo_ta'] ?? $data['description'] ?? null,
             'dia_diem'        => $data['dia_diem'] ?? $data['location'],
             'thoi_gian'       => $data['thoi_gian'] ?? $data['start_at'],
             'so_luong_toi_da' => $data['so_luong_toi_da'] ?? $data['capacity'],
-            'hinh_anh'        => $data['hinh_anh'] ?? null,
             'id'              => $id,
-        ]);
+        ];
+
+        if (array_key_exists('hinh_anh', $data) || array_key_exists('image', $data)) {
+            $fields[]           = 'hinh_anh = :hinh_anh';
+            $params['hinh_anh'] = $data['hinh_anh'] ?? $data['image'] ?? null;
+        }
+
+        $sql  = 'UPDATE sukien SET ' . implode(', ', $fields) . ' WHERE id = :id';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->rowCount() > 0;
     }

@@ -1,4 +1,3 @@
-
 <?php
 
 class User
@@ -7,17 +6,30 @@ class User
     {
     }
 
+    public function findById(int $id): array|false
+    {
+        $sql = 'SELECT id, ho_ten, email, vai_tro
+                FROM nguoidung
+                WHERE id = :id
+                LIMIT 1';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['id' => $id]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function findByEmail(string $email): array|false
     {
         $sql = "SELECT id, ho_ten, email, mat_khau, vai_tro
-                FROM NguoiDung
+                FROM nguoidung
                 WHERE email = :email
                 LIMIT 1";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['email' => $email]);
 
-        return $stmt->fetch();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function create(
@@ -25,7 +37,7 @@ class User
         string $email,
         string $matKhauHash
     ): int {
-        $sql = "INSERT INTO NguoiDung
+        $sql = "INSERT INTO nguoidung
                     (ho_ten, email, mat_khau)
                 VALUES (:ho_ten, :email, :mat_khau)";
 

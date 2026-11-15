@@ -31,6 +31,15 @@ try {
         ]);
     }
 
+    $stmtTiers = $pdo->prepare(
+        'SELECT id, ten_loai_ve, gia_ve, da_het_ve, so_luong
+         FROM loaive
+         WHERE su_kien_id = :id
+         ORDER BY gia_ve ASC, id ASC'
+    );
+    $stmtTiers->execute(['id' => $id]);
+    $event['loaive'] = $stmtTiers->fetchAll(PDO::FETCH_ASSOC);
+
     unset($event['nguoi_tao']);
 
     api_response(200, [
