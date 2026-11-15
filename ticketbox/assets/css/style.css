@@ -772,6 +772,20 @@ a {
 /* =========================================================
    TRANG HỒ SƠ STAR - CHUẨN 100% GIAO DIỆN TICKETSTARS
    ========================================================= */
+/* =========================================================
+   TRANG HỒ SƠ STAR - CHUẨN 100% GIAO DIỆN TICKETSTARS
+   ========================================================= */
+
+/* Tự động ẩn header xanh trang chủ khi đang ở trang chi tiết Star */
+body:has(.star-subnav) > header,
+body:has(.star-subnav) .header,
+body:has(.star-subnav) .main-header,
+body:has(.star-subnav) .top-header,
+body:has(.star-subnav) .navbar,
+body:has(.star-subnav) .category-nav,
+body:has(.star-subnav) .category-bar {
+    display: none !important;
+}
 
 .star-subnav {
     background: #141518;
@@ -789,7 +803,7 @@ a {
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    min-height: 54px;
+    min-height: 58px;
     flex-wrap: wrap;
 }
 
@@ -800,7 +814,25 @@ a {
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.star-brand-logo-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: #26c973;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.05;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -0.2px;
+    text-transform: lowercase;
+    flex-shrink: 0;
 }
 
 .star-subnav-tabs {
@@ -815,7 +847,7 @@ a {
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
-    padding: 16px 0;
+    padding: 18px 0;
     border-bottom: 2px solid transparent;
     white-space: nowrap;
     transition: color 0.2s ease, border-color 0.2s ease;
@@ -827,11 +859,75 @@ a {
     border-bottom-color: #26c973;
 }
 
+.star-subnav-auth {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.star-subnav-auth a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.star-subnav-auth a:hover {
+    color: #26c973;
+}
+
+.star-subnav-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.star-subnav-user img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid #26c973;
+}
+
+/* Ảnh bìa (Hero Banner) tràn viền */
+.star-hero-banner {
+    position: relative;
+    width: 100%;
+    height: 410px;
+    background-color: #141518;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+.star-hero-banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(24, 25, 29, 0.05) 0%,
+        rgba(24, 25, 29, 0.35) 60%,
+        #18191d 100%
+    );
+}
+
 /* Bố cục 2 cột */
 .star-page-container {
     max-width: 1200px;
     margin: 28px auto 60px;
     padding: 0 20px;
+}
+
+.star-page-container.has-hero {
+    margin-top: -86px;
+    position: relative;
+    z-index: 10;
 }
 
 .star-layout-grid {
@@ -991,7 +1087,36 @@ a {
     margin-top: 8px;
 }
 
-/* Cột phải: Thông báo & Timeline sự kiện */
+/* Cột phải: Tiêu đề Lịch hoạt động, Thông báo & Timeline sự kiện */
+.star-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.star-section-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.star-view-all {
+    color: #26c973;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: opacity 0.2s ease;
+}
+
+.star-view-all:hover {
+    opacity: 0.85;
+}
+
 .star-notice-banner {
     background: rgba(38, 201, 115, 0.1);
     border: 1px solid rgba(38, 201, 115, 0.35);
@@ -1031,6 +1156,10 @@ a {
     margin-bottom: 24px;
 }
 
+.star-timeline-item:last-child {
+    margin-bottom: 0;
+}
+
 .star-timeline-dot {
     position: absolute;
     left: -25px;
@@ -1039,7 +1168,7 @@ a {
     height: 12px;
     border-radius: 50%;
     background: #26c973;
-    box-shadow: 0 0 0 4px #18191d;
+    box-shadow: 0 0 0 4px #23252a;
 }
 
 .star-timeline-date {
@@ -1057,8 +1186,8 @@ a {
 }
 
 .star-event-card {
-    background: #23252a;
-    border: 1px solid #2f3239;
+    background: #2a2d34;
+    border: 1px solid #363942;
     border-radius: 12px;
     padding: 16px;
     display: flex;
@@ -1068,7 +1197,7 @@ a {
 }
 
 .star-event-card:hover {
-    border-color: #3f434d;
+    border-color: #4b505c;
 }
 
 .star-event-thumb {
@@ -1188,6 +1317,14 @@ a {
 }
 
 @media (max-width: 900px) {
+    .star-hero-banner {
+        height: 260px;
+    }
+
+    .star-page-container.has-hero {
+        margin-top: -50px;
+    }
+
     .star-layout-grid {
         grid-template-columns: 1fr;
     }
