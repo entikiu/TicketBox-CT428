@@ -1,11 +1,7 @@
-/* ==========================================
-   1. RESET & SYSTEM VARIABLES
-   ========================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 :root {
@@ -21,8 +17,9 @@
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-color);
+    background-color: var(--bg-dark) !important;
+    color: var(--text-color) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
 }
 
@@ -157,11 +154,9 @@ a {
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     padding: 0 0 8px 0;
-    /* Sửa: Đã xóa padding-top để nút dán chặt lề trên */
     display: none;
     z-index: 2000;
     overflow: hidden;
-    /* Thêm: Giúp nút ôm sát theo 2 góc bo tròn trên cùng */
 }
 
 .dropdown-menu.show {
@@ -774,7 +769,7 @@ a {
    ========================================================= */
 
 /* Tự động ẩn header xanh trang chủ khi đang ở trang chi tiết Star */
-body:has(.star-subnav) > header,
+body:has(.star-subnav)>header,
 body:has(.star-subnav) .header,
 body:has(.star-subnav) .main-header,
 body:has(.star-subnav) .top-header,
@@ -906,12 +901,10 @@ body:has(.star-subnav) .category-bar {
 .star-hero-banner-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        180deg,
-        rgba(24, 25, 29, 0.05) 0%,
-        rgba(24, 25, 29, 0.35) 60%,
-        #18191d 100%
-    );
+    background: linear-gradient(180deg,
+            rgba(24, 25, 29, 0.05) 0%,
+            rgba(24, 25, 29, 0.35) 60%,
+            #18191d 100%);
 }
 
 /* Bố cục 2 cột */
@@ -1341,6 +1334,7 @@ body:has(.star-subnav) .category-bar {
         width: 100%;
     }
 }
+
 /* =========================================================
    KHỐI MEMBERSHIP
    ========================================================= */
@@ -3056,3 +3050,702 @@ body:has(.star-subnav) .category-bar {
     }
 }
 
+/* 1. Màn hình iPad / Tablet (768px - 991px) */
+@media (max-width: 991.98px) {
+
+    /* Header & Thanh tìm kiếm */
+    .header-container {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    .tb-search-wrapper {
+        order: 3;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    .nav-links>a {
+        display: none !important;
+        /* Ẩn link chữ, chỉ giữ nút Tài khoản & nút Menu */
+    }
+
+    /* Lưới thẻ sự kiện: chia 2 cột đều trên iPad */
+    .event-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 16px !important;
+    }
+
+    /* Trang chi tiết sự kiện & Trang tài khoản & Trang Organizer */
+    .ticket-stub-card {
+        flex-direction: column-reverse !important;
+    }
+
+    .stub-right {
+        width: 100% !important;
+        height: 260px !important;
+    }
+
+    .account-layout,
+    .star-layout-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .star-sidebar {
+        position: static !important;
+    }
+
+    /* Footer chia 2 cột trên iPad */
+    .footer-columns,
+    .footer-middle {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 24px !important;
+    }
+}
+
+/* 2. Màn hình Điện thoại (< 576px) */
+@media (max-width: 575.98px) {
+
+    /* Lưới thẻ sự kiện: 1 cột full màn hình dễ nhìn */
+    .event-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Khung gợi ý tìm kiếm gọn trong màn hình điện thoại */
+    .tb-search-dropdown {
+        width: 100% !important;
+        left: 0 !important;
+        padding: 12px !important;
+    }
+
+    .tb-results-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Thẻ vé cá nhân & Thẻ sự kiện Organizer xếp dọc */
+    .my-ticket-card,
+    .ticket-item-card,
+    .star-event-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .my-ticket-img,
+    .ticket-item-img,
+    .star-event-thumb {
+        width: 100% !important;
+        height: 160px !important;
+    }
+
+    /* Footer xếp dọc 1 cột trên điện thoại */
+    .footer-columns,
+    .footer-middle,
+    .footer-bottom-flex {
+        grid-template-columns: 1fr !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 20px !important;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE MOBILE, IPAD & BOOTSTRAP 5 FIX (BẢN CHUẨN DUY NHẤT)
+   ========================================================= */
+/* 1. Khóa style menu tài khoản khỏi ghi đè của Bootstrap .dropdown-menu */
+.user-account-dropdown .dropdown-menu {
+    position: absolute !important;
+    right: 0 !important;
+    left: auto !important;
+    top: calc(100% + 10px) !important;
+    width: 220px !important;
+    min-width: 220px !important;
+    background: #ffffff !important;
+    color: #222222 !important;
+    border: none !important;
+    border-radius: 16px !important;
+    padding: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+    z-index: 9999 !important;
+}
+
+/* 2. Giữ Header sticky ở tầng 1030: đủ cao để dropdown nổi trên banner,
+      nhưng vẫn nằm dưới Backdrop (1040) và Offcanvas (1055) */
+header.main-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+}
+
+.offcanvas-backdrop {
+    z-index: 1040 !important;
+}
+
+.mobile-offcanvas {
+    --bs-offcanvas-width: 280px;
+    width: 280px !important;
+    max-width: 85vw !important;
+    background-color: #1e2029 !important;
+    color: #ffffff !important;
+    border: none !important;
+    z-index: 1055 !important;
+}
+
+.mobile-offcanvas .offcanvas-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 20px !important;
+    border-bottom: 1px solid #343741;
+}
+
+.mobile-offcanvas .offcanvas-title {
+    color: #00b14f;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.mobile-offcanvas .offcanvas-body {
+    padding: 15px 20px !important;
+}
+
+.mobile-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 0;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid #343741;
+    transition: 0.2s;
+}
+
+.mobile-menu-link:hover {
+    color: #00b14f !important;
+    padding-left: 5px;
+}
+
+.mobile-menu-link i {
+    width: 18px;
+    font-size: 16px;
+}
+
+.mobile-menu-btn {
+    display: none;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    background: transparent;
+    color: #ffffff;
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* 3. Màn hình iPad & Điện thoại (< 992px) */
+@media (max-width: 991.98px) {
+    header.main-header {
+        padding: 10px 15px !important;
+    }
+
+    .header-container {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+    }
+
+    .logo-text {
+        order: 1 !important;
+        margin-right: auto !important;
+        font-size: 24px !important;
+        flex-shrink: 0;
+    }
+
+    .nav-links {
+        order: 2 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 10px !important;
+        margin-left: auto !important;
+        flex-shrink: 0;
+    }
+
+    .nav-links>a {
+        display: none !important;
+    }
+
+    .user-account-dropdown,
+    .auth-btn {
+        display: flex !important;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .account-btn {
+        white-space: nowrap;
+    }
+
+    .mobile-menu-btn {
+        display: flex !important;
+        flex-shrink: 0;
+    }
+
+    .tb-search-wrapper {
+        order: 3 !important;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0;
+    }
+}
+
+/* 4. Màn hình Điện thoại nhỏ (< 576px) */
+@media (max-width: 575.98px) {
+    .logo-text {
+        font-size: 22px !important;
+    }
+
+    .account-btn {
+        padding: 5px 9px !important;
+        font-size: 12px !important;
+    }
+
+    .mobile-menu-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .hero-slider .banner-item {
+        flex: 0 0 92% !important;
+    }
+
+    .hero-slider .banner-item img {
+        height: 170px !important;
+    }
+
+    .event-slider .event-card {
+        flex: 0 0 82% !important;
+    }
+
+    .category-bar::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1200px !important;
+    }
+}
+
+/* =========================================================
+   TỐI ƯU HIỂN THỊ TRÊN ĐIỆN THOẠI & IPAD
+   ========================================================= */
+@media (max-width: 991.98px) {
+    .main-header {
+        padding: 10px 15px !important;
+    }
+
+    .header-container {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    .logo-text {
+        order: 1;
+        font-size: 24px !important;
+    }
+
+    .header-actions {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .tb-search-wrapper {
+        order: 3;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+
+    /* Banner chính hiện 1 ảnh lớn gọn gàng trên điện thoại */
+    .hero-slider .banner-item {
+        flex: 0 0 92% !important;
+    }
+
+    .hero-slider .banner-item img {
+        height: 170px !important;
+    }
+
+    /* Thẻ sự kiện trong slider co vừa 1 thẻ trên màn hình điện thoại */
+    .event-slider .event-card {
+        flex: 0 0 82% !important;
+    }
+
+    /* Thanh danh mục ẩn thanh cuộn thô của trình duyệt */
+    .category-bar::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+
+/* =========================================
+   HEADER MOBILE + BOOTSTRAP OFFCANVAS
+========================================= */
+
+/* Header */
+.main-header {
+    position: sticky;
+    top: 0;
+    z-index: 1040 !important;
+    background-color: var(--primary-color);
+}
+
+/* Nút hamburger */
+.mobile-menu-btn {
+    display: none;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Offcanvas */
+.mobile-offcanvas {
+    --bs-offcanvas-width: 280px;
+
+    width: 280px !important;
+    max-width: 85vw;
+    background-color: #1e2029 !important;
+    color: #fff !important;
+    border: none !important;
+    z-index: 1055 !important;
+}
+
+/* Tiêu đề menu */
+.mobile-offcanvas .offcanvas-header {
+    padding: 20px;
+    border-bottom: 1px solid #343741;
+}
+
+.mobile-offcanvas .offcanvas-title {
+    color: #00b14f;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+/* Nội dung */
+.mobile-offcanvas .offcanvas-body {
+    padding: 15px 20px;
+}
+
+/* Các mục menu */
+.mobile-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 0;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid #343741;
+    transition: 0.2s;
+}
+
+.mobile-menu-link:hover {
+    color: #00b14f !important;
+    padding-left: 5px;
+}
+
+.mobile-menu-link i {
+    width: 18px;
+    font-size: 16px;
+}
+
+/* Z-index Bootstrap */
+.offcanvas-backdrop {
+    z-index: 1050 !important;
+}
+
+/* =========================================
+   RESPONSIVE MOBILE & TABLET
+========================================= */
+
+@media (max-width: 991.98px) {
+
+    .main-header {
+        padding: 10px 15px !important;
+    }
+
+    .header-container {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+    }
+
+    /* Logo bên trái */
+    .logo-text {
+        order: 1 !important;
+        margin-right: auto !important;
+        font-size: 24px !important;
+        flex-shrink: 0;
+    }
+
+    /* Cụm tài khoản và hamburger */
+    .nav-links {
+        order: 2 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 10px !important;
+        margin-left: auto !important;
+        flex-shrink: 0;
+    }
+
+    /* Ẩn các liên kết điều hướng trên mobile */
+    .nav-links>a {
+        display: none !important;
+    }
+
+    /* Giữ nút tài khoản */
+    .user-account-dropdown,
+    .auth-btn {
+        display: flex !important;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .account-btn {
+        white-space: nowrap;
+    }
+
+    /* Hiện hamburger */
+    .mobile-menu-btn {
+        display: flex !important;
+        flex-shrink: 0;
+    }
+
+    /* Ô tìm kiếm xuống hàng dưới */
+    .tb-search-wrapper {
+        order: 3 !important;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0;
+    }
+}
+
+/* Desktop */
+@media (min-width: 992px) {
+    .mobile-menu-btn {
+        display: none !important;
+    }
+}
+
+/* Điện thoại nhỏ */
+@media (max-width: 575.98px) {
+
+    .logo-text {
+        font-size: 22px !important;
+    }
+
+    .account-btn {
+        padding: 5px 9px !important;
+        font-size: 12px !important;
+    }
+
+    .mobile-menu-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* =========================================
+   MOBILE HEADER & BOOTSTRAP OFFCANVAS
+========================================= */
+
+/* Nút hamburger */
+.mobile-menu-btn {
+    display: none;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    background: transparent;
+    color: white;
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Offcanvas */
+.mobile-offcanvas {
+    background-color: #1e2029 !important;
+    color: #ffffff !important;
+    width: 280px !important;
+    max-width: 85vw;
+    border: none !important;
+    z-index: 1055 !important;
+}
+
+/* Header của menu */
+.mobile-offcanvas .offcanvas-header {
+    padding: 20px;
+    border-bottom: 1px solid #343741;
+}
+
+.mobile-offcanvas .offcanvas-title {
+    color: #00b14f;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+/* Nội dung menu */
+.mobile-offcanvas .offcanvas-body {
+    padding: 15px 20px;
+}
+
+/* Từng mục menu */
+.mobile-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 0;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid #343741;
+    transition: 0.2s;
+}
+
+.mobile-menu-link:hover {
+    color: #00b14f !important;
+    padding-left: 5px;
+}
+
+.mobile-menu-link i {
+    width: 18px;
+    font-size: 16px;
+}
+
+/* Lớp nền tối */
+.offcanvas-backdrop {
+    z-index: 1050 !important;
+}
+
+/* Header */
+.main-header {
+    z-index: 1040 !important;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+
+    .header-container {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
+    }
+
+    .logo-text {
+        order: 1 !important;
+        margin-right: auto !important;
+    }
+
+    .nav-links {
+        order: 2 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+
+    .nav-links>a {
+        display: none !important;
+    }
+
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+
+    .tb-search-wrapper {
+        order: 3 !important;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Desktop: Ẩn nút hamburger */
+@media (min-width: 992px) {
+    .mobile-menu-btn {
+        display: none !important;
+    }
+}
+
+/* ==========================================
+   FIX HEADER CHE BOOTSTRAP OFFCANVAS
+   ========================================== */
+
+/* Hạ header xuống lớp thấp */
+header.main-header {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Lớp nền tối nằm trên header */
+body>.offcanvas-backdrop {
+    z-index: 20000 !important;
+}
+
+/* Menu trượt nằm trên tất cả */
+body>.offcanvas.mobile-offcanvas {
+    position: fixed !important;
+    z-index: 20001 !important;
+
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+
+    height: 100vh !important;
+    height: 100dvh !important;
+
+    width: 280px !important;
+    max-width: 85vw !important;
+
+    background-color: #1e2029 !important;
+}
+
+/* Đảm bảo tiêu đề menu hiển thị */
+.mobile-offcanvas .offcanvas-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 20px !important;
+}
+
+/* Nội dung menu */
+.mobile-offcanvas .offcanvas-body {
+    padding: 15px 20px !important;
+}

@@ -41,6 +41,7 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
     <title>Ticketbox - Mua Vé Sự Kiện</title>
     <link rel="icon" type="image/png" href="../assets/images/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/style.css?v=<?php echo filemtime(__DIR__ . '/../assets/css/style.css'); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/search-ajax.css?v=<?php echo @filemtime(__DIR__ . '/../assets/css/search-ajax.css') ?: time(); ?>">
@@ -119,25 +120,7 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                             </div>
                         </div>
 
-                        <!-- Tab 2: Thành phố -->
-                        <div class="tb-explore-grid" id="tab-city" style="display: none;">
-                            <div class="tb-explore-card" data-city="Hồ Chí Minh" data-label="TP. Hồ Chí Minh">
-                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-bus-2-tang.jpg" alt="TP. Hồ Chí Minh">
-                                <div class="tb-explore-overlay"><span>TP. Hồ Chí Minh</span></div>
-                            </div>
-                            <div class="tb-explore-card" data-city="Hà Nội" data-label="Hà Nội">
-                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-tour-dem-van-mieu.jpg" alt="Hà Nội">
-                                <div class="tb-explore-overlay"><span>Hà Nội</span></div>
-                            </div>
-                            <div class="tb-explore-card" data-city="Đà Lạt" data-label="Đà Lạt">
-                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-strong.jpg" alt="Đà Lạt">
-                                <div class="tb-explore-overlay"><span>Đà Lạt</span></div>
-                            </div>
-                            <div class="tb-explore-card" data-city="Sapa" data-label="Vị trí khác">
-                                <img src="/TicketBox-CT428/ticketbox/assets/images/events/banner-du-luon-sapa.jpg" alt="Vị trí khác">
-                                <div class="tb-explore-overlay"><span>Vị trí khác</span></div>
-                            </div>
-                        </div>
+                    
                     </div>
 
                     <!-- 3. Lưới 3 cột Gợi ý / Kết quả AJAX -->
@@ -263,9 +246,60 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                         <a href="login.php">Đăng nhập</a> | <a href="register.php">Đăng ký</a>
                     </div>
                 <?php endif; ?>
+                <button class="mobile-menu-btn d-lg-none"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#mobileGroupMenu"
+                        aria-controls="mobileGroupMenu"
+                        aria-label="Mở menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
             </nav>
         </div>
-    </header>
+</header>
+    <!-- MOBILE OFFCANVAS MENU -->
+<div class="offcanvas offcanvas-end mobile-offcanvas"
+     tabindex="-1"
+     id="mobileGroupMenu"
+     aria-labelledby="mobileGroupMenuLabel">
 
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileGroupMenuLabel">
+            ticketbox
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="offcanvas"
+                aria-label="Đóng">
+        </button>
+    </div>
+
+    <div class="offcanvas-body">
+        <a href="create-event.php" class="btn w-100 fw-bold text-white rounded-pill mb-3" style="background-color: #00b14f;">
+            <i class="fa-solid fa-plus me-1"></i> Tạo sự kiện
+        </a>
+        <a href="events.php" class="mobile-menu-link">
+            <i class="fa-solid fa-calendar-days text-success"></i>
+            <span>Sự kiện</span>
+        </a>
+
+        <a href="organizer.php" class="mobile-menu-link">
+            <i class="fa-solid fa-star text-warning"></i>
+            <span>TicketStars</span>
+        </a>
+
+        <a href="events.php" class="mobile-menu-link">
+            <i class="fa-solid fa-rotate text-info"></i>
+            <span>Bán lại vé</span>
+        </a>
+
+        <a href="#" class="mobile-menu-link">
+            <i class="fa-solid fa-newspaper text-secondary"></i>
+            <span>Blog</span>
+        </a>
+
+    </div>
+</div>
     <!-- Nhúng thanh danh mục -->
     <?php require_once __DIR__ . '/navbar.php'; ?>

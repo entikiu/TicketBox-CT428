@@ -72,14 +72,21 @@ function renderEvents(events) {
 }
 
 // Gắn sự kiện (Debounce cho ô tìm kiếm để tránh gọi API liên tục)
+// Gán sự kiện (Debounce cho ô tìm kiếm để tránh gọi API liên tục)
 let timeout = null;
-searchInput.addEventListener('keyup', () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(fetchEvents, 500); // Đợi 500ms sau khi ngừng gõ
-});
+if (searchInput) {
+    searchInput.addEventListener('keyup', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(fetchEvents, 500); // Đợi 500ms sau khi ngừng gõ
+    });
+}
 
-filterStatus.addEventListener('change', fetchEvents);
+if (filterStatus) {
+    filterStatus.addEventListener('change', dfetchEvents);
+}
 
-// Gọi lần đầu khi tải trang
-document.addEventListener('DOMContentLoaded', fetchEvents);
+// Chỉ gọi fetchEvents khi trang hiện tại có khung tìm kiếm/bộ lọc cũ
+if (typeof fetchEvents === 'function' && (searchInput || filterStatus)) {
+    document.addEventListener('DOMContentLoaded', fetchEvents);
+}
 
