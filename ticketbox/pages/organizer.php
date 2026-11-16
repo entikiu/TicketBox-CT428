@@ -161,38 +161,37 @@ if ($currentStar) {
         $featuredEvent = $stmtFeat->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    $conds  = [];
-    $params = [];
+    $stmtEvt = $pdo->prepare("
+        SELECT s.*,
+               (SELECT COUNT(*) FROM loaive lv WHERE lv.su_kien_id = s.id AND lv.da_het_ve = 0) AS ve_con_ban
+        FROM sukien s
+        INNER JOIN ticketstar_sukien tss ON tss.su_kien_id = s.id
+        WHERE tss.star_id = :sid
+        ORDER BY s.thoi_gian DESC, s.id DESC
+    ");
+    $stmtEvt->execute(['sid' => (int)$currentStar['id']]);
+    $starEvents = $stmtEvt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 1. Lấy kèm sự kiện nổi bật (nếu có) vào danh sách lịch hoạt động
-    if (!empty($currentStar['su_kien_noi_bat_id'])) {
-        $conds[]            = "s.id = :feat_id";
-        $params[':feat_id'] = (int)$currentStar['su_kien_noi_bat_id'];
+    if (empty($starEvents) && !empty($currentStar['tu_khoa_su_kien'])) {
+        $conds    = [];
+        $params   = [];
+        $keywords = array_filter(array_map('trim', explode('|', (string)$currentStar['tu_khoa_su_kien'])));
+        foreach ($keywords as $idx => $kw) {
+            $conds[]              = "(s.ten_su_kien LIKE :k1_{$idx} OR s.ten_ban_to_chuc LIKE :k2_{$idx})";
+            $params[":k1_{$idx}"] = '%' . $kw . '%';
+            $params[":k2_{$idx}"] = '%' . $kw . '%';
+        }
+        if (!empty($conds)) {
+            $sql = "SELECT DISTINCT s.*,
+                           (SELECT COUNT(*) FROM loaive lv WHERE lv.su_kien_id = s.id AND lv.da_het_ve = 0) AS ve_con_ban
+                    FROM sukien s
+                    WHERE " . implode(' OR ', $conds) . "
+                    ORDER BY s.thoi_gian DESC, s.id DESC";
+            $stmtFallback = $pdo->prepare($sql);
+            $stmtFallback->execute($params);
+            $starEvents = $stmtFallback->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
-
-    // 2. Tìm theo từ khóa sự kiện (nếu trống thì lấy theo tên hiển thị của Star)
-    $keywords = array_filter(array_map('trim', explode('|', (string)($currentStar['tu_khoa_su_kien'] ?? ''))));
-    if (empty($keywords) && !empty($currentStar['ten_hien_thi'])) {
-        $keywords[] = trim($currentStar['ten_hien_thi']);
-    }
-
-    foreach ($keywords as $idx => $kw) {
-        $conds[]              = "(s.ten_su_kien LIKE :k1_{$idx} OR s.ten_ban_to_chuc LIKE :k2_{$idx})";
-        $params[":k1_{$idx}"] = '%' . $kw . '%';
-        $params[":k2_{$idx}"] = '%' . $kw . '%';
-    }
-
-    if (!empty($conds)) {
-        $sql = "SELECT DISTINCT s.*,
-                       (SELECT COUNT(*) FROM loaive lv WHERE lv.su_kien_id = s.id AND lv.da_het_ve = 0) AS ve_con_ban
-                FROM sukien s
-                WHERE " . implode(' OR ', $conds) . "
-                ORDER BY s.thoi_gian DESC, s.id DESC";
-        $stmtEvt = $pdo->prepare($sql);
-        $stmtEvt->execute($params);
-        $starEvents = $stmtEvt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
 } elseif ($rawParam === '') {
     $stmtAll = $pdo->query("SELECT * FROM ticketstars ORDER BY thu_tu ASC, id ASC");
     $allStars = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
