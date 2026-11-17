@@ -28,7 +28,38 @@ foreach ($ticketRows as $t) {
     ];
 }
 
-// 3. Ánh xạ về biến $event_detail khớp với toàn bộ HTML bên dưới
+// 3. Lấy thông tin Ban tổ chức / Nghệ sĩ (TicketStars) liên kết với sự kiện
+$eventStars = [];
+try {
+    $stmtStars = $pdo->prepare("
+        SELECT ts.id, ts.slug, ts.ten_hien_thi, ts.loai, ts.avatar, ts.mo_ta, ts.da_xac_minh
+        FROM ticketstars ts
+        INNER JOIN ticketstar_sukien tss ON ts.id = tss.star_id
+        WHERE tss.su_kien_id = :id
+        ORDER BY ts.thu_tu ASC, ts.id ASC
+    ");
+    $stmtStars->execute(['id' => $event_id]);
+    $eventStars = $stmtStars->fetchAll(PDO::FETCH_ASSOC);
+
+    // Dự phòng: Nếu chưa gắn trong ticketstar_sukien thì đối chiếu theo tên ban tổ chức
+    if (empty($eventStars) && !empty($row['ten_ban_to_chuc'])) {
+        $stmtFallbackStar = $pdo->prepare("
+            SELECT id, slug, ten_hien_thi, loai, avatar, mo_ta, da_xac_minh
+            FROM ticketstars
+            WHERE LOWER(ten_hien_thi) = LOWER(:org_name)
+            LIMIT 1
+        ");
+        $stmtFallbackStar->execute(['org_name' => trim($row['ten_ban_to_chuc'])]);
+        $matchedStar = $stmtFallbackStar->fetch(PDO::FETCH_ASSOC);
+        if ($matchedStar) {
+            $eventStars[] = $matchedStar;
+        }
+    }
+} catch (PDOException $e) {
+    $eventStars = [];
+}
+
+// 4. Ánh xạ về biến $event_detail khớp với toàn bộ HTML bên dưới
 $event_detail = [
     'id'               => (int)$row['id'],
     'title'            => $row['ten_su_kien'],
@@ -39,7 +70,8 @@ $event_detail = [
     'banner_img'       => $row['hinh_anh'] ?: '../assets/images/default-event.jpg',
     'organizer_name'   => $row['ten_ban_to_chuc'] ?: 'Ban tổ chức Ticketbox',
     'organizer_sub'    => $row['mo_ta_ban_to_chuc'] ?: 'Đơn vị tổ chức sự kiện',
-    'categories'       => $categories
+    'categories'       => $categories,
+    'stars'            => $eventStars
 ];
 
 // Tìm hạng vé đầu tiên còn vé cho nút "Mua vé ngay" ở khung trên
@@ -52,6 +84,12 @@ foreach ($categories as $cat) {
         break;
     }
 }
+
+$starRoleLabels = [
+    'NgheSi'    => 'Nghệ sĩ',
+    'BanToChuc' => 'Ban tổ chức',
+    'SanKhau'   => 'Sân khấu'
+];
 
 include '../templates/header.php';
 ?>
@@ -141,20 +179,57 @@ include '../templates/header.php';
         </div>
     </div>
 
-    <!-- 3. BẢNG BAN TỔ CHỨC ĐỘNG -->
+    <!-- 3. BẢNG BAN TỔ CHỨC & NGHỆ SĨ ĐỘNG -->
     <div class="detail-block" style="margin-top: 30px;">
-        <h3 style="color: var(--primary-color); margin-bottom: 15px;">Ban tổ chức</h3>
-        <div class="organizer-card">
-            <div class="org-avatar">
-                <span style="font-size: 16px; font-weight: 900; color: #ff3366; text-align:center;">
-                    <?php echo mb_strtoupper(mb_substr($event_detail['organizer_name'], 0, 3, 'UTF-8'), 'UTF-8'); ?>
-                </span>
+        <h3 style="color: var(--primary-color); margin-bottom: 15px;">
+            <?php echo count($event_detail['stars']) > 1 ? 'Ban tổ chức & Nghệ sĩ' : 'Ban tổ chức'; ?>
+        </h3>
+
+        <?php if (!empty($event_detail['stars'])): ?>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <?php foreach ($event_detail['stars'] as $star): 
+                    $roleText = $starRoleLabels[$star['loai']] ?? 'Ban tổ chức';
+                    $starAvatar = !empty($star['avatar']) ? $star['avatar'] : '../assets/images/default-avatar.png';
+                    $starDesc = !empty($star['mo_ta']) ? $star['mo_ta'] : $event_detail['organizer_sub'];
+                ?>
+                    <a href="organizer.php?slug=<?php echo urlencode($star['slug']); ?>" class="organizer-card star-link-card" title="Xem trang chi tiết <?php echo htmlspecialchars($star['ten_hien_thi']); ?>">
+                        <div class="star-card-left">
+                            <div class="org-avatar star-avatar-wrap">
+                                <img src="<?php echo htmlspecialchars($starAvatar); ?>"
+                                     alt="<?php echo htmlspecialchars($star['ten_hien_thi']); ?>"
+                                     onerror="this.onerror=null; this.src='../assets/images/default-avatar.png';">
+                            </div>
+                            <div style="min-width: 0;">
+                                <h4 class="star-name-title" style="font-size: 18px; margin-bottom: 4px; transition: color 0.2s;">
+                                    <?php echo htmlspecialchars($star['ten_hien_thi']); ?>
+                                    <?php if (!empty($star['da_xac_minh'])): ?>
+                                        <i class="fa-solid fa-circle-check" style="color: #26c973; font-size: 15px; margin-left: 4px;" title="Đã xác minh"></i>
+                                    <?php endif; ?>
+                                    <span class="star-role-pill"><?php echo htmlspecialchars($roleText); ?></span>
+                                </h4>
+                                <p class="star-desc-clamp"><?php echo htmlspecialchars($starDesc); ?></p>
+                            </div>
+                        </div>
+                        <span style="color: #26c973; font-size: 13px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
+                            Xem chi tiết <i class="fa-solid fa-chevron-right" style="font-size: 11px; margin-left: 4px;"></i>
+                        </span>
+                    </a>
+                <?php endforeach; ?>
             </div>
-            <div>
-                <h4 style="font-size: 18px; margin-bottom: 4px;"><?php echo htmlspecialchars($event_detail['organizer_name']); ?></h4>
-                <p style="color: var(--text-muted); font-size: 14px;"><?php echo htmlspecialchars($event_detail['organizer_sub']); ?></p>
+        <?php else: ?>
+            <!-- Dự phòng cho các sự kiện chưa gắn vào bảng ticketstars (workshop, thể thao, tham quan...) -->
+            <div class="organizer-card">
+                <div class="org-avatar">
+                    <span style="font-size: 16px; font-weight: 900; color: #ff3366; text-align:center;">
+                        <?php echo mb_strtoupper(mb_substr($event_detail['organizer_name'], 0, 3, 'UTF-8'), 'UTF-8'); ?>
+                    </span>
+                </div>
+                <div>
+                    <h4 style="font-size: 18px; margin-bottom: 4px;"><?php echo htmlspecialchars($event_detail['organizer_name']); ?></h4>
+                    <p style="color: var(--text-muted); font-size: 14px;"><?php echo htmlspecialchars($event_detail['organizer_sub']); ?></p>
+                </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
 </main>
 

@@ -1,75 +1,165 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const slider = document.getElementById('eventSlider');
-    const leftBtn = document.getElementById('slideLeftBtn');
-    const rightBtn = document.getElementById('slideRightBtn');
+    // ==========================================
+    // 1. HERO BANNER SLIDER (TỰ CUỘN & CUỘN VÔ CỰC)
+    // ==========================================
+    const heroSlider = document.getElementById('heroSlider');
+    const bannerLeftBtn = document.getElementById('bannerLeftBtn');
+    const bannerRightBtn = document.getElementById('bannerRightBtn');
 
-    if (slider && leftBtn && rightBtn) {
-        // Mỗi lần bấm cuộn khoảng cách bằng 3 thẻ sự kiện (~800px)
+    if (heroSlider) {
+        const heroWrapper = heroSlider.closest('.hero-slider-wrapper');
+        const originalItems = Array.from(heroSlider.querySelectorAll('.banner-item'));
+        const origCount = originalItems.length;
+
+        if (origCount > 1) {
+            // Nhân bản toàn bộ banner nối vào cuối để tạo vòng lặp vô cực
+            originalItems.forEach((item) => {
+                const clone = item.cloneNode(true);
+                clone.setAttribute('aria-hidden', 'true');
+                heroSlider.appendChild(clone);
+            });
+
+            let currentIndex = 0;
+            let isMoving = false;
+            let autoTimer = null;
+
+            const getStepWidth = () => {
+                const firstItem = heroSlider.querySelector('.banner-item');
+                if (!firstItem) return 0;
+                const styles = window.getComputedStyle(heroSlider);
+                const gap = parseFloat(styles.columnGap || styles.gap) || 20;
+                return firstItem.offsetWidth + gap;
+            };
+
+            const slideNext = () => {
+                if (isMoving) return;
+                const step = getStepWidth();
+                if (!step) return;
+
+                isMoving = true;
+                currentIndex++;
+                heroSlider.scrollTo({ left: currentIndex * step, behavior: 'smooth' });
+
+                setTimeout(() => {
+                    if (currentIndex >= origCount) {
+                        currentIndex -= origCount;
+                        heroSlider.scrollLeft = currentIndex * step;
+                    }
+                    isMoving = false;
+                }, 450);
+            };
+
+            const slidePrev = () => {
+                if (isMoving) return;
+                const step = getStepWidth();
+                if (!step) return;
+
+                isMoving = true;
+                if (currentIndex <= 0) {
+                    currentIndex = origCount;
+                    heroSlider.scrollLeft = currentIndex * step;
+
+                    requestAnimationFrame(() => {
+                        currentIndex--;
+                        heroSlider.scrollTo({ left: currentIndex * step, behavior: 'smooth' });
+                        setTimeout(() => {
+                            isMoving = false;
+                        }, 450);
+                    });
+                } else {
+                    currentIndex--;
+                    heroSlider.scrollTo({ left: currentIndex * step, behavior: 'smooth' });
+                    setTimeout(() => {
+                        isMoving = false;
+                    }, 450);
+                }
+            };
+
+            const startAutoSlide = () => {
+                stopAutoSlide();
+                autoTimer = setInterval(slideNext, 3500); // Tự cuộn mỗi 3.5 giây
+            };
+
+            const stopAutoSlide = () => {
+                if (autoTimer) {
+                    clearInterval(autoTimer);
+                    autoTimer = null;
+                }
+            };
+
+            if (bannerRightBtn) {
+                bannerRightBtn.addEventListener('click', () => {
+                    slideNext();
+                    startAutoSlide();
+                });
+            }
+
+            if (bannerLeftBtn) {
+                bannerLeftBtn.addEventListener('click', () => {
+                    slidePrev();
+                    startAutoSlide();
+                });
+            }
+
+            // Tạm dừng khi rê chuột vào banner
+            if (heroWrapper) {
+                heroWrapper.addEventListener('mouseenter', stopAutoSlide);
+                heroWrapper.addEventListener('mouseleave', startAutoSlide);
+            }
+
+            // Giữ đúng vị trí khi đổi kích thước cửa sổ
+            window.addEventListener('resize', () => {
+                const step = getStepWidth();
+                if (step) {
+                    heroSlider.scrollLeft = currentIndex * step;
+                }
+            });
+
+            startAutoSlide();
+        }
+    }
+
+    // ==========================================
+    // 2. CUỘN SỰ KIỆN NỔI BẬT (TRÁI / PHẢI)
+    // ==========================================
+    const eventSlider = document.getElementById('eventSlider');
+    const slideLeftBtn = document.getElementById('slideLeftBtn');
+    const slideRightBtn = document.getElementById('slideRightBtn');
+
+    if (eventSlider && slideLeftBtn && slideRightBtn) {
         const scrollAmount = 800;
 
-        leftBtn.addEventListener('click', () => {
-            slider.scrollBy({
-                left: -scrollAmount,
-                behavior: 'smooth'
-            });
-        });
-
-        rightBtn.addEventListener('click', () => {
-            slider.scrollBy({
-                left: scrollAmount,
-                behavior: 'smooth'
-            });
-        });
-    }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- 1. Xử lý cuộn cho Hero Banner Slider ---
-    const heroSlider = document.getElementById('heroSlider');
-    const bannerLeftBtn = document.getElementById('bannerLeftBtn');
-    const bannerRightBtn = document.getElementById('bannerRightBtn');
-
-    if (heroSlider && bannerLeftBtn && bannerRightBtn) {
-        bannerLeftBtn.addEventListener('click', () => {
-            // Cuộn sang trái 1 khoảng bằng chiều rộng khung chứa
-            heroSlider.scrollBy({
-                left: -heroSlider.clientWidth,
-                behavior: 'smooth'
-            });
-        });
-
-        bannerRightBtn.addEventListener('click', () => {
-            // Cuộn sang phải 1 khoảng bằng chiều rộng khung chứa
-            heroSlider.scrollBy({
-                left: heroSlider.clientWidth,
-                behavior: 'smooth'
-            });
-        });
-    }
-
-    // --- 2. Xử lý cuộn cho Sự kiện nổi bật ---
-    const eventSlider = document.getElementById('eventSlider');
-    const slideLeftBtn = document.getElementById('slideLeftBtn');
-    const slideRightBtn = document.getElementById('slideRightBtn');
-
-    if (eventSlider && slideLeftBtn && slideRightBtn) {
         slideLeftBtn.addEventListener('click', () => {
-            eventSlider.scrollBy({
-                left: -800,
-                behavior: 'smooth'
-            });
+            eventSlider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         });
 
         slideRightBtn.addEventListener('click', () => {
-            eventSlider.scrollBy({
-                left: 800,
-                behavior: 'smooth'
-            });
+            eventSlider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         });
     }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Xử lý bật/tắt Dropdown Menu Tài khoản ở Header
+
+    // ==========================================
+    // 3. CUỘN DANH SÁCH TICKETSTARS (TRÁI / PHẢI)
+    // ==========================================
+    const starsTrack = document.getElementById('starsTrack');
+    const starPrevBtn = document.getElementById('starPrevBtn');
+    const starNextBtn = document.getElementById('starNextBtn');
+
+    if (starsTrack && starPrevBtn && starNextBtn) {
+        const scrollAmount = 350;
+
+        starNextBtn.addEventListener('click', () => {
+            starsTrack.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+
+        starPrevBtn.addEventListener('click', () => {
+            starsTrack.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+    }
+
+    // ==========================================
+    // 4. DROPDOWN MENU TÀI KHOẢN Ở HEADER
+    // ==========================================
     const accountBtn = document.getElementById('accountMenuBtn');
     const accountDropdown = document.getElementById('accountDropdown');
 
@@ -79,105 +169,32 @@ document.addEventListener('DOMContentLoaded', () => {
             accountDropdown.classList.toggle('show');
         });
 
-        // Click ra ngoài màn hình sẽ tự động đóng menu
-        document.addEventListener('click', () => {
-            accountDropdown.classList.remove('show');
-        });
-    }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. TƯƠNG TÁC DROPDOWN MENU TÀI KHOẢN
-    const accountBtn = document.getElementById('accountMenuBtn');
-    const accountDropdown = document.getElementById('accountDropdown');
-
-    if (accountBtn && accountDropdown) {
-        accountBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            accountDropdown.classList.toggle('show');
-        });
-
-        // Click ra ngoài cửa sổ sẽ tự đóng menu
         document.addEventListener('click', () => {
             accountDropdown.classList.remove('show');
         });
     }
 
-    // 2. TƯƠNG TÁC NÚT CUỘN HERO BANNER (TRÁI / PHẢI)
-    const heroSlider = document.getElementById('heroSlider');
-    const bannerLeftBtn = document.getElementById('bannerLeftBtn');
-    const bannerRightBtn = document.getElementById('bannerRightBtn');
-
-    if (heroSlider && bannerLeftBtn && bannerRightBtn) {
-        bannerLeftBtn.addEventListener('click', () => {
-            heroSlider.scrollBy({ left: -600, behavior: 'smooth' });
-        });
-        bannerRightBtn.addEventListener('click', () => {
-            heroSlider.scrollBy({ left: 600, behavior: 'smooth' });
-        });
-    }
-
-    // 3. TƯƠNG TÁC NÚT CUỘN SỰ KIỆN NỔI BẬT (TRÁI / PHẢI)
-    const eventSlider = document.getElementById('eventSlider');
-    const slideLeftBtn = document.getElementById('slideLeftBtn');
-    const slideRightBtn = document.getElementById('slideRightBtn');
-
-    if (eventSlider && slideLeftBtn && slideRightBtn) {
-        slideLeftBtn.addEventListener('click', () => {
-            eventSlider.scrollBy({ left: -550, behavior: 'smooth' });
-        });
-        slideRightBtn.addEventListener('click', () => {
-            eventSlider.scrollBy({ left: 550, behavior: 'smooth' });
-        });
-    }
-});
-// ==========================================
-// CHỨC NĂNG BỔ TRỢ PHẦN FOOTER
-// ==========================================
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Xử lý chuyển đổi Ngôn ngữ (VI / EN)
+    // ==========================================
+    // 5. CHUYỂN ĐỔI NGÔN NGỮ Ở FOOTER (VI / EN)
+    // ==========================================
     const langBtns = document.querySelectorAll('.lang-btn');
-    
-    langBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Loại bỏ active hiện tại
-            langBtns.forEach(b => b.classList.remove('active'));
-            // Thêm active cho nút vừa bấm
+
+    langBtns.forEach((btn) => {
+        btn.addEventListener('click', function () {
+            langBtns.forEach((b) => b.classList.remove('active'));
             this.classList.add('active');
-            
+
             const selectedLang = this.getAttribute('data-lang');
-            
-            // Lưu lựa chọn ngôn ngữ vào LocalStorage
             localStorage.setItem('ticketbox_lang', selectedLang);
-            
-            // Thông báo chuyển đổi ngôn ngữ thành công (Tích hợp thực tế)
-            console.log('Đã chuyển ngôn ngữ sang:', selectedLang.toUpperCase());
         });
     });
 
-    // Tự động khôi phục ngôn ngữ đã chọn trước đó
     const savedLang = localStorage.getItem('ticketbox_lang');
     if (savedLang) {
         const activeBtn = document.querySelector(`.lang-btn[data-lang="${savedLang}"]`);
         if (activeBtn) {
-            langBtns.forEach(b => b.classList.remove('active'));
+            langBtns.forEach((b) => b.classList.remove('active'));
             activeBtn.classList.add('active');
         }
-    }
-});document.addEventListener('DOMContentLoaded', function () {
-    const track = document.getElementById('starsTrack');
-    const prevBtn = document.getElementById('starPrevBtn');
-    const nextBtn = document.getElementById('starNextBtn');
-
-    if (track && prevBtn && nextBtn) {
-        const scrollAmount = 350; // Khoảng cách cuộn mỗi lần bấm
-
-        nextBtn.addEventListener('click', () => {
-            track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        });
-
-        prevBtn.addEventListener('click', () => {
-            track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-        });
     }
 });

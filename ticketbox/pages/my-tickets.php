@@ -119,6 +119,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $targetFilePath = $uploadDir . $newFileName;
 
                 if (move_uploaded_file($fileTmpPath, $targetFilePath)) {
+                    // Xóa file avatar cũ trên máy chủ nếu đang nằm trong thư mục uploads/avatars/
+                    if (
+                        !empty($user_avatar) &&
+                        strpos($user_avatar, '../assets/uploads/avatars/') === 0 &&
+                        is_file(__DIR__ . '/' . $user_avatar)
+                    ) {
+                        @unlink(__DIR__ . '/' . $user_avatar);
+                    }
+
                     $avatar_path = '../assets/uploads/avatars/' . $newFileName;
                 } else {
                     $errors['avatar'] = 'Không thể di chuyển file ảnh vào thư mục máy chủ.';
@@ -184,6 +193,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($ticket_index !== null && isset($_SESSION['my_tickets'][$ticket_index])) {
             $_SESSION['my_tickets'][$ticket_index]['status'] = 'da-huy';
             $success_msg = 'Hủy vé thành công!';
+        }
+    }
+// C. Thao tác Bỏ theo dõi Star / Ban tổ chức
+    elseif ($action === 'unfollow_star') {
+        $star_id = (int)($_POST['star_id'] ?? 0);
+        if ($star_id > 0 && isset($pdo) && $user_id > 0) {
+            try {
+                $stmtUnfollow = $pdo->prepare("DELETE FROM ticketstar_theodoi WHERE nguoi_dung_id = :uid AND star_id = :sid");
+                $stmtUnfollow->execute(['uid' => $user_id, 'sid' => $star_id]);
+                if ($stmtUnfollow->rowCount() > 0) {
+                    $pdo->prepare("UPDATE ticketstars SET luot_theo_doi = GREATEST(0, luot_theo_doi - 1) WHERE id = :sid")
+                        ->execute(['sid' => $star_id]);
+                }
+                $success_msg = 'Đã bỏ theo dõi thành công!';
+            } catch (PDOException $e) {
+                $errors['general'] = 'Không thể cập nhật trạng thái theo dõi: ' . $e->getMessage();
+            }
         }
     }
 }
@@ -343,8 +369,49 @@ include '../templates/header.php';
         <section class="account-content" style="flex: 1;">
             <?php switch ($current_tab): 
 
-                // ==================== 1. TRANG CÁ NHÂN TỔNG QUAN ====================
-                case 'profile': ?>
+               // ==================== 1. TRANG CÁ NHÂN TỔNG QUAN ====================
+                case 'profile': 
+                    // Lấy danh sách thẻ thành viên đang hoạt động
+                    $profile_memberships = [];
+                    // Lấy danh sách nghệ sĩ / ban tổ chức đang theo dõi
+                    $followed_stars = [];
+
+                    if (isset($pdo) && $user_id > 0) {
+                        try {
+                            $stmtProfMem = $pdo->prepare("
+                                SELECT u.ma_the, u.ngay_het_han, t.ten_the, t.nghe_si, t.hinh_anh
+                                FROM the_thanh_vien_nguoidung u
+                                JOIN the_thanh_vien t ON u.the_id = t.id
+                                WHERE u.nguoi_dung_id = :uid AND u.trang_thai = 'dang-hoat-dong'
+                                ORDER BY u.ngay_kich_hoat DESC
+                            ");
+                            $stmtProfMem->execute(['uid' => $user_id]);
+                            $profile_memberships = $stmtProfMem->fetchAll(PDO::FETCH_ASSOC);
+                        } catch (PDOException $e) {
+                            $profile_memberships = [];
+                        }
+
+                        try {
+                            $stmtFollow = $pdo->prepare("
+                                SELECT ts.id, ts.slug, ts.ten_hien_thi, ts.loai, ts.avatar, ts.da_xac_minh
+                                FROM ticketstar_theodoi td
+                                JOIN ticketstars ts ON td.star_id = ts.id
+                                WHERE td.nguoi_dung_id = :uid
+                                ORDER BY td.ngay_theo_doi DESC
+                            ");
+                            $stmtFollow->execute(['uid' => $user_id]);
+                            $followed_stars = $stmtFollow->fetchAll(PDO::FETCH_ASSOC);
+                        } catch (PDOException $e) {
+                            $followed_stars = [];
+                        }
+                    }
+
+                    $roleLabels = [
+                        'NgheSi'    => 'Nghệ sĩ',
+                        'BanToChuc' => 'Ban tổ chức',
+                        'SanKhau'   => 'Sân khấu'
+                    ];
+                ?>
                     <div style="text-align: center; margin-bottom: 50px;">
                         <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin: 0 auto 15px auto; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; border: 3px solid #2d2d35;">
                             <?php if (!empty($user_avatar) && file_exists(__DIR__ . '/' . $user_avatar)): ?>
@@ -360,124 +427,84 @@ include '../templates/header.php';
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 35px; max-width: 800px;">
+                        <!-- MỤC 1: THẺ THÀNH VIÊN CỦA TÔI -->
                         <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                 <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
                                     <i class="fa-solid fa-gem" style="color: #26c973;"></i> Thẻ thành viên của tôi
                                 </h4>
                                 <a href="my-tickets.php?tab=membership" style="color: #26c973; text-decoration: none; font-size: 13px; font-weight: 600;">Khám phá thêm <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></a>
                             </div>
-                            <p style="color: #6c6d7c; font-size: 13px; margin: 0;">Bạn chưa có thẻ thành viên</p>
+
+                            <?php if (empty($profile_memberships)): ?>
+                                <p style="color: #6c6d7c; font-size: 13px; margin: 0;">Bạn chưa có thẻ thành viên</p>
+                            <?php else: ?>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;">
+                                    <?php foreach ($profile_memberships as $pm): ?>
+                                        <a href="my-tickets.php?tab=membership" style="background: #272730; border: 1px solid #3a3a45; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                                            <img src="<?php echo htmlspecialchars($pm['hinh_anh']); ?>" alt="<?php echo htmlspecialchars($pm['ten_the']); ?>" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
+                                            <div style="min-width: 0;">
+                                                <div style="font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($pm['ten_the']); ?></div>
+                                                <div style="font-size: 12px; color: #26c973; margin-top: 2px;">HSD: <?php echo date('d/m/Y', strtotime($pm['ngay_het_han'])); ?></div>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
+
+                        <!-- MỤC 2: ĐANG THEO DÕI -->
                         <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                 <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
                                     <i class="fa-solid fa-star" style="color: #26c973;"></i> Đang theo dõi
+                                    <?php if (!empty($followed_stars)): ?>
+                                        <span style="font-size: 13px; font-weight: 500; color: #a0a3bd;">(<?php echo count($followed_stars); ?>)</span>
+                                    <?php endif; ?>
                                 </h4>
-                                <a href="#" style="color: #26c973; text-decoration: none; font-size: 13px; font-weight: 600;">Khám phá thêm <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></a>
+                                <a href="organizer.php" style="color: #26c973; text-decoration: none; font-size: 13px; font-weight: 600;">Khám phá thêm <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></a>
                             </div>
-                            <p style="color: #6c6d7c; font-size: 13px; margin: 0;">Bạn chưa có danh sách theo dõi</p>
+
+                            <?php if (empty($followed_stars)): ?>
+                                <p style="color: #6c6d7c; font-size: 13px; margin: 0;">Bạn chưa có danh sách theo dõi</p>
+                            <?php else: ?>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px;">
+                                    <?php foreach ($followed_stars as $fStar): 
+                                        $fRole = $roleLabels[$fStar['loai']] ?? 'Ban tổ chức';
+                                    ?>
+                                        <div style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                                            <a href="organizer.php?slug=<?php echo urlencode($fStar['slug']); ?>" style="display: flex; align-items: center; gap: 12px; text-decoration: none; min-width: 0; flex: 1;">
+                                                <img src="<?php echo htmlspecialchars($fStar['avatar']); ?>"
+                                                     alt="<?php echo htmlspecialchars($fStar['ten_hien_thi']); ?>"
+                                                     style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(38,201,115,0.4);"
+                                                     onerror="this.src='../assets/images/default-avatar.png'">
+                                                <div style="min-width: 0;">
+                                                    <div style="font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        <?php echo htmlspecialchars($fStar['ten_hien_thi']); ?>
+                                                        <?php if (!empty($fStar['da_xac_minh'])): ?>
+                                                            <i class="fa-solid fa-circle-check" style="color: #26c973; font-size: 13px; margin-left: 3px;"></i>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div style="font-size: 12px; color: #a0a3bd; margin-top: 2px;"><?php echo htmlspecialchars($fRole); ?></div>
+                                                </div>
+                                            </a>
+
+                                            <form method="POST" action="my-tickets.php?tab=profile" style="margin: 0; flex-shrink: 0;" onsubmit="return confirm('Bỏ theo dõi <?php echo htmlspecialchars($fStar['ten_hien_thi'], ENT_QUOTES); ?>?');">
+                                                <input type="hidden" name="action" value="unfollow_star">
+                                                <input type="hidden" name="star_id" value="<?php echo (int)$fStar['id']; ?>">
+                                                <button type="submit" style="background: rgba(38, 201, 115, 0.15); color: #26c973; border: 1px solid #26c973; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                                    <i class="fa-solid fa-check"></i> Đang theo dõi
+                                                </button>
+                                            </form>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php break; ?>
 
-                // ==================== 2. CÀI ĐẶT THÔNG TIN TÀI KHOẢN ====================
-                <?php case 'profile-edit': ?>
-                    <h2 style="font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 15px; border-bottom: 1px solid #2d2d35; padding-bottom: 15px;">Thông tin tài khoản</h2>
-                    
-                    <form action="my-tickets.php?tab=profile-edit" method="POST" enctype="multipart/form-data" style="max-width: 520px; margin: 0 auto; text-align: center;">
-                        <input type="hidden" name="action" value="update_profile">
-
-                        <!-- KHUNG AVATAR KÈM CƠ CHẾ CHỐNG CACHE VÀ NÚT TẢI ẢNH -->
-                        <div style="position: relative; width: 110px; height: 110px; margin: 0 auto 15px auto;">
-                            <div style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; border: 2px solid #3a3a45;">
-                                <img id="avatarPreview" src="<?php echo htmlspecialchars($user_avatar); ?>?v=<?php echo time(); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
-                            
-                            <label for="avatarInput" title="Tải ảnh lên từ máy tính" style="position: absolute; bottom: 2px; right: 2px; background: #26c973; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #1e1e24; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                                <i class="fa-solid fa-camera" style="color: #fff; font-size: 14px;"></i>
-                            </label>
-                            
-                            <input type="file" id="avatarInput" name="avatar_file" accept="image/*" style="display: none;" onchange="previewAvatarImage(event)">
-                        </div>
-
-                        <?php if (!empty($errors['avatar'])): ?>
-                            <span style="color: #ff4d4f; font-size: 12px; margin-bottom: 10px; display: block;"><?php echo $errors['avatar']; ?></span>
-                        <?php endif; ?>
-
-                        <p style="color: #a0a3bd; font-size: 13px; margin-bottom: 25px;">Cung cấp thông tin chính xác sẽ hỗ trợ bạn trong quá trình mua vé</p>
-
-                        <div style="text-align: left; display: flex; flex-direction: column; gap: 18px;">
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #fff;">Họ và tên <span style="color:#ff4d4f;">*</span></label>
-                                <input type="text" name="ho_ten" value="<?php echo htmlspecialchars($_POST['ho_ten'] ?? $user_name); ?>" required style="width: 100%; padding: 12px 15px; background: #272730; border: 1px solid #3a3a45; border-radius: 8px; color: #fff; outline: none;">
-                                <?php if (!empty($errors['ho_ten'])): ?>
-                                    <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo $errors['ho_ten']; ?></span>
-                                <?php endif; ?>
-                            </div>
-
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #fff;">Số điện thoại <span style="color:#ff4d4f;">*</span></label>
-                                <div style="display: flex; gap: 10px;">
-                                    <select style="background: #272730; border: 1px solid #3a3a45; border-radius: 8px; color: #fff; padding: 0 12px; outline: none;">
-                                        <option>+84</option>
-                                    </select>
-                                    <input type="tel" name="phone" value="<?php echo htmlspecialchars($_POST['phone'] ?? $user_phone); ?>" required style="flex: 1; padding: 12px 15px; background: #272730; border: 1px solid #3a3a45; border-radius: 8px; color: #fff; outline: none;">
-                                </div>
-                                <?php if (!empty($errors['phone'])): ?>
-                                    <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo $errors['phone']; ?></span>
-                                <?php endif; ?>
-                            </div>
-
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #fff;">Email</label>
-                                <input type="email" value="<?php echo htmlspecialchars($user_email); ?>" readonly style="width: 100%; padding: 12px 15px; background: #1a1a20; border: 1px solid #3a3a45; border-radius: 8px; color: #8a8a9a; cursor: not-allowed; outline: none;">
-                            </div>
-
-                            <div>
-                                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #fff;">Ngày tháng năm sinh <span style="color:#ff4d4f;">*</span></label>
-                                <input type="text" name="dob" value="<?php echo htmlspecialchars($_POST['dob'] ?? $user_dob); ?>" placeholder="29/10/2000" required style="width: 100%; padding: 12px 15px; background: #272730; border: 1px solid #3a3a45; border-radius: 8px; color: #fff; outline: none;">
-                                <?php if (!empty($errors['dob'])): ?>
-                                    <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo $errors['dob']; ?></span>
-                                <?php endif; ?>
-                            </div>
-
-                            <div>
-                                <label style="display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #fff;">Giới tính</label>
-                                <div style="display: flex; gap: 25px; color: #fff; font-size: 14px;">
-                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                        <input type="radio" name="gender" value="nam" <?php echo ($user_gender === 'nam') ? 'checked' : ''; ?>> Nam
-                                    </label>
-                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                        <input type="radio" name="gender" value="nu" <?php echo ($user_gender === 'nu') ? 'checked' : ''; ?>> Nữ
-                                    </label>
-                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                        <input type="radio" name="gender" value="khac" <?php echo ($user_gender === 'khac') ? 'checked' : ''; ?>> Khác
-                                    </label>
-                                </div>
-                            </div>
-
-                            <button type="submit" style="margin-top: 15px; width: 100%; padding: 12px; background: #26c973; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer;">
-                                Hoàn thành
-                            </button>
-                        </div>
-                    </form>
-
-                    <script>
-                        function previewAvatarImage(event) {
-                            const reader = new FileReader();
-                            reader.onload = function() {
-                                const preview = document.getElementById('avatarPreview');
-                                preview.src = reader.result;
-                            };
-                            if (event.target.files[0]) {
-                                reader.readAsDataURL(event.target.files[0]);
-                            }
-                        }
-                    </script>
-                    <?php break; ?>
-
-      // ==================== 3. THẺ THÀNH VIÊN ====================
+                // ==================== 3. THẺ THÀNH VIÊN ====================
                 <?php case 'membership': 
                     $mem_status = $_GET['mem_status'] ?? 'dang-hoat-dong';
                     $stmtUserMem = $pdo->prepare("

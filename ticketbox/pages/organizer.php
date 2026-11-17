@@ -6,8 +6,28 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
-if (!isset($_SESSION['followed_stars'])) {
-    $_SESSION['followed_stars'] = [];
+// 1. Xác định chính xác ID người dùng đang đăng nhập
+$loggedUser   = null;
+$loggedUserId = 0;
+
+if (!empty($_SESSION['user']) && is_array($_SESSION['user'])) {
+    $loggedUser   = $_SESSION['user'];
+    $loggedUserId = (int)($loggedUser['id'] ?? $loggedUser['nguoi_dung_id'] ?? 0);
+
+    if ($loggedUserId <= 0 && !empty($loggedUser['email'])) {
+        $stmtFindU = $pdo->prepare("SELECT id, ho_ten, avatar FROM nguoidung WHERE email = :email LIMIT 1");
+        $stmtFindU->execute(['email' => $loggedUser['email']]);
+        $foundU = $stmtFindU->fetch(PDO::FETCH_ASSOC);
+        if ($foundU) {
+            $loggedUserId = (int)$foundU['id'];
+            $_SESSION['user']['id'] = $loggedUserId;
+        }
+    }
+} elseif (!empty($_SESSION['user_id'])) {
+    $loggedUserId = (int)$_SESSION['user_id'];
+    $stmtU = $pdo->prepare("SELECT id, ho_ten, avatar FROM nguoidung WHERE id = :uid LIMIT 1");
+    $stmtU->execute(['uid' => $loggedUserId]);
+    $loggedUser = $stmtU->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
 function checkLocalAsset(string $relativePath): string {
@@ -26,51 +46,17 @@ function checkLocalAsset(string $relativePath): string {
 }
 
 function findStarHeroBanner(array $star, ?array $featuredEvent, array $starEvents): string {
-    $bannerDir = '../assets/images/stars/banners/';
-    $haystack  = mb_strtolower(
-        trim(($star['ten_hien_thi'] ?? '') . ' ' . ($star['slug'] ?? '')),
-        'UTF-8'
-    );
+    if (!empty($star['banner'])) {
+        $found = checkLocalAsset((string)$star['banner']);
+        if ($found !== '') {
+            return $found;
+        }
+    }
 
-    $starBannerRules = [
-        'cat-and-mouse.jpg'           => ['cat & mouse', 'cat and mouse', 'cat-and-mouse'],
-        'cheng.jpg'                   => ['cheng'],
-        'dinh-manh-ninh.jpg'          => ['đinh mạnh ninh', 'dinh-manh-ninh'],
-        'dj-mie.jpg'                  => ['dj mie', 'dj-mie'],
-        'gai-meet.jpg'                => ['gai meet', 'gai-meet'],
-        'hoang-dung.jpg'              => ['hoàng dũng', 'hoang-dung'],
-        'jun-pham.jpg'                => ['jun phạm', 'jun-pham'],
-        'kich-doan-thanh-loc.jpg'     => ['thành lộc', 'kich-doan-thanh-loc'],
-        'kich-idecaf.jpg'             => ['idecaf', 'kich-idecaf'],
-        'loaloa-show.jpg'             => ['loaloa', 'loaloa-show'],
-        'mr-siro.jpg'                 => ['mr. siro', 'mr siro', 'mr-siro'],
-        'ngoc-thanh-tam.jpg'          => ['ngọc thanh tâm', 'ngoc-thanh-tam'],
-        'nguyen-van-chung.jpg'        => ['nguyễn văn chung', 'nguyen-van-chung'],
-        'nha-hat-kich-thanh-nien.jpg' => ['thanh niên', 'nha-hat-kich-thanh-nien'],
-        'nhung-thanh-pho-mong-mo.jpg' => ['thành phố mơ màng', 'thành phố mộng mơ', 'nhung-thanh-pho'],
-        'phong-tra-ben-thanh.jpg'     => ['bến thành', 'phong-tra-ben-thanh'],
-        'phung-khanh-linh.jpg'        => ['phùng khánh linh', 'phung-khanh-linh'],
-        'quoc-thien.jpg'              => ['quốc thiên', 'quoc-thien'],
-        'san-khau-moi.jpg'            => ['sân khấu mới', 'san-khau-moi'],
-        'san-khau-the-gioi-tre.jpg'   => ['trương hùng minh', 'thế giới trẻ', 'san-khau-the-gioi-tre'],
-        'sao-concert.jpg'             => ['sao concert', 'sao-concert'],
-        'secret-garden.jpg'           => ['secret garden', 'secret-garden'],
-        'sound-healing-concert.jpg'   => ['sound healing', 'sound-healing'],
-        'ss-label.jpg'                => ['ss label', 'ss-label'],
-        'subicha.jpg'                 => ['subicha'],
-        'tang-phuc.jpg'               => ['tăng phúc', 'tang-phuc'],
-        'vie-concert.jpg'             => ['vie concert', 'vie-concert'],
-        'yeah1-family.jpg'            => ['yeah1', 'yeah1-family'],
-    ];
-
-    foreach ($starBannerRules as $fileName => $keywords) {
-        foreach ($keywords as $kw) {
-            if (mb_strpos($haystack, $kw, 0, 'UTF-8') !== false) {
-                $found = checkLocalAsset($bannerDir . $fileName);
-                if ($found !== '') {
-                    return $found;
-                }
-            }
+    if (!empty($star['slug'])) {
+        $found = checkLocalAsset('../assets/images/stars/banners/' . $star['slug'] . '.jpg');
+        if ($found !== '') {
+            return $found;
         }
     }
 
@@ -96,25 +82,48 @@ $rawParam    = trim($_GET['slug'] ?? $_GET['id'] ?? '');
 $tab         = trim($_GET['tab'] ?? 'all');
 $currentStar = null;
 
-// Xử lý Theo dõi / Bỏ theo dõi
+// 2. Xử lý Theo dõi / Bỏ theo dõi lưu trực tiếp vào bảng `ticketstar_theodoi`
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_follow_slug'])) {
-    $targetSlug = trim($_POST['toggle_follow_slug']);
+    $targetSlug = trim((string)$_POST['toggle_follow_slug']);
+
+    if ($loggedUserId <= 0) {
+        header("Location: login.php");
+        exit;
+    }
+
     if ($targetSlug !== '') {
-        if (in_array($targetSlug, $_SESSION['followed_stars'], true)) {
-            $_SESSION['followed_stars'] = array_values(array_diff($_SESSION['followed_stars'], [$targetSlug]));
-            $pdo->prepare("UPDATE ticketstars SET luot_theo_doi = GREATEST(0, luot_theo_doi - 1) WHERE slug = :s")
-                ->execute(['s' => $targetSlug]);
-        } else {
-            $_SESSION['followed_stars'][] = $targetSlug;
-            $pdo->prepare("UPDATE ticketstars SET luot_theo_doi = luot_theo_doi + 1 WHERE slug = :s")
-                ->execute(['s' => $targetSlug]);
+        $stmtTarget = $pdo->prepare("SELECT id FROM ticketstars WHERE slug = :s LIMIT 1");
+        $stmtTarget->execute(['s' => $targetSlug]);
+        $targetStarId = (int)$stmtTarget->fetchColumn();
+
+        if ($targetStarId > 0) {
+            $stmtCheck = $pdo->prepare("SELECT id FROM ticketstar_theodoi WHERE nguoi_dung_id = :uid AND star_id = :sid LIMIT 1");
+            $stmtCheck->execute(['uid' => $loggedUserId, 'sid' => $targetStarId]);
+            $existingFollowId = $stmtCheck->fetchColumn();
+
+            if ($existingFollowId) {
+                $stmtDel = $pdo->prepare("DELETE FROM ticketstar_theodoi WHERE nguoi_dung_id = :uid AND star_id = :sid");
+                $stmtDel->execute(['uid' => $loggedUserId, 'sid' => $targetStarId]);
+                if ($stmtDel->rowCount() > 0) {
+                    $pdo->prepare("UPDATE ticketstars SET luot_theo_doi = GREATEST(0, luot_theo_doi - 1) WHERE id = :sid")
+                        ->execute(['sid' => $targetStarId]);
+                }
+            } else {
+                $stmtIns = $pdo->prepare("INSERT INTO ticketstar_theodoi (nguoi_dung_id, star_id, ngay_theo_doi) VALUES (:uid, :sid, NOW())");
+                $stmtIns->execute(['uid' => $loggedUserId, 'sid' => $targetStarId]);
+                if ($stmtIns->rowCount() > 0) {
+                    $pdo->prepare("UPDATE ticketstars SET luot_theo_doi = luot_theo_doi + 1 WHERE id = :sid")
+                        ->execute(['sid' => $targetStarId]);
+                }
+            }
         }
     }
+
     header("Location: organizer.php?slug=" . urlencode($targetSlug));
     exit;
 }
 
-// Truy vấn Star từ bảng `ticketstars`
+// 3. Truy vấn Star từ bảng `ticketstars`
 if ($rawParam !== '') {
     if (ctype_digit($rawParam)) {
         $stmt = $pdo->prepare("SELECT * FROM ticketstars WHERE id = :id LIMIT 1");
@@ -132,16 +141,6 @@ if ($rawParam !== '') {
     }
 }
 
-// Kiểm tra trạng thái đăng nhập
-$loggedUser = null;
-if (!empty($_SESSION['user']) && is_array($_SESSION['user'])) {
-    $loggedUser = $_SESSION['user'];
-} elseif (!empty($_SESSION['user_id'])) {
-    $stmtU = $pdo->prepare("SELECT ho_ten, avatar FROM nguoidung WHERE id = :uid LIMIT 1");
-    $stmtU->execute(['uid' => (int)$_SESSION['user_id']]);
-    $loggedUser = $stmtU->fetch(PDO::FETCH_ASSOC);
-}
-
 $featuredEvent = null;
 $starEvents    = [];
 $allStars      = [];
@@ -153,7 +152,15 @@ $roleLabels    = [
 ];
 
 if ($currentStar) {
-    $isFollowing = in_array($currentStar['slug'], $_SESSION['followed_stars'], true);
+    // Kiểm tra trạng thái đã theo dõi trong CSDL
+    if ($loggedUserId > 0) {
+        $stmtFollowCheck = $pdo->prepare("SELECT 1 FROM ticketstar_theodoi WHERE nguoi_dung_id = :uid AND star_id = :sid LIMIT 1");
+        $stmtFollowCheck->execute([
+            'uid' => $loggedUserId,
+            'sid' => (int)$currentStar['id']
+        ]);
+        $isFollowing = (bool)$stmtFollowCheck->fetchColumn();
+    }
 
     if (!empty($currentStar['su_kien_noi_bat_id'])) {
         $stmtFeat = $pdo->prepare("SELECT id, ten_su_kien, hinh_anh, gia_thap_nhat FROM sukien WHERE id = :eid LIMIT 1");

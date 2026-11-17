@@ -38,10 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 if ($user) {
                     $pass_hash = $user['mat_khau'] ?? '';
-                    
+
                     // Xác thực mật khẩu
                     if (password_verify($password, $pass_hash) || $password === $pass_hash) {
-                        
+
                         // NẠP ĐẦY ĐỦ CÁC TRƯỜNG DỮ LIỆU ĐỂ GIỮ THÔNG TIN VÀ HIỂN THỊ AVATAR NGAY KHI ĐĂNG NHẬP
                         $_SESSION['user'] = [
                             'id'       => (int)$user['id'],

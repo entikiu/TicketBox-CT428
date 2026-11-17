@@ -140,8 +140,7 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
             <nav class="nav-links">
                 <a href="events.php">Sự kiện</a>
                 <a href="organizer.php">TicketStars</a>
-                <a href="events.php">Bán lại vé</a>
-                <a href="#">Blog</a>
+               
 
                 <?php if ($is_logged_in): ?>
 

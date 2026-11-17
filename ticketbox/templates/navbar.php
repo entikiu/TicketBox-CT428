@@ -6,5 +6,8 @@
         <a href="events.php?cat=the-thao" class="category-btn">Thể Thao</a>
         <a href="events.php?cat=workshop" class="category-btn">Hội thảo & Workshop</a>
         <a href="events.php?cat=trai-nghiem" class="category-btn">Tham quan & Trải nghiệm</a>
+        <a href="events.php?cat=khac" class="category-btn <?php echo (($_GET['cat'] ?? '') === 'khac') ? 'active' : ''; ?>">
+            Khác
+        </a>
     </div>
 </div>
