@@ -3,7 +3,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Gọi Database để lấy thông tin sự kiện chuẩn
 require_once __DIR__ . '/../config/database.php';
 
 // Bắt buộc đăng nhập
@@ -15,9 +14,6 @@ if (!isset($_SESSION['user'])) {
 $user_name  = $_SESSION['user']['ho_ten'] ?? $_SESSION['user']['name'] ?? '';
 $user_phone = $_SESSION['user']['phone'] ?? '';
 
-// =========================================================================
-// KỸ THUẬT PRG & TRUY VẤN DATABASE CHỐNG HACK GIÁ VÉ
-// =========================================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $item_type = $_POST['item_type'] ?? 'event';
 
@@ -59,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
-            // Chặn mua vé nếu sự kiện đã diễn ra
+
             $refTime = !empty($row['thoi_gian_ket_thuc']) ? $row['thoi_gian_ket_thuc'] : $row['thoi_gian'];
             if (!empty($refTime) && time() > strtotime($refTime)) {
                 header('Location: event-detail.php?id=' . $su_kien_id);
