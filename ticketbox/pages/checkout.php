@@ -46,28 +46,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'price'         => number_format((int)$memRow['gia'], 0, ',', '.') . ' đ'
         ];
     } else {
-        $su_kien_id = (int)($_POST['su_kien_id'] ?? $_POST['event_id'] ?? $_POST['id'] ?? 0);
+       $su_kien_id = (int)($_POST['su_kien_id'] ?? $_POST['event_id'] ?? $_POST['id'] ?? 0);
 
-        $event_title = 'Sự kiện Ticketbox';
-        $time        = '';
-        $location    = '';
-        $image       = '../assets/images/events/default.jpg';
+    $event_title = 'Sự kiện Ticketbox';
+    $time        = '';
+    $location    = '';
+    $image       = '../assets/images/events/default.jpg';
 
-        if (isset($pdo) && $su_kien_id > 0) {
-            $stmt = $pdo->prepare("SELECT ten_su_kien, thoi_gian, dia_diem, hinh_anh FROM sukien WHERE id = :id LIMIT 1");
-            $stmt->execute(['id' => $su_kien_id]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (isset($pdo) && $su_kien_id > 0) {
+        $stmt = $pdo->prepare("SELECT ten_su_kien, thoi_gian, thoi_gian_ket_thuc, dia_diem, hinh_anh FROM sukien WHERE id = :id LIMIT 1");
+        $stmt->execute(['id' => $su_kien_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($row) {
-                $event_title = $row['ten_su_kien'];
-                $time        = date('H:i - d/m/Y', strtotime($row['thoi_gian']));
-                $location    = $row['dia_diem'];
-                if (!empty($row['hinh_anh'])) {
-                    $image = (strpos($row['hinh_anh'], '../') === 0) ? $row['hinh_anh'] : '../' . ltrim($row['hinh_anh'], './');
-                }
+        if ($row) {
+            // Chặn mua vé nếu sự kiện đã diễn ra
+            $refTime = !empty($row['thoi_gian_ket_thuc']) ? $row['thoi_gian_ket_thuc'] : $row['thoi_gian'];
+            if (!empty($refTime) && time() > strtotime($refTime)) {
+                header('Location: event-detail.php?id=' . $su_kien_id);
+                exit;
+            }
+
+            $event_title = $row['ten_su_kien'];
+            $time        = date('H:i - d/m/Y', strtotime($row['thoi_gian']));
+            $location    = $row['dia_diem'];
+            if (!empty($row['hinh_anh'])) {
+                $image = (strpos($row['hinh_anh'], '../') === 0) ? $row['hinh_anh'] : '../' . ltrim($row['hinh_anh'], './');
             }
         }
-
+    }
         $_SESSION['checkout_data'] = [
             'item_type'     => 'event',
             'membership_id' => 0,
@@ -113,7 +119,7 @@ $image       = $chk_data['image'];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/checkout.css">
     <style>
-       
+
     </style>
 </head>
 

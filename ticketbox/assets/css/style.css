@@ -3863,3 +3863,486 @@ body>.offcanvas.mobile-offcanvas {
 .mobile-offcanvas .offcanvas-body {
     padding: 15px 20px !important;
 }
+
+/*RESPONSIVE */
+header.main-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+}
+
+body > .offcanvas-backdrop {
+    z-index: 1040 !important;
+}
+
+body > .offcanvas.mobile-offcanvas {
+    z-index: 1045 !important;
+}
+
+/* Tablet & Laptop nhỏ */
+@media (max-width: 991.98px) {
+    .notch {
+        display: none !important;
+    }
+
+    /* Trang Hồ sơ Star */
+    .star-subnav-inner {
+        padding: 10px 16px;
+        gap: 12px;
+    }
+
+    .star-subnav-tabs {
+        order: 3;
+        width: 100%;
+        gap: 18px;
+        border-top: 1px solid #26282e;
+        scrollbar-width: none;
+    }
+
+    .star-subnav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .star-subnav-tab {
+        padding: 12px 0;
+    }
+
+    .terms-pdf-container {
+        width: 95%;
+        height: 75vh;
+        min-height: 520px;
+    }
+}
+
+/* 3. Mobile (768px) */
+@media (max-width: 768px) {
+    .container {
+        margin: 20px auto;
+    }
+
+    /* Trang Chi tiết sự kiện */
+    .stub-left {
+        padding: 20px 16px;
+    }
+
+    .stub-title {
+        font-size: 19px;
+        margin-bottom: 14px;
+    }
+
+    .stub-price-row {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .btn-buy-primary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .detail-block {
+        padding: 18px 16px;
+    }
+
+    .block-header,
+    .accordion-head,
+    .cat-item {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .star-link-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .star-card-left {
+        width: 100%;
+    }
+
+    /* Trang Vé của tôi */
+    .filter-pills,
+    .sub-filter-tabs,
+    .ticket-timeline-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+    }
+
+    .filter-pills::-webkit-scrollbar,
+    .sub-filter-tabs::-webkit-scrollbar,
+    .ticket-timeline-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ticket-header-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .terms-pdf-page {
+        padding: 10px 0;
+    }
+
+    .terms-pdf-container {
+        width: 96%;
+        height: 68vh;
+        min-height: 420px;
+    }
+}
+
+/* Mobile màn hình nhỏ (480px) */
+@media (max-width: 480px) {
+    .section-title {
+        font-size: 17px;
+    }
+
+    .trending-scroll {
+        gap: 22px;
+        padding-left: 20px;
+    }
+
+    .trending-card {
+        flex: 0 0 220px;
+    }
+
+    .trending-rank {
+        font-size: 58px;
+        left: -14px;
+    }
+
+    .star-profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .star-profile-info h1 {
+        justify-content: center;
+    }
+}
+/* ==========================================================================
+   FIX RESPONSIVE CHO HEADER, THANH NAV DANH MỤC & FOOTER (STYLE_2.CSS)
+   ========================================================================== */
+
+/* Chống tràn ngang toàn trang mà không làm mất position: sticky của Header */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+/* 1. Thanh điều hướng danh mục (Category Bar / Sub-navbar) */
+.main-header + nav,
+.category-nav,
+.category-bar,
+.navbar-categories,
+.sub-navbar {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px 15px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.main-header + nav::-webkit-scrollbar,
+.category-nav::-webkit-scrollbar,
+.category-bar::-webkit-scrollbar,
+.navbar-categories::-webkit-scrollbar,
+.sub-navbar::-webkit-scrollbar {
+    display: none;
+}
+
+.category-container,
+.category-nav > ul,
+.navbar-categories > ul,
+.sub-navbar > ul {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    gap: 10px;
+    width: max-content;
+    min-width: 100%;
+    margin: 0 auto;
+}
+
+.category-btn,
+.category-nav li,
+.navbar-categories li,
+.sub-navbar li {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 991.98px) {
+    .main-header .header-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .search-bar,
+    .tb-search-wrapper {
+        order: 3 !important;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .footer-columns > div,
+    .footer-middle > div,
+    .footer-top > .footer-col {
+        min-width: 0;
+        word-wrap: break-word;
+    }
+
+    .footer-columns,
+    .footer-middle {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 24px !important;
+    }
+
+    .footer-bottom-flex,
+    .footer-bottom-container {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 18px !important;
+    }
+
+    .company-legal-info {
+        max-width: 100% !important;
+    }
+
+    .bct-badges {
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .site-footer .footer-top,
+    .main-footer {
+        padding: 28px 16px 20px !important;
+    }
+
+    .site-footer .footer-bottom,
+    .main-footer .footer-bottom {
+        padding: 20px 16px !important;
+    }
+
+    .footer-columns,
+    .footer-middle,
+    .footer-top {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .social-lang-col {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 14px !important;
+    }
+
+    .store-badges,
+    .social-icons {
+        flex-wrap: wrap !important;
+    }
+
+    .hotline-number,
+    .hotline-num {
+        font-size: 19px !important;
+    }
+}
+
+body > .offcanvas-backdrop {
+    z-index: 10040 !important;
+}
+
+body > .offcanvas.mobile-offcanvas {
+    position: fixed !important;
+    z-index: 10045 !important;
+}
+
+.main-header + nav,
+.category-nav,
+.category-bar,
+.navbar-categories,
+.sub-navbar {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 12px 5% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin !important;
+    scrollbar-color: #26c973 #22242a !important;
+}
+
+.main-header + nav::-webkit-scrollbar,
+.category-nav::-webkit-scrollbar,
+.category-bar::-webkit-scrollbar,
+.navbar-categories::-webkit-scrollbar,
+.sub-navbar::-webkit-scrollbar {
+    display: block !important;
+    height: 4px !important;
+}
+
+.main-header + nav::-webkit-scrollbar-track,
+.category-nav::-webkit-scrollbar-track,
+.category-bar::-webkit-scrollbar-track,
+.navbar-categories::-webkit-scrollbar-track,
+.sub-navbar::-webkit-scrollbar-track {
+    background: #22242a;
+}
+
+.main-header + nav::-webkit-scrollbar-thumb,
+.category-nav::-webkit-scrollbar-thumb,
+.category-bar::-webkit-scrollbar-thumb,
+.navbar-categories::-webkit-scrollbar-thumb,
+.sub-navbar::-webkit-scrollbar-thumb {
+    background: #26c973;
+    border-radius: 4px;
+}
+
+.category-container,
+.category-nav > ul,
+.navbar-categories > ul,
+.sub-navbar > ul {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    gap: 12px;
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    list-style: none;
+}
+
+.category-btn,
+.category-nav a,
+.navbar-categories a,
+.sub-navbar a {
+    display: inline-block;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 991.98px) {
+    .main-header + nav,
+    .category-nav,
+    .category-bar,
+    .navbar-categories,
+    .sub-navbar {
+        padding: 10px 15px !important;
+    }
+
+    .category-container::after,
+    .category-nav > ul::after,
+    .navbar-categories > ul::after,
+    .sub-navbar > ul::after {
+        content: "";
+        flex: 0 0 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .account-btn span {
+        max-width: 95px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .account-layout,
+    .account-container,
+    .account-wrapper,
+    .profile-layout,
+    .my-tickets-layout,
+    main.container div[style*="grid-template-columns"] {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+        width: 100% !important;
+    }
+
+    .account-sidebar,
+    .profile-sidebar,
+    .account-menu-col {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        position: static !important;
+    }
+
+    .account-content,
+    .profile-content,
+    .my-tickets-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .ticket-status-tabs,
+    .filter-pills {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 10px !important;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .ticket-status-tabs::-webkit-scrollbar,
+    .filter-pills::-webkit-scrollbar {
+        display: none;
+    }
+
+    .status-tab-btn,
+    .pill-btn {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        padding: 8px 18px !important;
+        font-size: 13px !important;
+    }
+    .my-ticket-card,
+    .ticket-item-card,
+    .ticket-card,
+    .tickets-list > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 14px !important;
+    }
+
+    .my-ticket-img,
+    .ticket-item-img,
+    .my-ticket-card > img,
+    .my-ticket-card > a:first-child {
+        width: 100% !important;
+        min-width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 16 / 9;
+    }
+
+    .my-ticket-info,
+    .ticket-item-details {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+    }
+}

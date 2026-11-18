@@ -302,23 +302,6 @@ $homeCategorySections = [
         )"
     ],
     [
-        'slug'  => 'tham-quan-trai-nghiem',
-        'title' => 'Tham quan & Trải nghiệm',
-        'icon'  => 'fa-solid fa-compass',
-        'color' => '#69c0ff',
-        'where' => "(
-            danh_muc_id = 5
-            OR id IN (11, 13, 34, 35, 36, 37, 38, 39, 40, 41)
-            OR ten_su_kien LIKE '%Trải nghiệm%'
-            OR ten_su_kien LIKE '%Du lịch%'
-            OR ten_su_kien LIKE '%Bảo tàng%'
-            OR ten_su_kien LIKE '%Triển lãm%'
-            OR ten_su_kien LIKE '%Tour%'
-            OR ten_su_kien LIKE '%Khu vui chơi%'
-            OR ten_su_kien LIKE '%Xe Buýt%'
-        )"
-    ],
-    [
         'slug'  => 'khac',
         'title' => 'Khác',
         'icon'  => 'fa-solid fa-layer-group',

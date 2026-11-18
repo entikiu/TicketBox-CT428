@@ -189,3 +189,50 @@
 .pwd-req-list li.valid .icon-status {
     color: #26c973 !important;
 }
+/* ==========================================
+   RESPONSIVE CHO TRANG ĐĂNG NHẬP / ĐĂNG KÝ
+   ========================================== */
+@media (max-width: 576px) {
+    .auth-page {
+        min-height: 100dvh;
+        padding: 15px;
+    }
+
+    .auth-card {
+        max-width: 100%;
+        border-radius: 10px;
+    }
+
+    .auth-header {
+        padding: 16px;
+    }
+
+    .auth-header h2 {
+        font-size: 20px;
+    }
+
+    .auth-body {
+        padding: 16px;
+    }
+
+    .form-input {
+        font-size: 16px; 
+        padding: 11px 14px;
+    }
+
+    .divider::before,
+    .divider::after {
+        width: 36%;
+    }
+}
+
+@media (max-width: 360px) {
+    .divider::before,
+    .divider::after {
+        width: 30%;
+    }
+
+    .pwd-req-list li {
+        font-size: 12px;
+    }
+}

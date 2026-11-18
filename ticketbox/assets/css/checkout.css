@@ -237,3 +237,84 @@ body {
     color: #888;
     margin-top: 10px;
 }
+/* ==========================================
+   RESPONSIVE CHO TRANG THANH TOÁN (CHECKOUT)
+   ========================================== */
+
+/* Tablet & Laptop nhỏ (<= 992px) */
+@media (max-width: 992px) {
+    .event-banner,
+    .checkout-container {
+        padding: 30px 24px;
+    }
+
+    .checkout-container {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .question-section {
+        width: 100%;
+    }
+
+    .summary-card {
+        width: 100%;
+        position: static;
+    }
+}
+
+/* Mobile (<= 768px) */
+@media (max-width: 768px) {
+    .checkout-header {
+        padding: 12px 16px;
+    }
+
+    .checkout-header .logo {
+        font-size: 20px;
+    }
+
+    .event-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 20px 16px;
+    }
+
+    .event-info h1 {
+        font-size: 18px;
+        line-height: 1.4;
+    }
+
+    .timer-box {
+        width: 100%;
+        padding: 12px 16px;
+    }
+
+    .checkout-container {
+        padding: 20px 16px;
+    }
+
+    .form-card {
+        padding: 18px 16px;
+    }
+
+    .form-control {
+        font-size: 16px; 
+    }
+}
+
+/* Mobile màn hình nhỏ (<= 480px) */
+@media (max-width: 480px) {
+    .user-menu span {
+        display: none; 
+    }
+
+    .time-blocks {
+        font-size: 20px;
+        gap: 6px;
+    }
+
+    .time-blocks span.box {
+        padding: 6px 10px;
+    }
+}

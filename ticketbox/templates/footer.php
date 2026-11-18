@@ -108,18 +108,6 @@
                             </a>
                         </div>
                     </div>
-
-                    <div class="lang-block">
-                        <span class="middle-title">Ngôn ngữ</span>
-                        <div class="lang-flags">
-                            <button type="button" class="lang-btn active" data-lang="vi" title="Tiếng Việt">
-                                <span class="flag-icon flag-vi"></span>
-                            </button>
-                            <button type="button" class="lang-btn" data-lang="en" title="English">
-                                <span class="flag-icon flag-en"></span>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

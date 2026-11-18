@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
-// 1. Kiểm tra đăng nhập
+
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit;
@@ -18,7 +18,23 @@ $user_id     = (int)($_SESSION['user']['id'] ?? 0);
 $errors = [];
 $success_msg = '';
 
-// 2. TỰ ĐỘNG NẠP DỮ LIỆU MỚI NHẤT TỪ CSDL VÀO SESSION KHI MỞ TRANG
+
+$eventCreatorCol = null;
+if (isset($pdo)) {
+    try {
+        $colsStmt   = $pdo->query("SHOW COLUMNS FROM sukien");
+        $sukienCols = $colsStmt->fetchAll(PDO::FETCH_COLUMN);
+        foreach (['nguoi_dung_id', 'user_id', 'nguoi_tao_id', 'created_by'] as $candidate) {
+            if (in_array($candidate, $sukienCols, true)) {
+                $eventCreatorCol = $candidate;
+                break;
+            }
+        }
+    } catch (PDOException $e) {
+        $eventCreatorCol = null;
+    }
+}
+
 if ($user_id > 0 && isset($pdo)) {
     try {
         $stmtUser = $pdo->prepare("SELECT * FROM nguoidung WHERE id = :id LIMIT 1");
@@ -30,7 +46,7 @@ if ($user_id > 0 && isset($pdo)) {
             $_SESSION['user']['ho_ten'] = $dbUser['ho_ten'] ?? $_SESSION['user']['ho_ten'] ?? '';
             $_SESSION['user']['name']   = $dbUser['ho_ten'] ?? $_SESSION['user']['name'] ?? '';
             $_SESSION['user']['email']  = $dbUser['email'] ?? $_SESSION['user']['email'] ?? '';
-            
+
             if (array_key_exists('phone', $dbUser) && !empty($dbUser['phone'])) {
                 $_SESSION['user']['phone'] = $dbUser['phone'];
             }
@@ -45,11 +61,10 @@ if ($user_id > 0 && isset($pdo)) {
             }
         }
     } catch (PDOException $e) {
-        // Lỗi đọc CSDL không ghi đè Session
+        
     }
 }
 
-// Gán biến hiển thị cho giao diện
 $user_name   = $_SESSION['user']['ho_ten'] ?? $_SESSION['user']['name'] ?? 'Tài khoản';
 $user_email  = $_SESSION['user']['email'] ?? '';
 $user_phone  = $_SESSION['user']['phone'] ?? '';
@@ -57,13 +72,17 @@ $user_dob    = $_SESSION['user']['dob'] ?? '';
 $user_gender = $_SESSION['user']['gender'] ?? 'nam';
 $user_avatar = !empty($_SESSION['user']['avatar']) ? $_SESSION['user']['avatar'] : '../assets/images/default-avatar.png';
 
-// Hàm phân loại mốc thời gian sự kiện
+
 function getEventTimelineStatus($date_str) {
     if (empty($date_str)) return 'sap-dien-ra';
-    
+
     $day = $month = $year = null;
 
-    if (preg_match('/(\d{1,2})[\.\/](\d{1,2})[\.\/](\d{4})/', $date_str, $matches)) {
+    if (preg_match('/(\d{4})-(\d{1,2})-(\d{1,2})/', $date_str, $matches)) {
+        $year  = $matches[1];
+        $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
+        $day   = str_pad($matches[3], 2, '0', STR_PAD_LEFT);
+    } elseif (preg_match('/(\d{1,2})[\.\/](\d{1,2})[\.\/](\d{4})/', $date_str, $matches)) {
         $day   = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
         $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
         $year  = $matches[3];
@@ -81,11 +100,10 @@ function getEventTimelineStatus($date_str) {
     return 'sap-dien-ra';
 }
 
-// 3. XỬ LÝ SUBMIT FORM (CẬP NHẬT THÔNG TIN & HỦY VÉ)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    // A. Cập nhật thông tin cá nhân & Upload Avatar
+
     if ($action === 'update_profile') {
         $ho_ten  = trim($_POST['ho_ten'] ?? '');
         $phone   = trim($_POST['phone'] ?? '');
@@ -102,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors['general'] = 'Không xác định được ID người dùng. Vui lòng đăng xuất và đăng nhập lại!';
         }
 
-        // Xử lý tệp ảnh Avatar bằng đường dẫn tuyệt đối máy chủ
         if (isset($_FILES['avatar_file']) && $_FILES['avatar_file']['error'] === UPLOAD_ERR_OK) {
             $fileTmpPath   = $_FILES['avatar_file']['tmp_name'];
             $fileName      = $_FILES['avatar_file']['name'];
@@ -114,12 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
-                
+
                 $newFileName    = 'avatar_' . $user_id . '_' . time() . '.' . $fileExtension;
                 $targetFilePath = $uploadDir . $newFileName;
 
                 if (move_uploaded_file($fileTmpPath, $targetFilePath)) {
-                    // Xóa file avatar cũ trên máy chủ nếu đang nằm trong thư mục uploads/avatars/
                     if (
                         !empty($user_avatar) &&
                         strpos($user_avatar, '../assets/uploads/avatars/') === 0 &&
@@ -137,7 +153,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // CHỈ CẬP NHẬT SESSION KHI MYSQL UPDATE THÀNH CÔNG
         if (empty($errors)) {
             if (isset($pdo) && $user_id > 0) {
                 try {
@@ -154,7 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'id'     => $user_id
                     ]);
 
-                    // Đồng bộ dữ liệu vào Session
                     $_SESSION['user']['ho_ten'] = $ho_ten;
                     $_SESSION['user']['name']   = $ho_ten;
                     $_SESSION['user']['phone']  = $phone;
@@ -169,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $user_avatar = $avatar_path;
                     $success_msg = 'Cập nhật thành công và đã lưu vào CSDL!';
                 } catch (PDOException $e) {
-                    $errors['general'] = 'Lỗi lưu CSDL (Vui lòng chạy câu lệnh SQL thêm cột): ' . $e->getMessage();
+                    $errors['general'] = 'Lỗi lưu CSDL: ' . $e->getMessage();
                 }
             } else {
                 $errors['general'] = 'Không có kết nối CSDL hoặc ID tài khoản không hợp lệ.';
@@ -177,7 +191,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // B. Thao tác Hủy vé
     elseif ($action === 'cancel_ticket') {
         $ticket_db_id = $_POST['ticket_db_id'] ?? null;
         $ticket_index = $_POST['ticket_index'] ?? null;
@@ -195,7 +208,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success_msg = 'Hủy vé thành công!';
         }
     }
-// C. Thao tác Bỏ theo dõi Star / Ban tổ chức
+
+
     elseif ($action === 'unfollow_star') {
         $star_id = (int)($_POST['star_id'] ?? 0);
         if ($star_id > 0 && isset($pdo) && $user_id > 0) {
@@ -212,9 +226,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+
+    elseif ($action === 'delete_my_event') {
+        $event_id = (int)($_POST['event_id'] ?? 0);
+        if ($event_id > 0 && isset($pdo) && $user_id > 0) {
+            try {
+                // Kiểm tra quyền sở hữu sự kiện
+                $stmtOwner = $pdo->prepare("SELECT id FROM sukien WHERE id = :eid AND nguoi_tao_id = :uid LIMIT 1");
+                $stmtOwner->execute(['eid' => $event_id, 'uid' => $user_id]);
+
+                if (!$stmtOwner->fetchColumn()) {
+                    $errors['general'] = 'Không tìm thấy sự kiện hoặc bạn không có quyền xóa sự kiện này.';
+                } else {
+                    $stmtCheckSold = $pdo->prepare("SELECT COUNT(*) FROM ve WHERE su_kien_id = :eid AND trang_thai != 'da-huy'");
+                    $stmtCheckSold->execute(['eid' => $event_id]);
+                    $soldCount = (int)$stmtCheckSold->fetchColumn();
+
+                    if ($soldCount > 0) {
+                        $errors['general'] = 'Không thể xóa sự kiện đã có khách đặt vé (' . $soldCount . ' vé).';
+                    } else {
+                        $pdo->prepare("DELETE FROM loaive WHERE su_kien_id = :eid")->execute(['eid' => $event_id]);
+                        $pdo->prepare("DELETE FROM sukien WHERE id = :eid AND nguoi_tao_id = :uid")
+                            ->execute(['eid' => $event_id, 'uid' => $user_id]);
+                        $success_msg = 'Đã xóa sự kiện thành công!';
+                    }
+                }
+            } catch (PDOException $e) {
+                $errors['general'] = 'Không thể xóa sự kiện: ' . $e->getMessage();
+            }
+        }
+    }
 }
 
-// 4. LẤY DANH SÁCH VÉ TỪ CSDL MYSQL
 $my_tickets = [];
 
 if (isset($pdo) && $user_id > 0) {
@@ -245,7 +289,7 @@ if (empty($my_tickets)) {
     $my_tickets = $_SESSION['my_tickets'] ?? [];
 }
 
-// 5. LỌC VÉ & ĐẾM SỐ LƯỢNG
+
 $filter_status   = $_GET['status'] ?? 'all';
 $filter_timeline = $_GET['timeline'] ?? 'sap-dien-ra';
 
@@ -279,27 +323,28 @@ foreach ($my_tickets as $index => $ticket) {
 
 include '../templates/header.php';
 ?>
+
 <main class="container" style="margin-top: 25px; min-height: 80vh;">
-    
-    <!-- BREADCRUMB -->
-    <div class="breadcrumb" style="font-size: 13px; color: #a0a3bd; margin-bottom: 25px; display: flex; align-items: center; gap: 8px;">
-        <a href="home.php" style="color: #a0a3bd; text-decoration: none;">Trang chủ</a> 
-        <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i> 
-        
+
+    <div class="breadcrumb" style="font-size: 13px; color: #a0a3bd; margin-bottom: 25px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <a href="home.php" style="color: #a0a3bd; text-decoration: none;">Trang chủ</a>
+        <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
+
         <?php if ($current_tab === 'profile'): ?>
             <span style="color: #fff;">Thông tin tài khoản</span>
         <?php elseif ($current_tab === 'profile-edit'): ?>
-            <a href="my-tickets.php?tab=profile-edit" style="color: #a0a3bd; text-decoration: none;">Cài đặt tài khoản</a> 
-            <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i> 
+            <a href="my-tickets.php?tab=profile-edit" style="color: #a0a3bd; text-decoration: none;">Cài đặt tài khoản</a>
+            <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i>
             <span style="color: #fff;">Thông tin tài khoản</span>
         <?php elseif ($current_tab === 'membership'): ?>
             <span>Đơn hàng của tôi</span> <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i> <span style="color: #fff;">Thẻ thành viên</span>
+        <?php elseif ($current_tab === 'my-events'): ?>
+            <span style="color: #fff;">Sự kiện của tôi</span>
         <?php else: ?>
             <span>Đơn hàng của tôi</span> <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i> <span style="color: #fff;">Vé của tôi</span>
         <?php endif; ?>
     </div>
 
-    <!-- THÔNG BÁO LỖI HOẶC THÀNH CÔNG -->
     <?php if (!empty($success_msg)): ?>
         <div style="background: rgba(38, 201, 115, 0.15); border: 1px solid #26c973; color: #26c973; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;">
             <i class="fa-solid fa-circle-check"></i> <?php echo htmlspecialchars($success_msg); ?>
@@ -313,8 +358,7 @@ include '../templates/header.php';
     <?php endif; ?>
 
     <div class="account-layout" style="display: flex; gap: 40px;">
-        
-        <!-- SIDEBAR BÊN TRÁI -->
+
         <aside class="account-sidebar" style="width: 260px; flex-shrink: 0;">
             <a href="my-tickets.php?tab=profile" style="text-decoration: none; display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
                 <div style="width: 42px; height: 42px; border-radius: 50%; overflow: hidden; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;">
@@ -359,21 +403,17 @@ include '../templates/header.php';
                     <?php endif; ?>
                 </div>
 
-                <a href="my-tickets.php?tab=my-events" style="color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 0; display: flex; align-items: center; gap: 10px;">
+                <a href="my-tickets.php?tab=my-events" style="color: <?php echo ($current_tab === 'my-events') ? '#26c973' : '#fff'; ?>; text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 0; display: flex; align-items: center; gap: 10px;">
                     <i class="fa-regular fa-star" style="width: 22px;"></i> Sự kiện của tôi
                 </a>
             </nav>
         </aside>
 
-        <!-- NỘI DUNG TỪNG TAB -->
-        <section class="account-content" style="flex: 1;">
-            <?php switch ($current_tab): 
+        <section class="account-content" style="flex: 1; min-width: 0;">
+            <?php switch ($current_tab):
 
-               // ==================== 1. TRANG CÁ NHÂN TỔNG QUAN ====================
-                case 'profile': 
-                    // Lấy danh sách thẻ thành viên đang hoạt động
+                case 'profile':
                     $profile_memberships = [];
-                    // Lấy danh sách nghệ sĩ / ban tổ chức đang theo dõi
                     $followed_stars = [];
 
                     if (isset($pdo) && $user_id > 0) {
@@ -427,7 +467,7 @@ include '../templates/header.php';
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 35px; max-width: 800px;">
-                        <!-- MỤC 1: THẺ THÀNH VIÊN CỦA TÔI -->
+
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                 <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -453,7 +493,6 @@ include '../templates/header.php';
                             <?php endif; ?>
                         </div>
 
-                        <!-- MỤC 2: ĐANG THEO DÕI -->
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                 <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -468,8 +507,8 @@ include '../templates/header.php';
                             <?php if (empty($followed_stars)): ?>
                                 <p style="color: #6c6d7c; font-size: 13px; margin: 0;">Bạn chưa có danh sách theo dõi</p>
                             <?php else: ?>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px;">
-                                    <?php foreach ($followed_stars as $fStar): 
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+                                    <?php foreach ($followed_stars as $fStar):
                                         $fRole = $roleLabels[$fStar['loai']] ?? 'Ban tổ chức';
                                     ?>
                                         <div style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
@@ -504,8 +543,289 @@ include '../templates/header.php';
                     </div>
                     <?php break; ?>
 
-                // ==================== 3. THẺ THÀNH VIÊN ====================
-                <?php case 'membership': 
+                <?php case 'profile-edit':
+                    $cur_gender = $_POST['gender'] ?? $user_gender;
+                ?>
+                    <h2 style="font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 24px;">Thông tin tài khoản</h2>
+
+                    <form method="POST" action="my-tickets.php?tab=profile-edit" enctype="multipart/form-data"
+                          style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 28px; max-width: 680px;">
+                        <input type="hidden" name="action" value="update_profile">
+
+                        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 28px;">
+                            <div style="position: relative; width: 110px; height: 110px;">
+                                <div id="avatarPreviewWrap" style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; border: 3px solid #3a3a45;">
+                                    <?php if (!empty($user_avatar) && file_exists(__DIR__ . '/' . $user_avatar)): ?>
+                                        <img id="avatarPreviewImg" src="<?php echo htmlspecialchars($user_avatar); ?>?v=<?php echo time(); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <?php else: ?>
+                                        <img id="avatarPreviewImg" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                        <i id="avatarDefaultIcon" class="fa-solid fa-user" style="font-size: 48px;"></i>
+                                    <?php endif; ?>
+                                </div>
+                                <button type="button" onclick="document.getElementById('avatarFileInput').click()"
+                                        title="Đổi ảnh đại diện"
+                                        style="position: absolute; right: 0; bottom: 0; width: 34px; height: 34px; border-radius: 50%; background: #26c973; color: #fff; border: 2px solid #272730; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fa-solid fa-camera" style="font-size: 13px;"></i>
+                                </button>
+                            </div>
+                            <input type="file" id="avatarFileInput" name="avatar_file" accept="image/jpeg,image/png,image/webp,image/gif" hidden
+                                   onchange="if(this.files && this.files[0]){ var r = new FileReader(); r.onload = function(e){ var img = document.getElementById('avatarPreviewImg'); var ico = document.getElementById('avatarDefaultIcon'); img.src = e.target.result; img.style.display = 'block'; if(ico) ico.style.display = 'none'; }; r.readAsDataURL(this.files[0]); }">
+                            <span style="font-size: 12px; color: #a0a3bd; margin-top: 10px;">Cung cấp thông tin chính xác sẽ hỗ trợ bạn trong quá trình mua vé, hoặc khi cần xác thực vé</span>
+                            <?php if (!empty($errors['avatar'])): ?>
+                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px;"><?php echo htmlspecialchars($errors['avatar']); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Họ và tên</label>
+                            <input type="text" name="ho_ten"
+                                   value="<?php echo htmlspecialchars($_POST['ho_ten'] ?? $user_name); ?>"
+                                   placeholder="Nhập họ và tên"
+                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #1e1e26; color: #fff; font-size: 14px; outline: none;">
+                            <?php if (!empty($errors['ho_ten'])): ?>
+                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['ho_ten']); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Số điện thoại</label>
+                            <input type="text" name="phone"
+                                   value="<?php echo htmlspecialchars($_POST['phone'] ?? $user_phone); ?>"
+                                   placeholder="Nhập số điện thoại"
+                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #1e1e26; color: #fff; font-size: 14px; outline: none;">
+                            <?php if (!empty($errors['phone'])): ?>
+                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['phone']); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Email</label>
+                            <input type="email" value="<?php echo htmlspecialchars($user_email); ?>" readonly disabled
+                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #18181f; color: #8c8fa6; font-size: 14px; cursor: not-allowed;">
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Ngày sinh</label>
+                            <input type="date" name="dob"
+                                   value="<?php echo htmlspecialchars($_POST['dob'] ?? $user_dob); ?>"
+                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #1e1e26; color: #fff; font-size: 14px; outline: none;">
+                            <?php if (!empty($errors['dob'])): ?>
+                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['dob']); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div style="margin-bottom: 26px;">
+                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 10px;">Giới tính</label>
+                            <div style="display: flex; gap: 24px; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
+                                    <input type="radio" name="gender" value="nam" <?php echo ($cur_gender === 'nam') ? 'checked' : ''; ?> style="accent-color: #26c973;">
+                                    <span>Nam</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
+                                    <input type="radio" name="gender" value="nu" <?php echo ($cur_gender === 'nu') ? 'checked' : ''; ?> style="accent-color: #26c973;">
+                                    <span>Nữ</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
+                                    <input type="radio" name="gender" value="khac" <?php echo ($cur_gender === 'khac') ? 'checked' : ''; ?> style="accent-color: #26c973;">
+                                    <span>Khác</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                style="width: 100%; background: #26c973; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;">
+                            Hoàn thành
+                        </button>
+                    </form>
+                    <?php break; ?>
+
+                <?php case 'my-events':
+                    $created_events = [];
+                    if (isset($pdo) && $user_id > 0) {
+                        try {
+
+                            $dmTable = ($pdo->query("SHOW TABLES LIKE 'danh_muc'")->fetchColumn() !== false) ? 'danh_muc' : 'danhmuc';
+                            $dmCols  = $pdo->query("SHOW COLUMNS FROM `{$dmTable}`")->fetchAll(PDO::FETCH_COLUMN);
+                            $dmCol   = 'ten_danh_muc';
+                            foreach (['ten_danh_muc', 'ten', 'name', 'tieu_de'] as $cand) {
+                                if (in_array($cand, $dmCols, true)) {
+                                    $dmCol = $cand;
+                                    break;
+                                }
+                            }
+
+                            $sqlCreated = "SELECT s.*,
+                                                  dm.`{$dmCol}` AS ten_danh_muc,
+                                                  (SELECT COUNT(*) FROM ve v WHERE v.su_kien_id = s.id AND v.trang_thai != 'da-huy') AS so_ve_da_ban,
+                                                  (SELECT COALESCE(SUM(CAST(REPLACE(REPLACE(v.gia_ve, '.', ''), ' đ', '') AS UNSIGNED)), 0)
+                                                   FROM ve v WHERE v.su_kien_id = s.id AND v.trang_thai = 'thanh-cong') AS doanh_thu
+                                           FROM sukien s
+                                           LEFT JOIN `{$dmTable}` dm ON s.danh_muc_id = dm.id
+                                           WHERE s.nguoi_tao_id = :uid
+                                           ORDER BY s.id DESC";
+                            $stmtEv = $pdo->prepare($sqlCreated);
+                            $stmtEv->execute(['uid' => $user_id]);
+                            $created_events = $stmtEv->fetchAll(PDO::FETCH_ASSOC);
+                        } catch (PDOException $e) {
+                            $created_events = [];
+                        }
+                    }
+
+                    $ev_filter         = $_GET['ev_filter'] ?? 'all';
+                    $ev_count_all      = count($created_events);
+                    $ev_count_public   = 0;
+                    $ev_count_draft    = 0;
+                    $ev_count_ended    = 0;
+                    $filtered_created  = [];
+
+                    foreach ($created_events as $ev) {
+                        $tl      = getEventTimelineStatus($ev['thoi_gian'] ?? '');
+                        $pubStat = $ev['trang_thai'] ?? 'cong_khai';
+
+                        if ($pubStat === 'nhap') $ev_count_draft++;
+                        else $ev_count_public++;
+
+                        if ($tl === 'da-ket-thuc') $ev_count_ended++;
+
+                        $match = ($ev_filter === 'all')
+                              || ($ev_filter === 'cong_khai' && $pubStat !== 'nhap')
+                              || ($ev_filter === 'nhap' && $pubStat === 'nhap')
+                              || ($ev_filter === 'da-ket-thuc' && $tl === 'da-ket-thuc');
+
+                        if ($match) {
+                            $ev['computed_timeline'] = $tl;
+                            $filtered_created[]      = $ev;
+                        }
+                    }
+                ?>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <h2 style="font-size: 24px; font-weight: 700; color: #fff; margin: 0;">Sự kiện của tôi</h2>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <a href="create-event.php?view=reports" style="background: #272730; color: #fff; border: 1px solid #3a3a45; padding: 9px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-chart-line" style="color: #26c973;"></i> Báo cáo doanh thu
+                            </a>
+                            <a href="create-event.php" style="background: #26c973; color: #fff; padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-plus"></i> Tạo sự kiện mới
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="account-pill-row" style="display: flex; gap: 10px; margin-bottom: 25px;">
+                        <a href="my-tickets.php?tab=my-events&ev_filter=all" class="pill-btn <?php echo $ev_filter === 'all' ? 'active' : ''; ?>">
+                            Tất cả (<?php echo $ev_count_all; ?>)
+                        </a>
+                        <a href="my-tickets.php?tab=my-events&ev_filter=cong_khai" class="pill-btn <?php echo $ev_filter === 'cong_khai' ? 'active' : ''; ?>">
+                            Đang công khai (<?php echo $ev_count_public; ?>)
+                        </a>
+                        <a href="my-tickets.php?tab=my-events&ev_filter=nhap" class="pill-btn <?php echo $ev_filter === 'nhap' ? 'active' : ''; ?>">
+                            Bản nháp (<?php echo $ev_count_draft; ?>)
+                        </a>
+                        <a href="my-tickets.php?tab=my-events&ev_filter=da-ket-thuc" class="pill-btn <?php echo $ev_filter === 'da-ket-thuc' ? 'active' : ''; ?>">
+                            Đã kết thúc (<?php echo $ev_count_ended; ?>)
+                        </a>
+                    </div>
+
+                    <?php if (empty($filtered_created)): ?>
+                        <div style="background: #272730; border: 1px dashed #3a3a45; border-radius: 12px; text-align: center; padding: 55px 20px;">
+                            <i class="fa-regular fa-calendar-plus" style="font-size: 42px; color: #26c973; margin-bottom: 14px; display: block;"></i>
+                            <p style="color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 6px;">Bạn chưa có sự kiện nào trong mục này</p>
+                            <p style="color: #a0a3bd; font-size: 13.5px; margin-bottom: 20px;">Bắt đầu đăng tải sự kiện của riêng bạn trên Organizer Center.</p>
+                            <a href="create-event.php" style="background: #26c973; color: #fff; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-plus"></i> Tạo sự kiện ngay
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="tickets-list" style="display: flex; flex-direction: column; gap: 20px;">
+                            <?php foreach ($filtered_created as $ev):
+                                $ev_id       = (int)$ev['id'];
+                                $ev_title    = $ev['ten_su_kien'] ?? 'Sự kiện chưa đặt tên';
+                                $ev_img      = !empty($ev['banner']) ? $ev['banner'] : (!empty($ev['hinh_anh']) ? $ev['hinh_anh'] : '../assets/images/default-event.jpg');
+                                $ev_time     = !empty($ev['thoi_gian']) ? date('H:i - d/m/Y', strtotime($ev['thoi_gian'])) : 'Đang cập nhật';
+                                $ev_loc      = $ev['dia_diem'] ?? 'Đang cập nhật';
+                                $ev_cat      = $ev['ten_danh_muc'] ?? 'Sự kiện';
+                                $ev_sold     = (int)($ev['so_ve_da_ban'] ?? 0);
+                                $ev_rev      = (int)($ev['doanh_thu'] ?? 0);
+                                $ev_is_draft = (($ev['trang_thai'] ?? 'cong_khai') === 'nhap');
+                                $ev_is_ended = ($ev['computed_timeline'] === 'da-ket-thuc');
+                            ?>
+                                <div class="my-created-event-card" style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 18px; display: flex; gap: 20px;">
+                                    <div class="ticket-card-thumb" style="width: 190px; height: 115px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #181920;">
+                                        <img src="<?php echo htmlspecialchars($ev_img); ?>"
+                                             alt="<?php echo htmlspecialchars($ev_title); ?>"
+                                             style="width: 100%; height: 100%; object-fit: cover;"
+                                             onerror="this.src='../assets/images/default-event.jpg'">
+                                    </div>
+
+                                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                                        <div>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+                                                <span style="font-size: 12px; color: #26c973; font-weight: 600; background: rgba(38,201,115,0.12); padding: 2px 10px; border-radius: 999px;">
+                                                    <?php echo htmlspecialchars($ev_cat); ?>
+                                                </span>
+
+                                                <div style="display: flex; gap: 6px; align-items: center;">
+                                                    <?php if ($ev_is_draft): ?>
+                                                        <span style="background: rgba(250,173,20,0.15); color: #faad14; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                            <i class="fa-solid fa-pen-ruler"></i> Bản nháp
+                                                        </span>
+                                                    <?php elseif ($ev_is_ended): ?>
+                                                        <span style="background: rgba(160,163,189,0.15); color: #a0a3bd; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                            <i class="fa-regular fa-clock"></i> Đã kết thúc
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span style="background: rgba(38,201,115,0.15); color: #26c973; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                                            <i class="fa-solid fa-globe"></i> Đang công khai
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+
+                                            <h3 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0 0 8px 0;">
+                                                <a href="event-detail.php?id=<?php echo $ev_id; ?>" style="color: #fff; text-decoration: none;">
+                                                    <?php echo htmlspecialchars($ev_title); ?>
+                                                </a>
+                                            </h3>
+
+                                            <p style="font-size: 13px; color: #a0a3bd; margin: 2px 0;">
+                                                <i class="fa-regular fa-calendar" style="width: 16px; color: #26c973;"></i> <?php echo htmlspecialchars($ev_time); ?>
+                                            </p>
+                                            <p style="font-size: 13px; color: #a0a3bd; margin: 2px 0;">
+                                                <i class="fa-solid fa-location-dot" style="width: 16px; color: #26c973;"></i> <?php echo htmlspecialchars($ev_loc); ?>
+                                            </p>
+                                            <p style="font-size: 13px; color: #26c973; font-weight: 600; margin: 6px 0 0 0;">
+                                                Đã bán: <?php echo $ev_sold; ?> vé &bull; Doanh thu: <?php echo number_format($ev_rev, 0, ',', '.'); ?> đ
+                                            </p>
+                                        </div>
+
+                                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+                                            <a href="event-detail.php?id=<?php echo $ev_id; ?>"
+                                               style="background: #2b2f3e; color: #26c973; border: 1px solid #26c973; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fa-regular fa-eye"></i> Xem trang vé
+                                            </a>
+
+                                            <a href="create-event.php?edit_id=<?php echo $ev_id; ?>"
+                                               style="background: #333544; color: #fff; border: 1px solid #4a4d60; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fa-solid fa-pen"></i> Chỉnh sửa
+                                            </a>
+
+                                            <form method="POST" action="my-tickets.php?tab=my-events" style="display: inline-block; margin: 0;"
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa sự kiện này không?');">
+                                                <input type="hidden" name="action" value="delete_my_event">
+                                                <input type="hidden" name="event_id" value="<?php echo $ev_id; ?>">
+                                                <button type="submit"
+                                                        style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                                    <i class="fa-regular fa-trash-can"></i> Xóa
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php break; ?>
+
+                <?php case 'membership':
                     $mem_status = $_GET['mem_status'] ?? 'dang-hoat-dong';
                     $stmtUserMem = $pdo->prepare("
                         SELECT u.*, t.ten_the, t.nghe_si, t.gia, t.thoi_han_thang, t.hinh_anh
@@ -531,8 +851,8 @@ include '../templates/header.php';
                     <?php else: ?>
                         <div style="display: flex; flex-direction: column; gap: 18px;">
                             <?php foreach ($my_memberships as $m): ?>
-                                <div style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 18px; display: flex; gap: 20px; align-items: center;">
-                                    <img src="<?php echo htmlspecialchars($m['hinh_anh']); ?>" alt="<?php echo htmlspecialchars($m['ten_the']); ?>" style="width: 170px; height: 105px; object-fit: cover; border-radius: 8px;">
+                                <div class="ticket-card" style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 18px; display: flex; gap: 20px; align-items: center;">
+                                    <img class="ticket-card-thumb" src="<?php echo htmlspecialchars($m['hinh_anh']); ?>" alt="<?php echo htmlspecialchars($m['ten_the']); ?>" style="width: 170px; height: 105px; object-fit: cover; border-radius: 8px;">
                                     <div style="flex: 1;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                             <span style="font-size: 12px; color: #a0a3bd;">Mã thẻ: <strong style="color: #fff;"><?php echo htmlspecialchars($m['ma_the']); ?></strong></span>
@@ -552,11 +872,10 @@ include '../templates/header.php';
                     <?php endif; ?>
                     <?php break; ?>
 
-                // ==================== 4. VÉ CỦA TÔI ====================
                 <?php default: ?>
                     <h2 style="font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 20px;">Vé của tôi</h2>
 
-                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <div class="account-pill-row" style="display: flex; gap: 10px; margin-bottom: 20px;">
                         <a href="my-tickets.php?tab=tickets&status=all&timeline=<?php echo urlencode($filter_timeline); ?>" class="pill-btn <?php echo $filter_status === 'all' ? 'active' : ''; ?>">Tất cả (<?php echo $count_all; ?>)</a>
                         <a href="my-tickets.php?tab=tickets&status=thanh-cong&timeline=<?php echo urlencode($filter_timeline); ?>" class="pill-btn <?php echo $filter_status === 'thanh-cong' ? 'active' : ''; ?>">Thành công <?php echo $count_success > 0 ? "($count_success)" : ''; ?></a>
                         <a href="my-tickets.php?tab=tickets&status=dang-xu-ly&timeline=<?php echo urlencode($filter_timeline); ?>" class="pill-btn <?php echo $filter_status === 'dang-xu-ly' ? 'active' : ''; ?>">Đang xử lý <?php echo $count_pending > 0 ? "($count_pending)" : ''; ?></a>
@@ -574,7 +893,7 @@ include '../templates/header.php';
                         </div>
                     <?php else: ?>
                         <div class="tickets-list" style="display: flex; flex-direction: column; gap: 20px;">
-                            <?php foreach ($filtered_tickets as $ticket): 
+                            <?php foreach ($filtered_tickets as $ticket):
                                 $t_code       = $ticket['ticket_code'] ?? $ticket['id'] ?? 'TKB-' . rand(1000, 9999);
                                 $t_title      = $ticket['event_title'] ?? 'Sự kiện';
                                 $t_cat        = $ticket['ticket_category'] ?? 'Vé Tiêu Chuẩn';
@@ -586,7 +905,7 @@ include '../templates/header.php';
                                 $t_orig_index = $ticket['original_index'] ?? null;
                             ?>
                                 <div class="ticket-card" style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 18px; display: flex; gap: 20px;">
-                                    <div style="width: 160px; height: 100px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                    <div class="ticket-card-thumb" style="width: 160px; height: 100px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
                                         <img src="<?php echo htmlspecialchars($t_img); ?>" alt="<?php echo htmlspecialchars($t_title); ?>" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='../assets/images/default-event.jpg'">
                                     </div>
                                     <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
@@ -605,23 +924,21 @@ include '../templates/header.php';
                                             <p style="font-size: 13px; color: #a0a3bd; margin: 2px 0;"><i class="fa-solid fa-ticket"></i> Hạng vé: <strong style="color: #fff;"><?php echo htmlspecialchars($t_cat); ?></strong> <?php echo !empty($t_price) ? ' - ' . htmlspecialchars($t_price) : ''; ?></p>
                                             <p style="font-size: 13px; color: #a0a3bd; margin: 2px 0;"><i class="fa-regular fa-calendar"></i> <?php echo htmlspecialchars($ticket['date'] ?? 'Đang cập nhật'); ?></p>
                                         </div>
-                                        
+
                                         <?php if ($t_status !== 'da-huy' && !$t_is_ended): ?>
                                             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px;">
-                                                <!-- Nút Xem mã QR -->
-                                                <a href="ticket-qr.php?id=<?php echo (int) $t_db_id; ?>" 
-                                                style="background: #2b2f3e; color: #26c973; border: 1px solid #26c973; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                                <a href="ticket-qr.php?id=<?php echo (int) $t_db_id; ?>"
+                                                   style="background: #2b2f3e; color: #26c973; border: 1px solid #26c973; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
                                                     <i class="fa-solid fa-qrcode"></i> Xem mã QR
                                                 </a>
 
-                                                <!-- Form Hủy vé riêng biệt -->
                                                 <form method="POST" action="my-tickets.php?tab=tickets" style="display: inline-block; margin: 0;"
-                                                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?');">
+                                                      onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?');">
                                                     <input type="hidden" name="action" value="cancel_ticket">
                                                     <input type="hidden" name="ticket_db_id" value="<?php echo htmlspecialchars((string) $t_db_id); ?>">
                                                     <input type="hidden" name="ticket_index" value="<?php echo (int) $t_orig_index; ?>">
                                                     <button type="submit"
-                                                        style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                                            style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                                         <i class="fa-solid fa-ban"></i> Hủy vé
                                                     </button>
                                                 </form>

@@ -430,3 +430,47 @@
 .header-container {
     overflow: visible !important;
 }
+
+/*RESPONSIVE */
+@media (max-width: 768px) {
+    .tb-search-dropdown {
+        width: 100%;
+        max-width: 100%;
+        max-height: 68dvh;
+        padding: 14px;
+        border-radius: 10px;
+    }
+
+    .tb-explore-tabs {
+        gap: 16px;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+
+    .tb-explore-tabs::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .tb-search-box {
+        padding: 0 12px;
+        height: 38px;
+    }
+
+    .tb-search-input {
+        font-size: 16px; 
+        min-width: 0;
+    }
+
+    .tb-search-submit {
+        padding: 5px 10px;
+        font-size: 12px;
+        margin-right: -6px;
+    }
+
+    .tb-results-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

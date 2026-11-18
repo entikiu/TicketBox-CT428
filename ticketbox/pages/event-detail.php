@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
@@ -12,6 +13,29 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$row) {
     header('Location: home.php');
     exit;
+}
+
+// Kiểm tra sự kiện đã diễn ra hay chưa (ưu tiên thoi_gian_ket_thuc, nếu không có thì xét thoi_gian)
+$isEventEnded = false;
+$now = time();
+
+if (!empty($row['thoi_gian_ket_thuc'])) {
+    $endTs = strtotime($row['thoi_gian_ket_thuc']);
+    if ($endTs !== false && $now > $endTs) {
+        $isEventEnded = true;
+    }
+} elseif (!empty($row['thoi_gian'])) {
+    $startTs = strtotime($row['thoi_gian']);
+    if ($startTs !== false && $now > $startTs) {
+        $isEventEnded = true;
+    }
+} elseif (!empty($row['thoi_gian_hien_thi'])) {
+    if (preg_match('/(\d{1,2})[\.\/](\d{1,2})[\.\/](\d{4})/', $row['thoi_gian_hien_thi'], $m)) {
+        $fallbackTs = strtotime(sprintf('%04d-%02d-%02d 23:59:59', $m[3], $m[2], $m[1]));
+        if ($fallbackTs !== false && $now > $fallbackTs) {
+            $isEventEnded = true;
+        }
+    }
 }
 
 // 2. Lấy danh sách hạng vé tương ứng từ bảng loaive
@@ -98,6 +122,12 @@ include '../templates/header.php';
     <!-- 1. KHUNG THẺ VÉ THÔNG TIN CHÍNH -->
     <div class="ticket-stub-card">
         <div class="stub-left">
+            <?php if ($isEventEnded): ?>
+                <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(250, 140, 22, 0.15); color: #fa8c16; border: 1px solid rgba(250, 140, 22, 0.4); padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-bottom: 12px;">
+                    <i class="fa-regular fa-clock"></i> Sự kiện đã diễn ra
+                </div>
+            <?php endif; ?>
+
             <h1 class="stub-title"><?php echo htmlspecialchars($event_detail['title']); ?></h1>
 
             <div class="stub-info">
@@ -118,7 +148,9 @@ include '../templates/header.php';
             <div class="stub-price-row">
                 <div class="stub-price-link">Giá từ <span><?php echo $event_detail['min_price']; ?></span></div>
 
-                <?php if ($allSoldOut): ?>
+                <?php if ($isEventEnded): ?>
+                    <button type="button" class="btn-buy-primary" style="border:none; background:#3a3a45; color:#a0a3bd; cursor:not-allowed;" disabled>Đã kết thúc</button>
+                <?php elseif ($allSoldOut): ?>
                     <button type="button" class="btn-buy-primary" style="border:none; background:#555; cursor:not-allowed;" disabled>Đã hết vé</button>
                 <?php else: ?>
                     <!-- Form 1: Ở khung thẻ vé chính phía trên -->
@@ -146,7 +178,15 @@ include '../templates/header.php';
 
     <!-- 2. DANH SÁCH HẠNG VÉ ĐỘNG -->
     <div class="detail-block" style="margin-top: 35px;">
-        <h3 style="margin-bottom: 20px;">Lịch diễn & Hạng vé</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+            <h3 style="margin: 0;">Lịch diễn & Hạng vé</h3>
+            <?php if ($isEventEnded): ?>
+                <span style="font-size: 13px; color: #fa8c16;">
+                    <i class="fa-solid fa-circle-info"></i> Cổng bán vé trực tuyến đã đóng do sự kiện đã kết thúc.
+                </span>
+            <?php endif; ?>
+        </div>
+
         <div class="schedule-accordion">
             <?php if (empty($event_detail['categories'])): ?>
                 <p style="color: #a0a3bd;">Hiện chưa có thông tin hạng vé cho sự kiện này.</p>
@@ -157,7 +197,9 @@ include '../templates/header.php';
                         <div style="display:flex; align-items:center; gap:15px;">
                             <strong class="price-green"><?php echo htmlspecialchars($cat['price']); ?></strong>
 
-                            <?php if ($cat['soldout']): ?>
+                            <?php if ($isEventEnded): ?>
+                                <span class="badge-soldout" style="background: rgba(250, 140, 22, 0.15); color: #fa8c16; border: 1px solid rgba(250, 140, 22, 0.35);">Ngừng bán</span>
+                            <?php elseif ($cat['soldout']): ?>
                                 <span class="badge-soldout">Hết vé</span>
                             <?php else: ?>
                                 <!-- Form 2: Trong vòng lặp danh sách hạng vé bên dưới -->

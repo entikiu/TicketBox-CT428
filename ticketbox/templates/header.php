@@ -14,7 +14,7 @@ if (isset($_SESSION['user']) && isset($_SESSION['user']['id']) && isset($pdo)) {
         $stmtSync = $pdo->prepare("SELECT ho_ten, avatar FROM nguoidung WHERE id = :id LIMIT 1");
         $stmtSync->execute(['id' => $sync_id]);
         $dbUserSync = $stmtSync->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($dbUserSync) {
             $_SESSION['user']['ho_ten'] = $dbUserSync['ho_ten'];
             $_SESSION['user']['name']   = $dbUserSync['ho_ten'];
@@ -59,15 +59,14 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
             <div class="tb-search-wrapper" id="tbSearchWrapper">
                 <form class="tb-search-box" id="tbSearchForm" action="events.php" method="GET" autocomplete="off">
                     <i class="fa-solid fa-magnifying-glass tb-search-icon"></i>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         name="q"
-                        id="tbSearchInput" 
-                        class="tb-search-input" 
-                        placeholder="Bạn tìm gì hôm nay?" 
+                        id="tbSearchInput"
+                        class="tb-search-input"
+                        placeholder="Bạn tìm gì hôm nay?"
                         aria-label="Tìm kiếm sự kiện"
-                        value="<?php echo htmlspecialchars($current_search_q); ?>"
-                    >
+                        value="<?php echo htmlspecialchars($current_search_q); ?>">
                     <button type="button" id="tbSearchClearBtn" class="tb-search-clear" title="Xóa từ khóa" style="display: <?php echo $current_search_q !== '' ? 'flex' : 'none'; ?>;">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -120,7 +119,7 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                             </div>
                         </div>
 
-                    
+
                     </div>
 
                     <!-- 3. Lưới 3 cột Gợi ý / Kết quả AJAX -->
@@ -140,7 +139,7 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
             <nav class="nav-links">
                 <a href="events.php">Sự kiện</a>
                 <a href="organizer.php">TicketStars</a>
-               
+
 
                 <?php if ($is_logged_in): ?>
 
@@ -150,25 +149,25 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                             <!-- KHUNG AVATAR ĐÃ ĐƯỢC ÉP LẤY ẢNH MỚI NHẤT -->
                             <span class="user-avatar-sm" style="display: flex; align-items: center; justify-content: center; overflow: hidden; background: #26c973; color: #fff; width: 32px; height: 32px; border-radius: 50%;">
                                 <?php if (!empty($header_avt)): ?>
-                                    <img src="<?php echo htmlspecialchars($header_avt); ?>?v=<?php echo time(); ?>" 
-                                         alt="Avatar" 
-                                         style="width: 100%; height: 100%; object-fit: cover;" 
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <img src="<?php echo htmlspecialchars($header_avt); ?>?v=<?php echo time(); ?>"
+                                        alt="Avatar"
+                                        style="width: 100%; height: 100%; object-fit: cover;"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                     <span style="display:none; font-weight: bold;"><?php echo $first_char; ?></span>
                                 <?php else: ?>
                                     <span style="font-weight: bold;"><?php echo $first_char; ?></span>
                                 <?php endif; ?>
                             </span>
-                            
+
                             <span><?php echo htmlspecialchars($header_name); ?></span>
                             <i class="fa-solid fa-caret-down"></i>
                         </button>
 
                         <!-- Menu xổ xuống -->
                         <div class="dropdown-menu" id="accountDropdown">
-                            <?php 
+                            <?php
                             $current_role = strtolower($user_data['vai_tro'] ?? '');
-                            if ($current_role === 'admin'): 
+                            if ($current_role === 'admin'):
                             ?>
                                 <a href="../admin/index.php" style="color: #26c973; font-weight: bold; background: #f0fdf4;">
                                     <i class="fa-solid fa-shield-halved"></i> Trang quản trị
@@ -191,7 +190,7 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                             <a href="my-tickets.php?tab=my-events">
                                 <i class="fa-regular fa-calendar-check"></i> Sự kiện của tôi
                             </a>
-
+                            
                             <a href="my-tickets.php?tab=profile">
                                 <i class="fa-regular fa-circle-user"></i> Trang cá nhân
                             </a>
@@ -229,7 +228,7 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                         document.addEventListener('DOMContentLoaded', function() {
                             const btnLogout = document.getElementById('btnLogout');
                             if (btnLogout) {
-                               btnLogout.addEventListener('click', function(e) {
+                                btnLogout.addEventListener('click', function(e) {
                                     if (typeof handleLogout === 'function') {
                                         e.preventDefault();
                                         handleLogout();
@@ -246,59 +245,59 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                     </div>
                 <?php endif; ?>
                 <button class="mobile-menu-btn d-lg-none"
-                        type="button"
-                        data-bs-toggle="offcanvas"
-                        data-bs-target="#mobileGroupMenu"
-                        aria-controls="mobileGroupMenu"
-                        aria-label="Mở menu">
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#mobileGroupMenu"
+                    aria-controls="mobileGroupMenu"
+                    aria-label="Mở menu">
                     <i class="fa-solid fa-bars"></i>
                 </button>
             </nav>
         </div>
-</header>
+    </header>
     <!-- MOBILE OFFCANVAS MENU -->
-<div class="offcanvas offcanvas-end mobile-offcanvas"
-     tabindex="-1"
-     id="mobileGroupMenu"
-     aria-labelledby="mobileGroupMenuLabel">
+    <div class="offcanvas offcanvas-end mobile-offcanvas"
+        tabindex="-1"
+        id="mobileGroupMenu"
+        aria-labelledby="mobileGroupMenuLabel">
 
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="mobileGroupMenuLabel">
-            ticketbox
-        </h5>
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="mobileGroupMenuLabel">
+                ticketbox
+            </h5>
 
-        <button type="button"
+            <button type="button"
                 class="btn-close btn-close-white"
                 data-bs-dismiss="offcanvas"
                 aria-label="Đóng">
-        </button>
+            </button>
+        </div>
+
+        <div class="offcanvas-body">
+            <a href="create-event.php" class="btn w-100 fw-bold text-white rounded-pill mb-3" style="background-color: #00b14f;">
+                <i class="fa-solid fa-plus me-1"></i> Tạo sự kiện
+            </a>
+            <a href="events.php" class="mobile-menu-link">
+                <i class="fa-solid fa-calendar-days text-success"></i>
+                <span>Sự kiện</span>
+            </a>
+
+            <a href="organizer.php" class="mobile-menu-link">
+                <i class="fa-solid fa-star text-warning"></i>
+                <span>TicketStars</span>
+            </a>
+
+            <a href="events.php" class="mobile-menu-link">
+                <i class="fa-solid fa-rotate text-info"></i>
+                <span>Bán lại vé</span>
+            </a>
+
+            <a href="#" class="mobile-menu-link">
+                <i class="fa-solid fa-newspaper text-secondary"></i>
+                <span>Blog</span>
+            </a>
+
+        </div>
     </div>
-
-    <div class="offcanvas-body">
-        <a href="create-event.php" class="btn w-100 fw-bold text-white rounded-pill mb-3" style="background-color: #00b14f;">
-            <i class="fa-solid fa-plus me-1"></i> Tạo sự kiện
-        </a>
-        <a href="events.php" class="mobile-menu-link">
-            <i class="fa-solid fa-calendar-days text-success"></i>
-            <span>Sự kiện</span>
-        </a>
-
-        <a href="organizer.php" class="mobile-menu-link">
-            <i class="fa-solid fa-star text-warning"></i>
-            <span>TicketStars</span>
-        </a>
-
-        <a href="events.php" class="mobile-menu-link">
-            <i class="fa-solid fa-rotate text-info"></i>
-            <span>Bán lại vé</span>
-        </a>
-
-        <a href="#" class="mobile-menu-link">
-            <i class="fa-solid fa-newspaper text-secondary"></i>
-            <span>Blog</span>
-        </a>
-
-    </div>
-</div>
     <!-- Nhúng thanh danh mục -->
     <?php require_once __DIR__ . '/navbar.php'; ?>

@@ -201,6 +201,22 @@ include '../templates/header.php';
         padding-top: 32px;
         border-top: 1px solid #2d2d35;
     }
+
+    /* Kích thước 2 cột & 3 cột (576px - 1129.98px): ẩn sẵn từ thẻ thứ 7 (hiển thị 6 thẻ) */
+    @media (min-width: 576px) and (max-width: 1129.98px) {
+        .event-grid:not(.is-expanded) > .upcoming-event-item:nth-child(n+7),
+        .event-grid:not(.is-expanded) > .past-event-item:nth-child(n+7) {
+            display: none;
+        }
+    }
+
+    /* Kích thước 1 cột (<= 575.98px): ẩn sẵn từ thẻ thứ 5 (hiển thị 4 thẻ) */
+    @media (max-width: 575.98px) {
+        .event-grid:not(.is-expanded) > .upcoming-event-item:nth-child(n+5),
+        .event-grid:not(.is-expanded) > .past-event-item:nth-child(n+5) {
+            display: none;
+        }
+    }
 </style>
 
 <main class="container" style="margin-top: 30px; min-height: 70vh;">
@@ -241,25 +257,24 @@ include '../templates/header.php';
         <!-- 1. MỤC SỰ KIỆN SẮP DIỄN RA / ĐANG DIỄN RA -->
         <?php if (!empty($upcoming_events)): ?>
             <section>
-                <div class="event-grid">
+                <div class="event-grid" id="upcomingEventsGrid">
                     <?php
                     foreach ($upcoming_events as $idx => $event) {
                         $is_hidden   = ($idx >= 8);
-                        $extra_class = $is_hidden ? 'extra-upcoming-item' : '';
                         $extra_style = $is_hidden ? 'style="display: none;"' : '';
 
-                        echo '<div class="' . $extra_class . '" ' . $extra_style . '>';
+                        echo '<div class="upcoming-event-item" ' . $extra_style . '>';
                         include '../templates/event-card.php';
                         echo '</div>';
                     }
                     ?>
                 </div>
 
-                <?php if (count($upcoming_events) > 8): ?>
+                <?php if (count($upcoming_events) > 4): ?>
                     <div class="load-more-wrapper" id="loadMoreUpcomingWrapper">
                         <button type="button"
                             class="btn-load-more"
-                            onclick="loadMoreSectionEvents('extra-upcoming-item', 'loadMoreUpcomingWrapper')">
+                            onclick="loadMoreSectionEvents('upcomingEventsGrid', 'upcoming-event-item', 'loadMoreUpcomingWrapper')">
                             Xem thêm sự kiện sắp diễn ra <i class="fa-solid fa-chevron-down"></i>
                         </button>
                     </div>
@@ -279,14 +294,13 @@ include '../templates/header.php';
                     <span>Đã diễn ra</span>
                 </h3>
 
-                <div class="event-grid">
+                <div class="event-grid" id="pastEventsGrid">
                     <?php
                     foreach ($past_events as $idx => $event) {
                         $is_hidden   = ($idx >= 8);
-                        $extra_class = $is_hidden ? 'extra-past-item' : '';
                         $extra_style = $is_hidden ? 'style="display: none;"' : '';
 
-                        echo '<div class="past-event-card-wrap ' . $extra_class . '" ' . $extra_style . '>';
+                        echo '<div class="past-event-card-wrap past-event-item" ' . $extra_style . '>';
                         echo '<span class="past-event-badge-overlay">Đã diễn ra</span>';
                         include '../templates/event-card.php';
                         echo '</div>';
@@ -294,11 +308,11 @@ include '../templates/header.php';
                     ?>
                 </div>
 
-                <?php if (count($past_events) > 8): ?>
+                <?php if (count($past_events) > 4): ?>
                     <div class="load-more-wrapper" id="loadMorePastWrapper">
                         <button type="button"
                             class="btn-load-more"
-                            onclick="loadMoreSectionEvents('extra-past-item', 'loadMorePastWrapper')">
+                            onclick="loadMoreSectionEvents('pastEventsGrid', 'past-event-item', 'loadMorePastWrapper')">
                             Xem thêm sự kiện đã diễn ra <i class="fa-solid fa-chevron-down"></i>
                         </button>
                     </div>
@@ -310,23 +324,61 @@ include '../templates/header.php';
 </main>
 
 <script>
-    function loadMoreSectionEvents(itemClass, wrapperId) {
-        const hiddenItems = Array.from(document.querySelectorAll('.' + itemClass))
+    // 4 cột -> 8 sự kiện | 2 hoặc 3 cột -> 6 sự kiện | 1 cột -> 4 sự kiện
+    function getGridBatchSize(gridEl) {
+        if (!gridEl) return 8;
+        const cols = window.getComputedStyle(gridEl).gridTemplateColumns.trim().split(/\s+/).length;
+        if (cols === 1) return 4;
+        if (cols === 2 || cols === 3) return 6;
+        return 8;
+    }
+
+    function syncInitialSectionEvents(gridId, itemClass, wrapperId) {
+        const gridEl = document.getElementById(gridId);
+        if (!gridEl || gridEl.classList.contains('is-expanded')) return;
+
+        const items = Array.from(gridEl.querySelectorAll('.' + itemClass));
+        const limit = getGridBatchSize(gridEl);
+
+        items.forEach((el, idx) => {
+            el.style.display = idx < limit ? '' : 'none';
+        });
+
+        const wrapper = document.getElementById(wrapperId);
+        if (wrapper) {
+            wrapper.style.display = items.length > limit ? '' : 'none';
+        }
+    }
+
+    function loadMoreSectionEvents(gridId, itemClass, wrapperId) {
+        const gridEl = document.getElementById(gridId);
+        if (!gridEl) return;
+
+        gridEl.classList.add('is-expanded');
+        const batchSize = getGridBatchSize(gridEl);
+
+        const hiddenItems = Array.from(gridEl.querySelectorAll('.' + itemClass))
             .filter(el => el.style.display === 'none');
 
-        // Mở thêm 8 sự kiện mỗi lần nhấn
-        hiddenItems.slice(0, 8).forEach(el => {
+        hiddenItems.slice(0, batchSize).forEach(el => {
             el.style.display = '';
         });
 
-        // Ẩn nút nếu đã hiển thị hết toàn bộ sự kiện trong mục
-        const remaining = Array.from(document.querySelectorAll('.' + itemClass))
+        const remaining = Array.from(gridEl.querySelectorAll('.' + itemClass))
             .filter(el => el.style.display === 'none');
         if (remaining.length === 0) {
             const wrapper = document.getElementById(wrapperId);
             if (wrapper) wrapper.style.display = 'none';
         }
     }
+
+    function initAllEventGrids() {
+        syncInitialSectionEvents('upcomingEventsGrid', 'upcoming-event-item', 'loadMoreUpcomingWrapper');
+        syncInitialSectionEvents('pastEventsGrid', 'past-event-item', 'loadMorePastWrapper');
+    }
+
+    document.addEventListener('DOMContentLoaded', initAllEventGrids);
+    window.addEventListener('resize', initAllEventGrids);
 </script>
 
 <?php include '../templates/footer.php'; ?>
