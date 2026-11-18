@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS `nguoidung` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `nguoidung` (`id`, `ho_ten`, `email`, `phone`, `dob`, `gender`, `avatar`, `mat_khau`, `vai_tro`, `ngay_tao`) VALUES
-(1, 'Nguyen Van A', 'a@example.com', NULL, NULL, 'nam', NULL, '$2y$10$IYnOfBN19s5Bi2G5kiLGN.ikXMNpdE5JPkYWlVqKe/Q2Mn6PerUaC', 'Attendee', '2026-10-23 06:34:03'),
-(2, 'Nguyen Thanh Huy', 'huyb2407528@student.ctu.edu.vn', '0123456789', '21/11/2004', 'nam', '../assets/uploads/avatars/avatar_2_1794239731.jpg', '$2y$10$dAhv67SOY/RydNTGk/gJNeTFDl7KjRrb1Wn0lxco1XQqx6UYSIg0i', 'Attendee', '2026-11-01 13:17:10'),
-(4, 'Kim JiWon', 'nguyenhuynth2910@gmail.com', '0987654321', '21/11/2004', 'nam', '../assets/uploads/avatars/avatar_4_1794728506.jpg', '$2y$10$IMWgWlBW.S4AHbgmfRxG1.It20GNdVrUoGpfEtbXE/eVhtRaIekni', 'Attendee', '2026-11-02 15:45:56')
+(1, 'Nguyen Van A', 'a@example.com', NULL, NULL, 'nam', NULL, '$2y$10$IYnOfBN19s5Bi2G5kiLGN.ikXMNpdE5JPkYWlVqKe/Q2Mn6PerUaC', 'User', '2026-10-23 06:34:03'),
+(2, 'Nguyen Thanh Huy', 'huyb2407528@student.ctu.edu.vn', '0123456789', '21/11/2004', 'nam', '../assets/uploads/avatars/avatar_2_1794239731.jpg', '$2y$10$dAhv67SOY/RydNTGk/gJNeTFDl7KjRrb1Wn0lxco1XQqx6UYSIg0i', 'User', '2026-11-01 13:17:10'),
+(4, 'Kim JiWon', 'nguyenhuynth2910@gmail.com', '0987654321', '21/11/2004', 'nam', '../assets/uploads/avatars/avatar_4_1794728506.jpg', '$2y$10$IMWgWlBW.S4AHbgmfRxG1.It20GNdVrUoGpfEtbXE/eVhtRaIekni', 'Admin', '2026-11-02 15:45:56')
 ON DUPLICATE KEY UPDATE
   `ho_ten` = VALUES(`ho_ten`),
   `email` = VALUES(`email`),

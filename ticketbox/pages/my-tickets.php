@@ -13,6 +13,9 @@ if (!isset($_SESSION['user'])) {
 }
 
 $current_tab = $_GET['tab'] ?? 'tickets';
+if ($current_tab === 'edit-profile') {
+    $current_tab = 'profile-edit';
+}
 $user_id     = (int)($_SESSION['user']['id'] ?? 0);
 
 $errors = [];
@@ -41,6 +44,28 @@ if ($user_id > 0 && isset($pdo)) {
         $stmtUser->execute(['id' => $user_id]);
         $dbUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
+        if (!$dbUser) {
+            $sessEmail = (string)($_SESSION['user']['email'] ?? '');
+            if ($sessEmail !== '') {
+                $stmtUserByEmail = $pdo->prepare("SELECT * FROM nguoidung WHERE email = :email LIMIT 1");
+                $stmtUserByEmail->execute(['email' => $sessEmail]);
+                $dbUser = $stmtUserByEmail->fetch(PDO::FETCH_ASSOC);
+            }
+
+            if (!$dbUser) {
+                $_SESSION = [];
+                session_destroy();
+                header('Location: login.php');
+                exit;
+            }
+
+            $user_id                     = (int)$dbUser['id'];
+            $_SESSION['user_id']         = $user_id;
+            $_SESSION['user_role']       = (string)($dbUser['vai_tro'] ?? $_SESSION['user_role'] ?? '');
+            $_SESSION['user']['vai_tro'] = $_SESSION['user_role'];
+            unset($_SESSION['my_tickets']);
+        }
+
         if ($dbUser) {
             $_SESSION['user']['id']     = (int)$dbUser['id'];
             $_SESSION['user']['ho_ten'] = $dbUser['ho_ten'] ?? $_SESSION['user']['ho_ten'] ?? '';
@@ -65,12 +90,13 @@ if ($user_id > 0 && isset($pdo)) {
     }
 }
 
-$user_name   = $_SESSION['user']['ho_ten'] ?? $_SESSION['user']['name'] ?? 'Tài khoản';
-$user_email  = $_SESSION['user']['email'] ?? '';
-$user_phone  = $_SESSION['user']['phone'] ?? '';
-$user_dob    = $_SESSION['user']['dob'] ?? '';
-$user_gender = $_SESSION['user']['gender'] ?? 'nam';
-$user_avatar = !empty($_SESSION['user']['avatar']) ? $_SESSION['user']['avatar'] : '../assets/images/default-avatar.png';
+$user_name       = $_SESSION['user']['ho_ten'] ?? $_SESSION['user']['name'] ?? 'Tài khoản';
+$user_email      = $_SESSION['user']['email'] ?? '';
+$user_phone      = $_SESSION['user']['phone'] ?? '';
+$user_dob        = $_SESSION['user']['dob'] ?? '';
+$user_gender     = $_SESSION['user']['gender'] ?? 'nam';
+$user_avatar     = !empty($_SESSION['user']['avatar']) ? $_SESSION['user']['avatar'] : '../assets/images/default-avatar.png';
+$user_first_char = mb_strtoupper(mb_substr($user_name, 0, 1, 'UTF-8'), 'UTF-8');
 
 
 function getEventTimelineStatus($date_str) {
@@ -120,9 +146,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors['general'] = 'Không xác định được ID người dùng. Vui lòng đăng xuất và đăng nhập lại!';
         }
 
-        if (isset($_FILES['avatar_file']) && $_FILES['avatar_file']['error'] === UPLOAD_ERR_OK) {
-            $fileTmpPath   = $_FILES['avatar_file']['tmp_name'];
-            $fileName      = $_FILES['avatar_file']['name'];
+        $uploadField = isset($_FILES['avatar']) ? 'avatar' : 'avatar_file';
+        if (isset($_FILES[$uploadField]) && $_FILES[$uploadField]['error'] === UPLOAD_ERR_OK) {
+            $fileTmpPath   = $_FILES[$uploadField]['tmp_name'];
+            $fileName      = $_FILES[$uploadField]['name'];
             $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
             $allowedExts   = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
@@ -176,36 +203,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['user']['gender'] = $gender;
                     $_SESSION['user']['avatar'] = $avatar_path;
 
-                    $user_name   = $ho_ten;
-                    $user_phone  = $phone;
-                    $user_dob    = $dob;
-                    $user_gender = $gender;
-                    $user_avatar = $avatar_path;
-                    $success_msg = 'Cập nhật thành công và đã lưu vào CSDL!';
+                    $user_name       = $ho_ten;
+                    $user_first_char = mb_strtoupper(mb_substr($user_name, 0, 1, 'UTF-8'), 'UTF-8');
+                    $user_phone      = $phone;
+                    $user_dob        = $dob;
+                    $user_gender     = $gender;
+                    $user_avatar     = $avatar_path;
+                    $success_msg     = 'Cập nhật thành công!';
                 } catch (PDOException $e) {
                     $errors['general'] = 'Lỗi lưu CSDL: ' . $e->getMessage();
                 }
             } else {
                 $errors['general'] = 'Không có kết nối CSDL hoặc ID tài khoản không hợp lệ.';
             }
-        }
-    }
-
-    elseif ($action === 'cancel_ticket') {
-        $ticket_db_id = $_POST['ticket_db_id'] ?? null;
-        $ticket_index = $_POST['ticket_index'] ?? null;
-
-        if ($ticket_db_id && isset($pdo) && $user_id > 0) {
-            try {
-                $stmtCancel = $pdo->prepare("UPDATE ve SET trang_thai = 'da-huy' WHERE id = :ticket_id AND nguoi_dung_id = :user_id");
-                $stmtCancel->execute(['ticket_id' => $ticket_db_id, 'user_id' => $user_id]);
-                $success_msg = 'Hủy vé thành công!';
-            } catch (PDOException $e) {
-                $errors['general'] = 'Không thể hủy vé: ' . $e->getMessage();
-            }
-        } elseif ($ticket_index !== null && isset($_SESSION['my_tickets'][$ticket_index])) {
-            $_SESSION['my_tickets'][$ticket_index]['status'] = 'da-huy';
-            $success_msg = 'Hủy vé thành công!';
         }
     }
 
@@ -259,7 +269,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$has_custom_avatar = false;
+if (!empty($user_avatar) && $user_avatar !== '../assets/images/default-avatar.png') {
+    if (preg_match('#^https?://#i', $user_avatar) || file_exists(__DIR__ . '/' . $user_avatar)) {
+        $has_custom_avatar = true;
+    }
+}
+
 $my_tickets = [];
+$tickets_db_ok = false;
 
 if (isset($pdo) && $user_id > 0) {
     try {
@@ -280,12 +298,15 @@ if (isset($pdo) && $user_id > 0) {
         $stmtT = $pdo->prepare($sqlTickets);
         $stmtT->execute(['user_id' => $user_id]);
         $my_tickets = $stmtT->fetchAll(PDO::FETCH_ASSOC);
+        $tickets_db_ok = true;
     } catch (PDOException $e) {
         $my_tickets = [];
     }
 }
 
-if (empty($my_tickets)) {
+if ($tickets_db_ok) {
+    unset($_SESSION['my_tickets']);
+} elseif (empty($my_tickets)) {
     $my_tickets = $_SESSION['my_tickets'] ?? [];
 }
 
@@ -362,10 +383,10 @@ include '../templates/header.php';
         <aside class="account-sidebar" style="width: 260px; flex-shrink: 0;">
             <a href="my-tickets.php?tab=profile" style="text-decoration: none; display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
                 <div style="width: 42px; height: 42px; border-radius: 50%; overflow: hidden; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;">
-                    <?php if (!empty($user_avatar) && file_exists(__DIR__ . '/' . $user_avatar)): ?>
+                    <?php if ($has_custom_avatar): ?>
                         <img src="<?php echo htmlspecialchars($user_avatar); ?>?v=<?php echo time(); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
                     <?php else: ?>
-                        <i class="fa-solid fa-user" style="font-size: 18px;"></i>
+                        <span style="font-size: 18px;"><?php echo htmlspecialchars($user_first_char); ?></span>
                     <?php endif; ?>
                 </div>
                 <div style="display: flex; flex-direction: column;">
@@ -419,7 +440,7 @@ include '../templates/header.php';
                     if (isset($pdo) && $user_id > 0) {
                         try {
                             $stmtProfMem = $pdo->prepare("
-                                SELECT u.ma_the, u.ngay_het_han, t.ten_the, t.nghe_si, t.hinh_anh
+                                SELECT u.ma_the, u.ngay_kich_hoat, u.ngay_het_han, t.ten_the, t.nghe_si, t.thoi_han_thang, t.hinh_anh
                                 FROM the_thanh_vien_nguoidung u
                                 JOIN the_thanh_vien t ON u.the_id = t.id
                                 WHERE u.nguoi_dung_id = :uid AND u.trang_thai = 'dang-hoat-dong'
@@ -452,13 +473,21 @@ include '../templates/header.php';
                         'SanKhau'   => 'Sân khấu'
                     ];
                 ?>
-                    <div style="text-align: center; margin-bottom: 50px;">
-                        <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin: 0 auto 15px auto; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; border: 3px solid #2d2d35;">
-                            <?php if (!empty($user_avatar) && file_exists(__DIR__ . '/' . $user_avatar)): ?>
-                                <img src="<?php echo htmlspecialchars($user_avatar); ?>?v=<?php echo time(); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-                            <?php else: ?>
-                                <i class="fa-solid fa-user" style="font-size: 55px;"></i>
-                            <?php endif; ?>
+                    <!-- Avatar & Tên (tích hợp từ profile.php) -->
+                    <div class="profile-header" style="text-align: center; margin-bottom: 45px;">
+                        <div style="position: relative; display: inline-block; margin-bottom: 15px;">
+                            <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; border: 3px solid #2d2d35;">
+                                <?php if ($has_custom_avatar): ?>
+                                    <img src="<?php echo htmlspecialchars($user_avatar); ?>?v=<?php echo time(); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                <?php else: ?>
+                                    <span style="font-size: 48px; font-weight: 700;"><?php echo htmlspecialchars($user_first_char); ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <a href="my-tickets.php?tab=profile-edit"
+                               title="Chỉnh sửa hồ sơ"
+                               style="position: absolute; right: -4px; top: -4px; background: #444; color: #ccc; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; border: 2px solid #18191a;">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
                         </div>
                         <h2 style="font-size: 22px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0;">
                             <?php echo htmlspecialchars($user_name); ?>
@@ -466,46 +495,59 @@ include '../templates/header.php';
                         </h2>
                     </div>
 
-                    <div style="display: flex; flex-direction: column; gap: 35px; max-width: 800px;">
+                    <div style="display: flex; flex-direction: column; gap: 35px; max-width: 850px;">
 
-                        <div>
+                        <!-- Thẻ thành viên của tôi -->
+                        <section class="membership-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-gem" style="color: #26c973;"></i> Thẻ thành viên của tôi
-                                </h4>
-                                <a href="my-tickets.php?tab=membership" style="color: #26c973; text-decoration: none; font-size: 13px; font-weight: 600;">Khám phá thêm <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></a>
+                                <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-gem" style="color: #ffd700;"></i> Thẻ thành viên của tôi
+                                </h3>
+                                <a href="my-tickets.php?tab=membership" style="color: #26c973; text-decoration: none; font-size: 13px; font-weight: 600;">
+                                    Khám phá thêm &gt;
+                                </a>
                             </div>
 
                             <?php if (empty($profile_memberships)): ?>
-                                <p style="color: #6c6d7c; font-size: 13px; margin: 0;">Bạn chưa có thẻ thành viên</p>
+                                <p style="color: #777; font-style: italic; font-size: 13.5px; margin: 0;">Bạn chưa có thẻ thành viên</p>
                             <?php else: ?>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;">
                                     <?php foreach ($profile_memberships as $pm): ?>
-                                        <a href="my-tickets.php?tab=membership" style="background: #272730; border: 1px solid #3a3a45; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                                        <a href="my-tickets.php?tab=membership" style="background: #272730; border: 1px solid #3a3a45; border-radius: 10px; padding: 14px; display: flex; align-items: center; gap: 12px; text-decoration: none;">
                                             <img src="<?php echo htmlspecialchars($pm['hinh_anh']); ?>" alt="<?php echo htmlspecialchars($pm['ten_the']); ?>" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
                                             <div style="min-width: 0;">
                                                 <div style="font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($pm['ten_the']); ?></div>
-                                                <div style="font-size: 12px; color: #26c973; margin-top: 2px;">HSD: <?php echo date('d/m/Y', strtotime($pm['ngay_het_han'])); ?></div>
+                                                <?php if (!empty($pm['nghe_si'])): ?>
+                                                    <div style="font-size: 12px; color: #a0a3bd; margin-top: 2px;"><?php echo htmlspecialchars($pm['nghe_si']); ?></div>
+                                                <?php endif; ?>
+                                                <div style="font-size: 12px; color: #26c973; margin-top: 2px;">
+                                                    Hiệu lực: <?php echo !empty($pm['ngay_kich_hoat']) ? date('d/m/Y', strtotime($pm['ngay_kich_hoat'])) . ' – ' : ''; ?><?php echo date('d/m/Y', strtotime($pm['ngay_het_han'])); ?>
+                                                </div>
                                             </div>
                                         </a>
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
-                        </div>
+                        </section>
 
-                        <div>
+                        <div style="border-top: 1px solid #2d2d35;"></div>
+
+                        <!-- Đang theo dõi -->
+                        <section class="followed-section">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-star" style="color: #26c973;"></i> Đang theo dõi
+                                <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-star" style="color: #ffd700;"></i> Đang theo dõi
                                     <?php if (!empty($followed_stars)): ?>
                                         <span style="font-size: 13px; font-weight: 500; color: #a0a3bd;">(<?php echo count($followed_stars); ?>)</span>
                                     <?php endif; ?>
-                                </h4>
-                                <a href="organizer.php" style="color: #26c973; text-decoration: none; font-size: 13px; font-weight: 600;">Khám phá thêm <i class="fa-solid fa-chevron-right" style="font-size: 10px;"></i></a>
+                                </h3>
+                                <a href="organizer.php" style="color: #26c973; text-decoration: none; font-size: 13px; font-weight: 600;">
+                                    Khám phá thêm &gt;
+                                </a>
                             </div>
 
                             <?php if (empty($followed_stars)): ?>
-                                <p style="color: #6c6d7c; font-size: 13px; margin: 0;">Bạn chưa có danh sách theo dõi</p>
+                                <p style="color: #777; font-style: italic; font-size: 13.5px; margin: 0;">Bạn chưa có danh sách theo dõi</p>
                             <?php else: ?>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
                                     <?php foreach ($followed_stars as $fStar):
@@ -515,7 +557,7 @@ include '../templates/header.php';
                                             <a href="organizer.php?slug=<?php echo urlencode($fStar['slug']); ?>" style="display: flex; align-items: center; gap: 12px; text-decoration: none; min-width: 0; flex: 1;">
                                                 <img src="<?php echo htmlspecialchars($fStar['avatar']); ?>"
                                                      alt="<?php echo htmlspecialchars($fStar['ten_hien_thi']); ?>"
-                                                     style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(38,201,115,0.4);"
+                                                     style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(38,201,115,0.4);"
                                                      onerror="this.src='../assets/images/default-avatar.png'">
                                                 <div style="min-width: 0;">
                                                     <div style="font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -539,7 +581,7 @@ include '../templates/header.php';
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
-                        </div>
+                        </section>
                     </div>
                     <?php break; ?>
 
@@ -548,95 +590,133 @@ include '../templates/header.php';
                 ?>
                     <h2 style="font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 24px;">Thông tin tài khoản</h2>
 
-                    <form method="POST" action="my-tickets.php?tab=profile-edit" enctype="multipart/form-data"
-                          style="background: #272730; border: 1px solid #3a3a45; border-radius: 12px; padding: 28px; max-width: 680px;">
-                        <input type="hidden" name="action" value="update_profile">
+                    <div style="max-width: 720px;">
+                        <!-- Form cập nhật hồ sơ -->
+                        <form id="editProfileForm" method="POST" action="my-tickets.php?tab=profile-edit" enctype="multipart/form-data"
+                              style="background: #272730; border: 1px solid #3a3a45; padding: 30px; border-radius: 12px;">
+                            <input type="hidden" name="action" value="update_profile">
 
-                        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 28px;">
-                            <div style="position: relative; width: 110px; height: 110px;">
-                                <div id="avatarPreviewWrap" style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; border: 3px solid #3a3a45;">
-                                    <?php if (!empty($user_avatar) && file_exists(__DIR__ . '/' . $user_avatar)): ?>
-                                        <img id="avatarPreviewImg" src="<?php echo htmlspecialchars($user_avatar); ?>?v=<?php echo time(); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                            <!-- Avatar & Camera Icon (tích hợp từ edit-profile.php) -->
+                            <section class="avatar-section" style="text-align: center; margin-bottom: 24px;">
+                                <div class="avatar-wrapper" style="position: relative; display: inline-block;">
+                                    <?php if ($has_custom_avatar): ?>
+                                        <img id="avatarImg"
+                                             src="<?php echo htmlspecialchars($user_avatar); ?>?v=<?php echo time(); ?>"
+                                             alt="Avatar"
+                                             style="width: 130px; height: 130px; border-radius: 50%; object-fit: cover; background: #26c973; border: 3px solid #3a3a45;">
                                     <?php else: ?>
-                                        <img id="avatarPreviewImg" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                                        <i id="avatarDefaultIcon" class="fa-solid fa-user" style="font-size: 48px;"></i>
+                                        <span id="avatarImg"
+                                              style="display: inline-flex; width: 130px; height: 130px; align-items: center; justify-content: center; background: #26c973; color: #fff; font-size: 48px; font-weight: 700; border-radius: 50%; border: 3px solid #3a3a45;"><?php echo htmlspecialchars($user_first_char); ?></span>
                                     <?php endif; ?>
+
+                                    <!-- Camera upload button -->
+                                    <label for="avatarUpload"
+                                           title="Thay đổi ảnh đại diện"
+                                           style="position: absolute; right: 0; bottom: 0; background: #2b2f3e; color: #26c973; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #18191a;">
+                                        <i class="fa-solid fa-camera"></i>
+                                    </label>
+                                    <input id="avatarUpload"
+                                           name="avatar"
+                                           type="file"
+                                           accept="image/*"
+                                           style="display: none;">
                                 </div>
-                                <button type="button" onclick="document.getElementById('avatarFileInput').click()"
-                                        title="Đổi ảnh đại diện"
-                                        style="position: absolute; right: 0; bottom: 0; width: 34px; height: 34px; border-radius: 50%; background: #26c973; color: #fff; border: 2px solid #272730; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fa-solid fa-camera" style="font-size: 13px;"></i>
-                                </button>
+
+                                <p style="margin-top: 10px; color: #a0a3bd; font-size: 13.5px;">
+                                    Cung cấp thông tin chính xác sẽ hỗ trợ bạn trong quá trình mua vé, hoặc khi cần xác thực vé
+                                </p>
+                                <?php if (!empty($errors['avatar'])): ?>
+                                    <span style="color: #ff4d4f; font-size: 12px; display: block; margin-top: 4px;"><?php echo htmlspecialchars($errors['avatar']); ?></span>
+                                <?php endif; ?>
+                            </section>
+
+                            <!-- Họ và tên -->
+                            <div class="form-group" style="margin-bottom: 18px;">
+                                <label for="hoTen" style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Họ và tên</label>
+                                <input type="text" id="hoTen" name="ho_ten"
+                                       value="<?php echo htmlspecialchars($_POST['ho_ten'] ?? $user_name); ?>"
+                                       placeholder="Nhập họ và tên"
+                                       class="form-control"
+                                       style="width: 100%; padding: 10px 12px; background: #18191a; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 14px; outline: none;">
+                                <?php if (!empty($errors['ho_ten'])): ?>
+                                    <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['ho_ten']); ?></span>
+                                <?php endif; ?>
                             </div>
-                            <input type="file" id="avatarFileInput" name="avatar_file" accept="image/jpeg,image/png,image/webp,image/gif" hidden
-                                   onchange="if(this.files && this.files[0]){ var r = new FileReader(); r.onload = function(e){ var img = document.getElementById('avatarPreviewImg'); var ico = document.getElementById('avatarDefaultIcon'); img.src = e.target.result; img.style.display = 'block'; if(ico) ico.style.display = 'none'; }; r.readAsDataURL(this.files[0]); }">
-                            <span style="font-size: 12px; color: #a0a3bd; margin-top: 10px;">Cung cấp thông tin chính xác sẽ hỗ trợ bạn trong quá trình mua vé, hoặc khi cần xác thực vé</span>
-                            <?php if (!empty($errors['avatar'])): ?>
-                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px;"><?php echo htmlspecialchars($errors['avatar']); ?></span>
-                            <?php endif; ?>
-                        </div>
 
-                        <div style="margin-bottom: 18px;">
-                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Họ và tên</label>
-                            <input type="text" name="ho_ten"
-                                   value="<?php echo htmlspecialchars($_POST['ho_ten'] ?? $user_name); ?>"
-                                   placeholder="Nhập họ và tên"
-                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #1e1e26; color: #fff; font-size: 14px; outline: none;">
-                            <?php if (!empty($errors['ho_ten'])): ?>
-                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['ho_ten']); ?></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div style="margin-bottom: 18px;">
-                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Số điện thoại</label>
-                            <input type="text" name="phone"
-                                   value="<?php echo htmlspecialchars($_POST['phone'] ?? $user_phone); ?>"
-                                   placeholder="Nhập số điện thoại"
-                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #1e1e26; color: #fff; font-size: 14px; outline: none;">
-                            <?php if (!empty($errors['phone'])): ?>
-                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['phone']); ?></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div style="margin-bottom: 18px;">
-                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Email</label>
-                            <input type="email" value="<?php echo htmlspecialchars($user_email); ?>" readonly disabled
-                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #18181f; color: #8c8fa6; font-size: 14px; cursor: not-allowed;">
-                        </div>
-
-                        <div style="margin-bottom: 18px;">
-                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Ngày sinh</label>
-                            <input type="date" name="dob"
-                                   value="<?php echo htmlspecialchars($_POST['dob'] ?? $user_dob); ?>"
-                                   style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #3a3a45; background: #1e1e26; color: #fff; font-size: 14px; outline: none;">
-                            <?php if (!empty($errors['dob'])): ?>
-                                <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['dob']); ?></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div style="margin-bottom: 26px;">
-                            <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 10px;">Giới tính</label>
-                            <div style="display: flex; gap: 24px; align-items: center;">
-                                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
-                                    <input type="radio" name="gender" value="nam" <?php echo ($cur_gender === 'nam') ? 'checked' : ''; ?> style="accent-color: #26c973;">
-                                    <span>Nam</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
-                                    <input type="radio" name="gender" value="nu" <?php echo ($cur_gender === 'nu') ? 'checked' : ''; ?> style="accent-color: #26c973;">
-                                    <span>Nữ</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 8px; color: #fff; font-size: 14px; cursor: pointer;">
-                                    <input type="radio" name="gender" value="khac" <?php echo ($cur_gender === 'khac') ? 'checked' : ''; ?> style="accent-color: #26c973;">
-                                    <span>Khác</span>
-                                </label>
+                            <!-- Số điện thoại -->
+                            <div class="form-group" style="margin-bottom: 18px;">
+                                <label for="phone" style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Số điện thoại</label>
+                                <div style="display: flex; align-items: center;">
+                                    <select name="country_code" id="countryCode"
+                                            style="padding: 10px 12px; background: #18191a; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 14px; outline: none;">
+                                        <option value="+84" selected>+84</option>
+                                    </select>
+                                    <div style="position: relative; flex: 1; margin-left: 8px;">
+                                        <input type="text" id="phone" name="phone"
+                                               value="<?php echo htmlspecialchars($_POST['phone'] ?? $user_phone); ?>"
+                                               placeholder="Nhập số điện thoại"
+                                               class="form-control"
+                                               style="width: 100%; padding: 10px 32px 10px 12px; background: #18191a; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 14px; outline: none;">
+                                        <span id="clearPhone"
+                                              title="Xóa số điện thoại"
+                                              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #8c8fa6; font-size: 13px;">✕</span>
+                                    </div>
+                                </div>
+                                <?php if (!empty($errors['phone'])): ?>
+                                    <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['phone']); ?></span>
+                                <?php endif; ?>
                             </div>
-                        </div>
 
-                        <button type="submit"
-                                style="width: 100%; background: #26c973; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer;">
-                            Hoàn thành
-                        </button>
-                    </form>
+                            <!-- Email -->
+                            <div class="form-group" style="margin-bottom: 18px; position: relative;">
+                                <label for="email" style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Email</label>
+                                <div style="position: relative;">
+                                    <input type="email" id="email" name="email"
+                                           value="<?php echo htmlspecialchars($user_email); ?>"
+                                           class="form-control"
+                                           readonly
+                                           style="width: 100%; padding: 10px 36px 10px 12px; background: #18191a; color: #8c8fa6; border: 1px solid #444; border-radius: 6px; font-size: 14px; cursor: not-allowed;">
+                                    <i class="fa-solid fa-circle-check"
+                                       style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #26c973;"></i>
+                                </div>
+                            </div>
+
+                            <!-- Ngày sinh -->
+                            <div class="form-group" style="margin-bottom: 18px;">
+                                <label for="dob" style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 8px;">Ngày sinh</label>
+                                <input type="date" id="dob" name="dob"
+                                       value="<?php echo !empty($_POST['dob'] ?? $user_dob) ? htmlspecialchars($_POST['dob'] ?? $user_dob) : ''; ?>"
+                                       class="form-control"
+                                       style="width: 100%; padding: 10px 12px; background: #18191a; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 14px; outline: none;">
+                                <?php if (!empty($errors['dob'])): ?>
+                                    <span style="color: #ff4d4f; font-size: 12px; margin-top: 4px; display: block;"><?php echo htmlspecialchars($errors['dob']); ?></span>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Giới tính -->
+                            <div class="form-group" style="margin-bottom: 24px;">
+                                <label style="display: block; font-size: 13.5px; font-weight: 600; color: #fff; margin-bottom: 10px;">Giới tính</label>
+                                <div style="display: flex; gap: 20px; align-items: center;">
+                                    <?php
+                                    $genders = ['nam' => 'Nam', 'nu' => 'Nữ', 'khac' => 'Khác'];
+                                    foreach ($genders as $val => $label):
+                                        $checked = ($cur_gender === $val) ? 'checked' : '';
+                                    ?>
+                                        <label style="display: inline-flex; align-items: center; gap: 6px; color: #fff; font-size: 14px; cursor: pointer;">
+                                            <input type="radio" name="gender" value="<?php echo $val; ?>" <?php echo $checked; ?> style="accent-color: #26c973;">
+                                            <span><?php echo $label; ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                            <!-- Nút Hoàn thành -->
+                            <button type="submit"
+                                    style="width: 100%; padding: 12px; background: #26c973; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                                Hoàn thành
+                            </button>
+                        </form>
+                    </div>
                     <?php break; ?>
 
                 <?php case 'my-events':
@@ -925,23 +1005,19 @@ include '../templates/header.php';
                                             <p style="font-size: 13px; color: #a0a3bd; margin: 2px 0;"><i class="fa-regular fa-calendar"></i> <?php echo htmlspecialchars($ticket['date'] ?? 'Đang cập nhật'); ?></p>
                                         </div>
 
-                                        <?php if ($t_status !== 'da-huy' && !$t_is_ended): ?>
+                                        <?php if ($t_status !== 'da-huy' && (int)$t_db_id > 0): ?>
                                             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px;">
                                                 <a href="ticket-qr.php?id=<?php echo (int) $t_db_id; ?>"
                                                    style="background: #2b2f3e; color: #26c973; border: 1px solid #26c973; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
                                                     <i class="fa-solid fa-qrcode"></i> Xem mã QR
                                                 </a>
 
-                                                <form method="POST" action="my-tickets.php?tab=tickets" style="display: inline-block; margin: 0;"
-                                                      onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?');">
-                                                    <input type="hidden" name="action" value="cancel_ticket">
-                                                    <input type="hidden" name="ticket_db_id" value="<?php echo htmlspecialchars((string) $t_db_id); ?>">
-                                                    <input type="hidden" name="ticket_index" value="<?php echo (int) $t_orig_index; ?>">
-                                                    <button type="submit"
-                                                            style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                                                        <i class="fa-solid fa-ban"></i> Hủy vé
-                                                    </button>
-                                                </form>
+                                                <!-- Nút Hủy vé (AJAX) -->
+                                                <?php if ($t_status !== 'da-checkin' && !$t_is_ended): ?>
+                                                <button type="button" onclick="cancelTicket(<?php echo (int)$t_db_id; ?>, this)" style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                                    <i class="fa-solid fa-ban"></i> Hủy vé
+                                                </button>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -955,5 +1031,44 @@ include '../templates/header.php';
 
     </div>
 </main>
+
+<!-- Script xử lý Hủy vé qua AJAX -->
+<script src="../assets/js/registrations.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/registrations.js'); ?>"></script>
+
+<script>
+// Preview avatar và xóa nhanh SĐT
+(function () {
+    const avatarUpload = document.getElementById('avatarUpload');
+    if (avatarUpload) {
+        avatarUpload.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const img = document.getElementById('avatarImg');
+                if (img && img.tagName.toLowerCase() === 'img') {
+                    img.src = ev.target.result;
+                } else if (img) {
+                    const newImg = document.createElement('img');
+                    newImg.id = 'avatarImg';
+                    newImg.src = ev.target.result;
+                    newImg.alt = 'Avatar';
+                    newImg.style = 'width:130px;height:130px;border-radius:50%;object-fit:cover;background:#26c973;border:3px solid #3a3a45;';
+                    img.parentNode.replaceChild(newImg, img);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    const clearPhoneBtn = document.getElementById('clearPhone');
+    if (clearPhoneBtn) {
+        clearPhoneBtn.addEventListener('click', function () {
+            const phoneInput = document.getElementById('phone');
+            if (phoneInput) phoneInput.value = '';
+        });
+    }
+})();
+</script>
 
 <?php include '../templates/footer.php'; ?>

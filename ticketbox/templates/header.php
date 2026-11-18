@@ -190,12 +190,14 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                             <a href="my-tickets.php?tab=my-events">
                                 <i class="fa-regular fa-calendar-check"></i> Sự kiện của tôi
                             </a>
+
                             
                             <a href="my-tickets.php?tab=profile">
+
                                 <i class="fa-regular fa-circle-user"></i> Trang cá nhân
                             </a>
 
-                            <a href="my-tickets.php?tab=profile-edit">
+                            <a href="my-tickets.php?tab=edit-profile">
                                 <i class="fa-solid fa-gear"></i> Cài đặt tài khoản
                             </a>
 
@@ -285,16 +287,6 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
             <a href="organizer.php" class="mobile-menu-link">
                 <i class="fa-solid fa-star text-warning"></i>
                 <span>TicketStars</span>
-            </a>
-
-            <a href="events.php" class="mobile-menu-link">
-                <i class="fa-solid fa-rotate text-info"></i>
-                <span>Bán lại vé</span>
-            </a>
-
-            <a href="#" class="mobile-menu-link">
-                <i class="fa-solid fa-newspaper text-secondary"></i>
-                <span>Blog</span>
             </a>
 
         </div>
