@@ -745,6 +745,183 @@ ALTER TABLE `ve` AUTO_INCREMENT = 28;
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
+-- Indexes for table `danh_muc`
+--
+ALTER TABLE `danh_muc`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `loaive`
+--
+ALTER TABLE `loaive`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_loaive_sukien` (`su_kien_id`);
+
+--
+-- Indexes for table `nguoidung`
+--
+ALTER TABLE `nguoidung`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `sukien`
+--
+ALTER TABLE `sukien`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_sukien_nguoidung` (`nguoi_tao`),
+  ADD KEY `fk_sukien_danhmuc` (`danh_muc_id`);
+
+--
+-- Indexes for table `the_thanh_vien`
+--
+ALTER TABLE `the_thanh_vien`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `the_thanh_vien_nguoidung`
+--
+ALTER TABLE `the_thanh_vien_nguoidung`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `ma_the` (`ma_the`),
+  ADD KEY `fk_ttv_the` (`the_id`),
+  ADD KEY `fk_ttv_nguoidung` (`nguoi_dung_id`);
+
+--
+-- Indexes for table `ticketstars`
+--
+ALTER TABLE `ticketstars`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `fk_ticketstars_sukien_noibat` (`su_kien_noi_bat_id`);
+
+--
+-- Indexes for table `ticketstar_sukien`
+--
+ALTER TABLE `ticketstar_sukien`
+  ADD PRIMARY KEY (`star_id`,`su_kien_id`),
+  ADD KEY `fk_tss_sukien` (`su_kien_id`);
+
+--
+-- Indexes for table `ticketstar_theodoi`
+--
+ALTER TABLE `ticketstar_theodoi`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_user_star` (`nguoi_dung_id`,`star_id`),
+  ADD KEY `idx_user_id` (`nguoi_dung_id`),
+  ADD KEY `idx_star_id` (`star_id`);
+
+--
+-- Indexes for table `ve`
+--
+ALTER TABLE `ve`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `ma_ve` (`ma_ve`),
+  ADD KEY `fk_ve_sukien` (`su_kien_id`),
+  ADD KEY `fk_ve_nguoidung` (`nguoi_dung_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `danh_muc`
+--
+ALTER TABLE `danh_muc`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `loaive`
+--
+ALTER TABLE `loaive`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=196;
+
+--
+-- AUTO_INCREMENT for table `nguoidung`
+--
+ALTER TABLE `nguoidung`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `sukien`
+--
+ALTER TABLE `sukien`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
+
+--
+-- AUTO_INCREMENT for table `the_thanh_vien`
+--
+ALTER TABLE `the_thanh_vien`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `the_thanh_vien_nguoidung`
+--
+ALTER TABLE `the_thanh_vien_nguoidung`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `ticketstars`
+--
+ALTER TABLE `ticketstars`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
+-- AUTO_INCREMENT for table `ticketstar_theodoi`
+--
+ALTER TABLE `ticketstar_theodoi`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `ve`
+--
+ALTER TABLE `ve`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `loaive`
+--
+ALTER TABLE `loaive`
+  ADD CONSTRAINT `fk_loaive_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `sukien`
+--
+ALTER TABLE `sukien`
+  ADD CONSTRAINT `fk_sukien_danhmuc` FOREIGN KEY (`danh_muc_id`) REFERENCES `danh_muc` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_sukien_nguoidung` FOREIGN KEY (`nguoi_tao`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `the_thanh_vien_nguoidung`
+--
+ALTER TABLE `the_thanh_vien_nguoidung`
+  ADD CONSTRAINT `fk_ttv_nguoidung` FOREIGN KEY (`nguoi_dung_id`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_ttv_the` FOREIGN KEY (`the_id`) REFERENCES `the_thanh_vien` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `ticketstars`
+--
+ALTER TABLE `ticketstars`
+  ADD CONSTRAINT `fk_ticketstars_sukien_noibat` FOREIGN KEY (`su_kien_noi_bat_id`) REFERENCES `sukien` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `ticketstar_sukien`
+--
+ALTER TABLE `ticketstar_sukien`
+  ADD CONSTRAINT `fk_tss_star` FOREIGN KEY (`star_id`) REFERENCES `ticketstars` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_tss_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `ve`
+--
+ALTER TABLE `ve`
+  ADD CONSTRAINT `fk_ve_nguoidung` FOREIGN KEY (`nguoi_dung_id`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_ve_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE;
+COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
