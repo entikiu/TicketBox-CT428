@@ -103,7 +103,6 @@ $image          = $pay_data['image'];
                 </p>
             </div>
 
-            <!-- Phần còn lại của Cột trái (Mã khuyến mãi, Phương thức thanh toán) giữ nguyên HTML -->
             <div class="dark-card">
                 <div class="voucher-header">
                     <h4>Mã khuyến mãi</h4>
@@ -118,7 +117,7 @@ $image          = $pay_data['image'];
                     <img src="../assets/images/payment/vnpay.png" alt="VNPAY">
                     <span>VNPAY/Ứng dụng ngân hàng</span>
                 </label>
-                <div class="method-hint">Hỗ trợ nguồn tiền thẻ tín dụng <a href="#">Chi tiết <i class="fa-regular fa-circle-question"></i></a></div>
+               
 
                 <label class="payment-method">
                     <input type="radio" name="payment_method" value="vietqr">

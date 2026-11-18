@@ -13,30 +13,57 @@ $todayStart = date('Y-m-d 00:00:00');
     <button class="slider-btn banner-btn prev-btn" id="bannerLeftBtn" aria-label="Banner trái">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
+<section class="hero-slider" id="heroSlider">
+        <?php
+        $stmtHero = $pdo->prepare("
+            SELECT 
+                s.*,
+                COUNT(v.id) AS luot_ban,
+                CASE 
+                    WHEN EXISTS (SELECT 1 FROM ticketstar_sukien tss WHERE tss.su_kien_id = s.id)
+                      OR EXISTS (SELECT 1 FROM ticketstars ts WHERE ts.su_kien_noi_bat_id = s.id)
+                    THEN 1 
+                    ELSE 0 
+                END AS is_star
+            FROM sukien s
+            LEFT JOIN ve v 
+                ON s.id = v.su_kien_id 
+                AND v.trang_thai = 'thanh-cong'
+            WHERE s.trang_thai = 'cong_khai'
+              AND s.quyen_rieng_tu = 'public'
+              AND (
+                  s.thoi_gian >= :today_start_1 
+                  OR (s.thoi_gian_ket_thuc IS NOT NULL AND s.thoi_gian_ket_thuc >= :today_start_2)
+              )
+            GROUP BY s.id
+            ORDER BY 
+                luot_ban DESC,
+                is_star DESC,
+                s.ngay_tao DESC,
+                s.id DESC
+            LIMIT 4
+        ");
+        $stmtHero->execute([
+            'today_start_1' => $todayStart,
+            'today_start_2' => $todayStart
+        ]);
+        $heroBanners = $stmtHero->fetchAll(PDO::FETCH_ASSOC);
 
-    <section class="hero-slider" id="heroSlider">
-        <div class="banner-item">
-            <a href="event-detail.php?id=1">
-                <img src="../assets/images/events/banner-skynote.jpg" alt="SKYNOTE Live Concert" onerror="this.src='https://via.placeholder.com/600x260/00b14f/fff?text=SKYNOTE';">
-            </a>
-            <a href="event-detail.php?id=1" class="btn-detail">Xem chi tiết</a>
-        </div>
-
-        <div class="banner-item">
-            <a href="event-detail.php?id=2">
-                <img src="../assets/images/events/banner-ntpmm.jpg" alt="Những Thành Phố Mộng Mơ" onerror="this.src='https://via.placeholder.com/600x260/222/fff?text=NTPMM';">
-            </a>
-            <a href="event-detail.php?id=2" class="btn-detail">Xem chi tiết</a>
-        </div>
-
-        <div class="banner-item">
-            <a href="event-detail.php?id=3">
-                <img src="../assets/images/events/banner-mnmm.jpg" alt="Mắt Nhắm Mắt Mở" onerror="this.src='https://via.placeholder.com/600x260/333/fff?text=Mắt+Nhắm+Mắt+Mở';">
-            </a>
-            <a href="event-detail.php?id=3" class="btn-detail">Xem chi tiết</a>
-        </div>
+        foreach ($heroBanners as $banner):
+            $bannerImg = !empty($banner['banner']) ? $banner['banner'] : $banner['hinh_anh'];
+            $eventTitle = htmlspecialchars($banner['ten_su_kien'], ENT_QUOTES, 'UTF-8');
+            $fallbackText = urlencode(mb_substr($banner['ten_su_kien'], 0, 20, 'UTF-8'));
+        ?>
+            <div class="banner-item">
+                <a href="event-detail.php?id=<?php echo (int)$banner['id']; ?>">
+                    <img src="<?php echo htmlspecialchars($bannerImg, ENT_QUOTES, 'UTF-8'); ?>"
+                         alt="<?php echo $eventTitle; ?>"
+                         onerror="this.src='https://via.placeholder.com/600x260/00b14f/fff?text=<?php echo $fallbackText; ?>';">
+                </a>
+                <a href="event-detail.php?id=<?php echo (int)$banner['id']; ?>" class="btn-detail">Xem chi tiết</a>
+            </div>
+        <?php endforeach; ?>
     </section>
-
     <!-- Nút cuộn banner sang phải -->
     <button class="slider-btn banner-btn next-btn" id="bannerRightBtn" aria-label="Banner phải">
         <i class="fa-solid fa-chevron-right"></i>
@@ -59,16 +86,46 @@ $todayStart = date('Y-m-d 00:00:00');
             <i class="fa-solid fa-chevron-left"></i>
         </button>
 
-        <div class="event-slider" id="eventSlider">
+       <div class="event-slider" id="eventSlider">
             <?php
-            $stmtFeatured = $pdo->prepare("SELECT * FROM sukien WHERE thoi_gian >= :today_start ORDER BY id ASC LIMIT 10");
-            $stmtFeatured->execute(['today_start' => $todayStart]);
+            $stmtFeatured = $pdo->prepare("
+                SELECT 
+                    s.*,
+                    COUNT(v.id) AS luot_ban,
+                    CASE 
+                        WHEN EXISTS (SELECT 1 FROM ticketstar_sukien tss WHERE tss.su_kien_id = s.id)
+                          OR EXISTS (SELECT 1 FROM ticketstars ts WHERE ts.su_kien_noi_bat_id = s.id)
+                        THEN 1 
+                        ELSE 0 
+                    END AS is_star
+                FROM sukien s
+                LEFT JOIN ve v 
+                    ON s.id = v.su_kien_id 
+                    AND v.trang_thai = 'thanh-cong'
+                WHERE s.trang_thai = 'cong_khai'
+                  AND s.quyen_rieng_tu = 'public'
+                  AND (
+                      s.thoi_gian >= :today_start_1 
+                      OR (s.thoi_gian_ket_thuc IS NOT NULL AND s.thoi_gian_ket_thuc >= :today_start_2)
+                  )
+                GROUP BY s.id
+                ORDER BY 
+                    luot_ban DESC,
+                    is_star DESC,
+                    s.ngay_tao DESC,
+                    s.id DESC
+                LIMIT 10
+            ");
+            $stmtFeatured->execute([
+                'today_start_1' => $todayStart,
+                'today_start_2' => $todayStart
+            ]);
             $dbEvents = $stmtFeatured->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($dbEvents as $row) {
-                $city = $row['dia_diem'];
-                if (strpos($row['dia_diem'], ',') !== false) {
-                    $city = trim(substr(strrchr($row['dia_diem'], ','), 1));
+                $city = $row['dia_diem'] ?? '';
+                if ($city !== '' && strpos($city, ',') !== false) {
+                    $city = trim(substr(strrchr($city, ','), 1));
                 }
 
                 $event = [
