@@ -140,7 +140,6 @@ $image       = $chk_data['image'];
         </div>
     </header>
 
-    <!-- Nạp ảnh nền động từ Database -->
     <div class="event-banner" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('<?php echo htmlspecialchars($image); ?>') center/cover;">
         <div class="event-info">
             <h1><?php echo htmlspecialchars($event_title); ?></h1>

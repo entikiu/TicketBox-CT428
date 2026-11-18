@@ -1,5 +1,5 @@
 <footer class="site-footer">
-    <!-- 1. PHẦN TRÊN FOOTER (NỀN XÁM ĐẬM) -->
+    <!-- 1. PHẦN TRÊN FOOTER -->
     <div class="footer-top">
         <div class="container">
             <!-- HÀNG 1: 3 CỘT THÔNG TIN VÀ LIÊN KẾT -->
@@ -46,7 +46,7 @@
                     </div>
                 </div>
 
-                <!-- Cột 3: Về công ty chúng tôi (Đầy đủ 7 liên kết) -->
+                <!-- Cột 3: Về công ty chúng tôi -->
                 <div class="footer-col">
                     <h4 class="col-title">Về công ty chúng tôi</h4>
                     <ul class="footer-links">
@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <!-- HÀNG 2: TẢI ỨNG DỤNG, MẠNG XÃ HỘI & NGÔN NGỮ -->
+            <!-- HÀNG 2: TẢI ỨNG DỤNG, MẠNG XÃ HỘI -->
             <div class="footer-middle">
                 <!-- App Ticketbox -->
                 <div class="app-download-col">
@@ -89,7 +89,7 @@
                     </div>
                 </div>
 
-                <!-- Social Links & Language Switcher -->
+                <!-- Social Links-->
                 <div class="social-lang-col">
                     <div class="social-block">
                         <span class="middle-title">Follow us</span>
@@ -113,7 +113,7 @@
         </div>
     </div>
 
-    <!-- 2. PHẦN DƯỚI FOOTER (NỀN TỐI HƠN - LOGO & GIẤY PHÉP) -->
+    <!-- 2. PHẦN DƯỚI FOOTER -->
     <div class="footer-bottom">
         <div class="container footer-bottom-flex">
             <!-- Brand Logo & Copyright -->

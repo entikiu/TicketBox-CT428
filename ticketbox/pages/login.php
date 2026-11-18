@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
-// 1. Nếu đã đăng nhập -> Chuyển hướng về trang chủ
+// 1. Nếu đã đăng nhập -> về trang chủ
 if (isset($_SESSION['user']) && (int)($_SESSION['user']['id'] ?? 0) > 0) {
     header('Location: home.php');
     exit;
@@ -70,56 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// 3. XỬ LÝ ĐĂNG NHẬP GOOGLE (AJAX)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'google_login') {
-    header('Content-Type: application/json');
-    $gg_name  = trim($_POST['google_name'] ?? 'Người dùng Google');
-    $gg_email = trim($_POST['google_email'] ?? '');
-
-    if (!empty($gg_email) && isset($pdo)) {
-        try {
-            $stmt = $pdo->prepare("SELECT * FROM nguoidung WHERE email = :email LIMIT 1");
-            $stmt->execute(['email' => $gg_email]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            // Nếu tài khoản Google chưa có trong DB -> Tự động tạo record mới
-            if (!$user) {
-                $stmtIns = $pdo->prepare("INSERT INTO nguoidung (ho_ten, email, mat_khau, vai_tro) VALUES (:name, :email, '', 'Attendee')");
-                $stmtIns->execute(['name' => $gg_name, 'email' => $gg_email]);
-                $new_id = $pdo->lastInsertId();
-
-                $user = [
-                    'id'      => $new_id,
-                    'ho_ten'  => $gg_name,
-                    'email'   => $gg_email,
-                    'phone'   => '',
-                    'dob'     => '',
-                    'gender'  => 'nam',
-                    'avatar'  => '',
-                    'vai_tro' => 'Attendee'
-                ];
-            }
-
-            $_SESSION['user'] = [
-                'id'       => (int)$user['id'],
-                'ho_ten'   => $user['ho_ten'] ?? '',
-                'name'     => $user['ho_ten'] ?? '',
-                'email'    => $user['email'] ?? '',
-                'phone'    => $user['phone'] ?? '',
-                'dob'      => $user['dob'] ?? '',
-                'gender'   => $user['gender'] ?? 'nam',
-                'avatar'   => $user['avatar'] ?? '',
-                'vai_tro'  => $user['vai_tro'] ?? 'Attendee'
-            ];
-
-            echo json_encode(['status' => 'success']);
-            exit;
-        } catch (PDOException $e) {
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-            exit;
-        }
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="vi">

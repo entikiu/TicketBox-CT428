@@ -215,69 +215,12 @@ try {
     <link rel="icon" type="image/png" href="../assets/images/logo.png">
     <title>Quản lý Người dùng - TicketBox Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --sidebar-width: 260px; --primary-color: #26c973; --bg-color: #f8f9fa; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { display: flex; background: var(--bg-color); min-height: 100vh; }
-
-        /* Sidebar */
-        .admin-sidebar { width: var(--sidebar-width); background: #1e293b; color: #fff; display: flex; flex-direction: column; position: fixed; height: 100%; }
-        .sidebar-brand { padding: 20px; font-size: 20px; font-weight: bold; background: #0f172a; color: var(--primary-color); text-align: center; letter-spacing: 1px; }
-        .sidebar-menu { list-style: none; padding: 20px 0; flex: 1; }
-        .sidebar-menu li a { display: flex; align-items: center; gap: 12px; padding: 14px 24px; color: #94a3b8; text-decoration: none; font-size: 15px; transition: 0.2s; }
-        .sidebar-menu li.active a, .sidebar-menu li a:hover { background: #334155; color: #fff; border-left: 4px solid var(--primary-color); }
-
-        /* Main Content */
-        .admin-main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; }
-        .admin-header { background: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .admin-user-info { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #333; }
-        .btn-logout { background: #ef4444; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 13px; }
-        .btn-logout:hover { background: #dc2626; }
-
-        .admin-content { padding: 30px; display: flex; flex-direction: column; gap: 24px; }
-        .card-table { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card-table h3 { color: #1e293b; margin-bottom: 16px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
-
-        /* Form Grid */
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-        .form-group { margin-bottom: 4px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px; color: #334155; }
-        .form-group label .req { color: #ef4444; }
-        .form-group input, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; color: #1e293b; background: #fff; transition: border-color 0.2s; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary-color); }
-        .form-group input[readonly], .form-group input:disabled { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
-
-        .form-actions { margin-top: 18px; display: flex; align-items: center; gap: 10px; }
-        .btn-submit { background: var(--primary-color); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-submit:hover { background: #21b063; }
-        .btn-cancel { background: #64748b; color: #fff; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-cancel:hover { background: #475569; }
-
-        /* Table & Badges */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #334155; }
-        th { background: #f8fafc; font-weight: 600; color: #475569; }
-        tr:hover td { background: #f8fafc; }
-
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-        .badge-admin { background: #fef3c7; color: #b45309; }
-        .badge-user { background: #dcfce7; color: #15803d; }
-
-        .btn-action { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px; color: #fff; text-decoration: none; font-size: 13px; font-weight: 500; transition: background 0.2s; }
-        .btn-edit { background: #2563eb; }
-        .btn-edit:hover { background: #1d4ed8; }
-        .btn-delete { background: #ef4444; }
-        .btn-delete:hover { background: #dc2626; }
-
-        .alert { padding: 12px 16px; border-radius: 6px; font-size: 14px; line-height: 1.5; }
-        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .edit-note { font-size: 13px; color: #2563eb; background: #eff6ff; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; border-left: 4px solid #2563eb; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
 <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <!-- Sidebar -->
-    <div class="admin-sidebar">
+    <div class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-brand">TicketBox Admin</div>
         <ul class="sidebar-menu">
             <li><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Tổng quan</a></li>
@@ -288,10 +231,14 @@ try {
         </ul>
     </div>
 
-    <!-- Main Content Area -->
     <div class="admin-main">
         <header class="admin-header">
-            <h3>Quản lý Người dùng</h3>
+            <div class="header-left">
+                <button type="button" class="mobile-menu-toggle" id="sidebarToggle" aria-label="Mở menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h3>Quản lý Người dùng</h3>
+            </div>
             <div class="admin-user-info">
                 <span><i class="fa-solid fa-user-shield"></i> Xin chào, <?php echo htmlspecialchars($_SESSION['admin']['ho_ten']); ?></span>
                 <a href="logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
@@ -307,13 +254,12 @@ try {
                 <div class="alert alert-error"><i class="fa-solid fa-circle-exclamation"></i> <?php echo $error; ?></div>
             <?php endif; ?>
 
-            <!-- Form Thêm mới / Chỉnh sửa vai trò người dùng -->
             <div class="card-table">
                 <h3>
                     <?php if ($editUser): ?>
-                        <i class="fa-solid fa-user-pen" style="color: #2563eb;"></i> Phân quyền người dùng (#<?php echo (int)$editUser['id']; ?>)
+                        <i class="fa-solid fa-user-pen icon-primary-blue"></i> Phân quyền người dùng (#<?php echo (int)$editUser['id']; ?>)
                     <?php else: ?>
-                        <i class="fa-solid fa-user-plus" style="color: #26c973;"></i> Thêm người dùng mới
+                        <i class="fa-solid fa-user-plus icon-primary-green"></i> Thêm người dùng mới
                     <?php endif; ?>
                 </h3>
 
@@ -400,10 +346,9 @@ try {
                 <?php endif; ?>
             </div>
 
-            <!-- Danh sách người dùng -->
             <div class="card-table">
-                <h3><i class="fa-solid fa-users" style="color: #3b82f6;"></i> Danh sách người dùng trên hệ thống (<?php echo count($users); ?>)</h3>
-                <table>
+                <h3><i class="fa-solid fa-users icon-info-blue"></i> Danh sách người dùng trên hệ thống (<?php echo count($users); ?>)</h3>
+                <table class="table-users">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -435,7 +380,7 @@ try {
                                             <i class="fa-solid fa-pen"></i> Sửa vai trò
                                         </a>
                                         <?php if (!isset($_SESSION['admin']['id']) || (int)$_SESSION['admin']['id'] !== (int)$u['id']): ?>
-                                            <a href="users.php?action=delete&id=<?php echo (int)$u['id']; ?>" class="btn-action btn-delete" onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng này?');">
+                                            <a href="users.php?action=delete&id=<?php echo (int)$u['id']; ?>" class="btn-action btn-delete" data-confirm="Bạn có chắc chắn muốn xóa người dùng này?">
                                                 <i class="fa-solid fa-trash-can"></i> Xóa
                                             </a>
                                         <?php endif; ?>
@@ -444,7 +389,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" style="text-align: center; color: #64748b;">Chưa có người dùng nào trong hệ thống.</td>
+                                <td colspan="6" class="empty-row">Chưa có người dùng nào trong hệ thống.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -452,5 +397,6 @@ try {
             </div>
         </div>
     </div>
+    <script src="../assets/js/admin.js"></script>
 </body>
 </html>

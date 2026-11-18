@@ -473,7 +473,7 @@ include '../templates/header.php';
                         'SanKhau'   => 'Sân khấu'
                     ];
                 ?>
-                    <!-- Avatar & Tên (tích hợp từ profile.php) -->
+                    <!-- Avatar & Tên -->
                     <div class="profile-header" style="text-align: center; margin-bottom: 45px;">
                         <div style="position: relative; display: inline-block; margin-bottom: 15px;">
                             <div style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: #26c973; display: flex; align-items: center; justify-content: center; color: #fff; border: 3px solid #2d2d35;">

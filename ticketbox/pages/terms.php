@@ -21,7 +21,6 @@ $pdf_file = $documents[$type] ?? $documents['khach-hang'];
 include '../templates/header.php';
 ?>
 
-<!-- TRANG XEM PDF CHUẨN GIAO DIỆN TICKETBOX -->
 <main class="terms-pdf-page">
     <div class="terms-pdf-container">
         <?php if (file_exists($pdf_file)): ?>

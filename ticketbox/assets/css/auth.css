@@ -189,9 +189,8 @@
 .pwd-req-list li.valid .icon-status {
     color: #26c973 !important;
 }
-/* ==========================================
-   RESPONSIVE CHO TRANG ĐĂNG NHẬP / ĐĂNG KÝ
-   ========================================== */
+/*
+   RESPONSIVE CHO TRANG ĐĂNG NHẬP / ĐĂNG KÝ*/
 @media (max-width: 576px) {
     .auth-page {
         min-height: 100dvh;

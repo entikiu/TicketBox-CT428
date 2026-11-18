@@ -16,7 +16,6 @@ $errors = [
     'terms' => ''
 ];
 
-// Khai báo biến lưu giá trị cũ để điền lại form khi có lỗi
 $fullname = '';
 $email = '';
 
@@ -39,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['email'] = 'Email không hợp lệ.';
     }
 
-    // 3. KIỂM TRA MẬT KHẨU CHUẨN 4 TIÊU CHÍ (SERVER-SIDE)
+    // 3. KIỂM TRA MẬT KHẨU CHUẨN
     $p_len = strlen($password);
     $has_lower = preg_match('/[a-z]/', $password);
     $has_upper = preg_match('/[A-Z]/', $password);
@@ -111,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="auth-body">
-           <!-- pages/register.php -->
+
 <div id="apiAlertError" class="alert alert-danger" style="display: none; margin-bottom: 15px;"></div>
 <div id="apiAlertSuccess" class="alert alert-success" style="display: none; margin-bottom: 15px;"></div>
 
@@ -130,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <span class="field-error" id="error-regEmail"><?php echo $errors['email'] ?? ''; ?></span>
     </div>
 
-    <!-- Mật khẩu + Bảng quy chuẩn gợi ý -->
+    <!-- Mật khẩu -->
     <div class="form-group <?php echo !empty($errors['password']) ? 'has-error' : ''; ?>">
         <label class="form-label">Mật khẩu</label>
         <div class="password-wrapper">

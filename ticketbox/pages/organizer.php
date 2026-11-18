@@ -443,7 +443,6 @@ include '../templates/header.php';
     </main>
 
 <?php elseif ($rawParam === ''): ?>
-    <!-- Trang danh sách tất cả TicketStars -->
     <main class="star-page-container">
         <h2 style="color: #fff; margin: 0 0 22px; font-size: 22px;">
             <i class="fa-solid fa-star" style="color: #26c973;"></i> Khám phá TicketStars

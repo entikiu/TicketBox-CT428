@@ -6,13 +6,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Kiểm tra đăng nhập (đồng bộ với my-tickets.php: dùng $_SESSION['user'])
+// Kiểm tra đăng nhập 
 if (empty($_SESSION['user']['id']) && empty($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
-// Ưu tiên $_SESSION['user']['id'] giống my-tickets.php để tránh lệch tài khoản
+// Ưu tiên $_SESSION['user']['id'] để tránh lệch tài khoản
 $userId   = (int)($_SESSION['user']['id'] ?? $_SESSION['user_id'] ?? 0);
 $ticketId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -23,7 +23,7 @@ if ($ticketId < 1) {
     $qr_error = 'Mã vé không hợp lệ.';
 } else {
     try {
-        // Lấy thông tin chi tiết vé của khách hàng (Khớp với cấu trúc bảng ve và sukien)
+        // Lấy thông tin chi tiết vé của khách hàng
         $stmt = $pdo->prepare("SELECT v.*, s.ten_su_kien, s.thoi_gian, s.dia_diem, v.loai_ve AS ten_loai 
                                FROM ve v 
                                LEFT JOIN sukien s ON v.su_kien_id = s.id 
@@ -44,7 +44,7 @@ if ($ticketId < 1) {
 
 include '../templates/header.php';
 
-// Hiển thị lỗi bên trong layout (trước đây echo chữ trắng trên nền trắng => trang trắng)
+// Hiển thị lỗi bên trong layout
 if ($qr_error !== ''):
 ?>
 <div class="star-page-container">

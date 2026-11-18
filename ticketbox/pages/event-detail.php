@@ -15,7 +15,7 @@ if (!$row) {
     exit;
 }
 
-// Kiểm tra sự kiện đã diễn ra hay chưa (ưu tiên thoi_gian_ket_thuc, nếu không có thì xét thoi_gian)
+// Kiểm tra sự kiện đã diễn ra hay chưa 
 $isEventEnded = false;
 $now = time();
 
@@ -52,7 +52,7 @@ foreach ($ticketRows as $t) {
     ];
 }
 
-// 3. Lấy thông tin Ban tổ chức / Nghệ sĩ (TicketStars) liên kết với sự kiện
+// 3. Lấy thông tin Ban tổ chức liên kết với sự kiện
 $eventStars = [];
 try {
     $stmtStars = $pdo->prepare("
@@ -65,7 +65,7 @@ try {
     $stmtStars->execute(['id' => $event_id]);
     $eventStars = $stmtStars->fetchAll(PDO::FETCH_ASSOC);
 
-    // Dự phòng: Nếu chưa gắn trong ticketstar_sukien thì đối chiếu theo tên ban tổ chức
+    // Nếu chưa gắn trong ticketstar_sukien thì đối chiếu theo tên ban tổ chức
     if (empty($eventStars) && !empty($row['ten_ban_to_chuc'])) {
         $stmtFallbackStar = $pdo->prepare("
             SELECT id, slug, ten_hien_thi, loai, avatar, mo_ta, da_xac_minh
@@ -259,7 +259,7 @@ include '../templates/header.php';
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <!-- Dự phòng cho các sự kiện chưa gắn vào bảng ticketstars (workshop, thể thao, tham quan...) -->
+            <!-- Dự phòng cho các sự kiện chưa gắn vào bảng ticketstars-->
             <div class="organizer-card">
                 <div class="org-avatar">
                     <span style="font-size: 16px; font-weight: 900; color: #ff3366; text-align:center;">

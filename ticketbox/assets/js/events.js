@@ -1,4 +1,81 @@
+// 1. PHÂN TRANG XEM THÊM SỰ KIỆN THEO LƯỚI
+
+function getGridBatchSize(gridEl) {
+    if (!gridEl) return 8;
+    const cols = window.getComputedStyle(gridEl).gridTemplateColumns.trim().split(/\s+/).length;
+    if (cols === 1) return 4;
+    if (cols === 2 || cols === 3) return 6;
+    return 8;
+}
+
+function syncInitialSectionEvents(gridId, itemClass, wrapperId) {
+    const gridEl = document.getElementById(gridId);
+    if (!gridEl || gridEl.classList.contains('is-expanded')) return;
+
+    const items = Array.from(gridEl.querySelectorAll('.' + itemClass));
+    const limit = getGridBatchSize(gridEl);
+
+    items.forEach((el, idx) => {
+        el.style.display = idx < limit ? '' : 'none';
+    });
+
+    const wrapper = document.getElementById(wrapperId);
+    if (wrapper) {
+        wrapper.style.display = items.length > limit ? '' : 'none';
+    }
+}
+
+function loadMoreSectionEvents(gridId, itemClass, wrapperId) {
+    const gridEl = document.getElementById(gridId);
+    if (!gridEl) return;
+
+    gridEl.classList.add('is-expanded');
+    const batchSize = getGridBatchSize(gridEl);
+
+    const hiddenItems = Array.from(gridEl.querySelectorAll('.' + itemClass))
+        .filter(el => el.style.display === 'none');
+
+    hiddenItems.slice(0, batchSize).forEach(el => {
+        el.style.display = '';
+    });
+
+    const remaining = Array.from(gridEl.querySelectorAll('.' + itemClass))
+        .filter(el => el.style.display === 'none');
+    if (remaining.length === 0) {
+        const wrapper = document.getElementById(wrapperId);
+        if (wrapper) wrapper.style.display = 'none';
+    }
+}
+
+function initAllEventGrids() {
+    syncInitialSectionEvents('upcomingEventsGrid', 'upcoming-event-item', 'loadMoreUpcomingWrapper');
+    syncInitialSectionEvents('pastEventsGrid', 'past-event-item', 'loadMorePastWrapper');
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+  
+    initAllEventGrids();
+    document.querySelectorAll('.btn-load-more[data-grid]').forEach(function (btn) {
+        if (btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
+
+        btn.addEventListener('click', function () {
+            const gridId = btn.getAttribute('data-grid');
+            const itemClass = btn.getAttribute('data-item');
+            const wrapperId = btn.getAttribute('data-wrapper');
+            loadMoreSectionEvents(gridId, itemClass, wrapperId);
+        });
+    });
+
+    // Tự động submit form khi thay đổi bộ lọc sắp xếp
+    const sortSelect = document.getElementById('eventsSortSelect');
+    if (sortSelect && sortSelect.form) {
+        sortSelect.addEventListener('change', function () {
+            sortSelect.form.submit();
+        });
+    }
+
+    // 2. NÚT XEM THÊM & FETCH
     const btnLoadMore = document.getElementById('btnLoadMoreEvents');
     const loadMoreWrapper = document.getElementById('loadMoreWrapper');
 
@@ -24,6 +101,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+window.addEventListener('resize', initAllEventGrids);
 
 // Lấy các phần tử DOM
 const searchInput = document.getElementById('searchInput');
@@ -71,22 +150,18 @@ function renderEvents(events) {
     `).join('');
 }
 
-// Gắn sự kiện (Debounce cho ô tìm kiếm để tránh gọi API liên tục)
-// Gán sự kiện (Debounce cho ô tìm kiếm để tránh gọi API liên tục)
 let timeout = null;
 if (searchInput) {
     searchInput.addEventListener('keyup', () => {
         clearTimeout(timeout);
-        timeout = setTimeout(fetchEvents, 500); // Đợi 500ms sau khi ngừng gõ
+        timeout = setTimeout(fetchEvents, 500); 
     });
 }
 
 if (filterStatus) {
-    filterStatus.addEventListener('change', dfetchEvents);
+    filterStatus.addEventListener('change', fetchEvents);
 }
 
-// Chỉ gọi fetchEvents khi trang hiện tại có khung tìm kiếm/bộ lọc cũ
 if (typeof fetchEvents === 'function' && (searchInput || filterStatus)) {
     document.addEventListener('DOMContentLoaded', fetchEvents);
 }
-

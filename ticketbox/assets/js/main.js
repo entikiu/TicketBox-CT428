@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ==========================================
-    // 1. HERO BANNER SLIDER (TỰ CUỘN & CUỘN VÔ CỰC)
-    // ==========================================
+    // 1. HERO BANNER SLIDER 
     const heroSlider = document.getElementById('heroSlider');
     const bannerLeftBtn = document.getElementById('bannerLeftBtn');
     const bannerRightBtn = document.getElementById('bannerRightBtn');
@@ -12,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const origCount = originalItems.length;
 
         if (origCount > 1) {
-            // Nhân bản toàn bộ banner nối vào cuối để tạo vòng lặp vô cực
             originalItems.forEach((item) => {
                 const clone = item.cloneNode(true);
                 clone.setAttribute('aria-hidden', 'true');
@@ -77,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const startAutoSlide = () => {
                 stopAutoSlide();
-                autoTimer = setInterval(slideNext, 3500); // Tự cuộn mỗi 3.5 giây
+                autoTimer = setInterval(slideNext, 3500); 
             };
 
             const stopAutoSlide = () => {
@@ -119,9 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ==========================================
-    // 2. CUỘN SỰ KIỆN NỔI BẬT (TRÁI / PHẢI)
-    // ==========================================
+    // 2. CUỘN SỰ KIỆN NỔI BẬT
     const eventSlider = document.getElementById('eventSlider');
     const slideLeftBtn = document.getElementById('slideLeftBtn');
     const slideRightBtn = document.getElementById('slideRightBtn');
@@ -138,28 +133,124 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // 3. CUỘN DANH SÁCH TICKETSTARS (TRÁI / PHẢI)
-    // ==========================================
+    // 3. CUỘN DANH SÁCH FEATURED STARS
+
     const starsTrack = document.getElementById('starsTrack');
     const starPrevBtn = document.getElementById('starPrevBtn');
     const starNextBtn = document.getElementById('starNextBtn');
 
     if (starsTrack && starPrevBtn && starNextBtn) {
-        const scrollAmount = 350;
+        const updateStarArrows = () => {
+            starPrevBtn.style.display = starsTrack.scrollLeft > 10 ? 'flex' : 'none';
+            const isAtEnd = starsTrack.scrollLeft + starsTrack.clientWidth >= starsTrack.scrollWidth - 10;
+            starNextBtn.style.display = isAtEnd ? 'none' : 'flex';
+        };
 
-        starNextBtn.addEventListener('click', () => {
-            starsTrack.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        });
+        const scrollStars = (direction) => {
+            const card = starsTrack.querySelector('.star-card');
+            const step = card ? (card.offsetWidth + 12) * 5 : 680;
+            starsTrack.scrollBy({
+                left: direction * step,
+                behavior: 'smooth'
+            });
+        };
 
-        starPrevBtn.addEventListener('click', () => {
-            starsTrack.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-        });
+        starPrevBtn.addEventListener('click', () => scrollStars(-1));
+        starNextBtn.addEventListener('click', () => scrollStars(1));
+        starsTrack.addEventListener('scroll', updateStarArrows);
+        window.addEventListener('resize', updateStarArrows);
+
+        updateStarArrows();
     }
 
-    // ==========================================
-    // 4. DROPDOWN MENU TÀI KHOẢN Ở HEADER
-    // ==========================================
+    // 4. SLIDER THẺ THÀNH VIÊN 
+    const membershipTrack = document.getElementById('membershipTrack');
+    const memPrevBtn = document.getElementById('memPrevBtn');
+    const memNextBtn = document.getElementById('memNextBtn');
+
+    if (membershipTrack && memPrevBtn && memNextBtn) {
+        const updateMembershipArrows = () => {
+            const thumb = membershipTrack.querySelector('.membership-thumb');
+            if (thumb && thumb.offsetHeight > 0) {
+                const centerTop = (thumb.offsetHeight / 2) + 'px';
+                memPrevBtn.style.top = centerTop;
+                memNextBtn.style.top = centerTop;
+            }
+
+            memPrevBtn.style.display = membershipTrack.scrollLeft > 10 ? 'flex' : 'none';
+            const isAtEnd = membershipTrack.scrollLeft + membershipTrack.clientWidth >= membershipTrack.scrollWidth - 10;
+            memNextBtn.style.display = isAtEnd ? 'none' : 'flex';
+        };
+
+        const scrollMembership = (direction) => {
+            const card = membershipTrack.querySelector('.membership-card');
+            const step = card ? (card.offsetWidth + 20) * 2 : membershipTrack.clientWidth * 0.7;
+            membershipTrack.scrollBy({
+                left: direction * step,
+                behavior: 'smooth'
+            });
+        };
+
+        memPrevBtn.addEventListener('click', () => scrollMembership(-1));
+        memNextBtn.addEventListener('click', () => scrollMembership(1));
+        membershipTrack.addEventListener('scroll', updateMembershipArrows);
+        window.addEventListener('resize', updateMembershipArrows);
+        window.addEventListener('load', updateMembershipArrows);
+
+        updateMembershipArrows();
+    }
+
+    // 5. SLIDER SỰ KIỆN THEO DANH MỤC
+    const categorySliders = document.querySelectorAll('.cat-event-slider');
+
+    if (categorySliders.length > 0) {
+        const updateCategorySliderArrows = (track, prevBtn, nextBtn) => {
+            if (!track || !prevBtn || !nextBtn) return;
+
+            prevBtn.style.display = track.scrollLeft > 10 ? 'flex' : 'none';
+            const isAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
+            nextBtn.style.display = isAtEnd ? 'none' : 'flex';
+        };
+
+        const scrollCategorySlider = (track, direction) => {
+            if (!track) return;
+            const card = track.querySelector('.event-card');
+            const step = card ? (card.offsetWidth + 20) * 4 : track.clientWidth * 0.85;
+            track.scrollBy({
+                left: direction * step,
+                behavior: 'smooth'
+            });
+        };
+
+        const initAllCategorySliders = () => {
+            categorySliders.forEach((track) => {
+                const prevBtn = document.getElementById(track.id + '_prev');
+                const nextBtn = document.getElementById(track.id + '_next');
+                updateCategorySliderArrows(track, prevBtn, nextBtn);
+            });
+        };
+
+        categorySliders.forEach((track) => {
+            const prevBtn = document.getElementById(track.id + '_prev');
+            const nextBtn = document.getElementById(track.id + '_next');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => scrollCategorySlider(track, -1));
+            }
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => scrollCategorySlider(track, 1));
+            }
+
+            track.addEventListener('scroll', () => {
+                updateCategorySliderArrows(track, prevBtn, nextBtn);
+            });
+        });
+
+        window.addEventListener('resize', initAllCategorySliders);
+        initAllCategorySliders();
+    }
+
+    // 6. DROPDOWN MENU TÀI KHOẢN Ở HEADER
     const accountBtn = document.getElementById('accountMenuBtn');
     const accountDropdown = document.getElementById('accountDropdown');
 
@@ -174,27 +265,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // 5. CHUYỂN ĐỔI NGÔN NGỮ Ở FOOTER (VI / EN)
-    // ==========================================
-    const langBtns = document.querySelectorAll('.lang-btn');
-
-    langBtns.forEach((btn) => {
-        btn.addEventListener('click', function () {
-            langBtns.forEach((b) => b.classList.remove('active'));
-            this.classList.add('active');
-
-            const selectedLang = this.getAttribute('data-lang');
-            localStorage.setItem('ticketbox_lang', selectedLang);
-        });
-    });
-
-    const savedLang = localStorage.getItem('ticketbox_lang');
-    if (savedLang) {
-        const activeBtn = document.querySelector(`.lang-btn[data-lang="${savedLang}"]`);
-        if (activeBtn) {
-            langBtns.forEach((b) => b.classList.remove('active'));
-            activeBtn.classList.add('active');
-        }
-    }
 });

@@ -7,13 +7,12 @@ include '../templates/header.php';
 $todayStart = date('Y-m-d 00:00:00');
 ?>
 
-<!-- Hero Banner Slider (Dùng Nút Bấm Điều Hướng) -->
+<!-- Hero Banner Slider-->
 <div class="container hero-slider-wrapper">
-    <!-- Nút cuộn banner sang trái -->
     <button class="slider-btn banner-btn prev-btn" id="bannerLeftBtn" aria-label="Banner trái">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
-<section class="hero-slider" id="heroSlider">
+    <section class="hero-slider" id="heroSlider">
         <?php
         $stmtHero = $pdo->prepare("
             SELECT 
@@ -70,7 +69,7 @@ $todayStart = date('Y-m-d 00:00:00');
     </button>
 </div>
 
-<!-- Section: Sự kiện nổi bật (Chỉ lấy sự kiện chưa diễn ra hoặc đang diễn ra) -->
+<!--Sự kiện nổi bật-->
 <main class="container" style="margin-top: 35px;">
     <div class="section-header-row">
         <h2 class="section-title" style="margin: 0;">
@@ -86,7 +85,7 @@ $todayStart = date('Y-m-d 00:00:00');
             <i class="fa-solid fa-chevron-left"></i>
         </button>
 
-       <div class="event-slider" id="eventSlider">
+        <div class="event-slider" id="eventSlider">
             <?php
             $stmtFeatured = $pdo->prepare("
                 SELECT 
@@ -148,7 +147,7 @@ $todayStart = date('Y-m-d 00:00:00');
     </div>
 </main>
 
-<!-- FEATURED STARS / BAN TỔ CHỨC NỔI BẬT -->
+<!-- FEATURED STARS -->
 <div class="featured-stars-wrapper-bg">
     <section class="container">
         <div class="stars-header-row">
@@ -160,11 +159,11 @@ $todayStart = date('Y-m-d 00:00:00');
         </div>
 
         <div class="stars-slider-wrapper">
-            <button type="button" class="star-nav-btn star-nav-prev" id="starPrevBtn" onclick="scrollStars(-1)">
+            <button type="button" class="star-nav-btn star-nav-prev" id="starPrevBtn" aria-label="Cuộn trái">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
 
-            <div class="stars-track" id="starsTrack" onscroll="updateStarArrows()">
+            <div class="stars-track" id="starsTrack">
                 <?php
                 $starsList = [];
                 if (isset($pdo)) {
@@ -189,41 +188,14 @@ $todayStart = date('Y-m-d 00:00:00');
                 <?php endforeach; ?>
             </div>
 
-            <button type="button" class="star-nav-btn star-nav-next" id="starNextBtn" onclick="scrollStars(1)">
+            <button type="button" class="star-nav-btn star-nav-next" id="starNextBtn" aria-label="Cuộn phải">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
     </section>
 </div>
 
-<script>
-    function updateStarArrows() {
-        const track = document.getElementById('starsTrack');
-        const prevBtn = document.getElementById('starPrevBtn');
-        const nextBtn = document.getElementById('starNextBtn');
-        if (!track || !prevBtn || !nextBtn) return;
-
-        prevBtn.style.display = track.scrollLeft > 10 ? 'flex' : 'none';
-        const isAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
-        nextBtn.style.display = isAtEnd ? 'none' : 'flex';
-    }
-
-    function scrollStars(direction) {
-        const track = document.getElementById('starsTrack');
-        if (!track) return;
-        const card = track.querySelector('.star-card');
-        const step = card ? (card.offsetWidth + 12) * 5 : 680;
-        track.scrollBy({
-            left: direction * step,
-            behavior: 'smooth'
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', updateStarArrows);
-    window.addEventListener('resize', updateStarArrows);
-</script>
-
-<!-- Section: Thẻ thành viên -->
+<!--Thẻ thành viên -->
 <?php
 $stmtMem = $pdo->prepare("SELECT * FROM the_thanh_vien ORDER BY id ASC");
 $stmtMem->execute();
@@ -237,11 +209,11 @@ $memberships = $stmtMem->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <div class="membership-slider-wrap">
-        <button type="button" class="mem-nav-btn mem-nav-prev" id="memPrevBtn" onclick="scrollMembership(-1)">
+        <button type="button" class="mem-nav-btn mem-nav-prev" id="memPrevBtn" aria-label="Cuộn trái">
             <i class="fa-solid fa-chevron-left"></i>
         </button>
 
-        <div class="membership-track" id="membershipTrack" onscroll="updateMembershipArrows()">
+        <div class="membership-track" id="membershipTrack">
             <?php foreach ($memberships as $mem): ?>
                 <div class="membership-card">
                     <a href="membership-detail.php?id=<?php echo (int)$mem['id']; ?>" class="membership-thumb">
@@ -270,47 +242,13 @@ $memberships = $stmtMem->fetchAll(PDO::FETCH_ASSOC);
             <?php endforeach; ?>
         </div>
 
-        <button type="button" class="mem-nav-btn mem-nav-next" id="memNextBtn" onclick="scrollMembership(1)">
+        <button type="button" class="mem-nav-btn mem-nav-next" id="memNextBtn" aria-label="Cuộn phải">
             <i class="fa-solid fa-chevron-right"></i>
         </button>
     </div>
 </section>
 
-<script>
-    function updateMembershipArrows() {
-        const track = document.getElementById('membershipTrack');
-        const prevBtn = document.getElementById('memPrevBtn');
-        const nextBtn = document.getElementById('memNextBtn');
-        if (!track || !prevBtn || !nextBtn) return;
-
-        const thumb = track.querySelector('.membership-thumb');
-        if (thumb && thumb.offsetHeight > 0) {
-            const centerTop = (thumb.offsetHeight / 2) + 'px';
-            prevBtn.style.top = centerTop;
-            nextBtn.style.top = centerTop;
-        }
-
-        prevBtn.style.display = track.scrollLeft > 10 ? 'flex' : 'none';
-        const isAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
-        nextBtn.style.display = isAtEnd ? 'none' : 'flex';
-    }
-
-    function scrollMembership(direction) {
-        const track = document.getElementById('membershipTrack');
-        if (!track) return;
-        const card = track.querySelector('.membership-card');
-        const step = card ? (card.offsetWidth + 20) * 2 : track.clientWidth * 0.7;
-        track.scrollBy({
-            left: direction * step,
-            behavior: 'smooth'
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', updateMembershipArrows);
-    window.addEventListener('resize', updateMembershipArrows);
-</script>
-
-<!-- CÁC MỤC SỰ KIỆN THEO DANH MỤC (CHỈ HIỂN THỊ SỰ KIỆN CHƯA DIỄN RA / ĐANG DIỄN RA) -->
+<!-- CÁC MỤC SỰ KIỆN THEO DANH MỤC -->
 <?php
 $homeCategorySections = [
     [
@@ -376,7 +314,6 @@ $homeCategorySections = [
             OR COALESCE(ten_su_kien, '') LIKE '%Xe Buýt%'
         )"
     ]
-
 ];
 
 foreach ($homeCategorySections as $catSec):
@@ -404,14 +341,11 @@ foreach ($homeCategorySections as $catSec):
             <button type="button"
                 class="slider-btn prev-btn"
                 id="<?php echo $sliderDomId; ?>_prev"
-                onclick="scrollCategorySlider('<?php echo $sliderDomId; ?>', -1)"
                 aria-label="Cuộn trái">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
 
-            <div class="event-slider cat-event-slider"
-                id="<?php echo $sliderDomId; ?>"
-                onscroll="updateCategorySliderArrows('<?php echo $sliderDomId; ?>')">
+            <div class="event-slider cat-event-slider" id="<?php echo $sliderDomId; ?>">
                 <?php
                 foreach ($catEvents as $row) {
                     $city = $row['dia_diem'];
@@ -436,45 +370,11 @@ foreach ($homeCategorySections as $catSec):
             <button type="button"
                 class="slider-btn next-btn"
                 id="<?php echo $sliderDomId; ?>_next"
-                onclick="scrollCategorySlider('<?php echo $sliderDomId; ?>', 1)"
                 aria-label="Cuộn phải">
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
         </div>
     </section>
 <?php endforeach; ?>
-
-<script>
-    function updateCategorySliderArrows(sliderId) {
-        const track = document.getElementById(sliderId);
-        const prevBtn = document.getElementById(sliderId + '_prev');
-        const nextBtn = document.getElementById(sliderId + '_next');
-        if (!track || !prevBtn || !nextBtn) return;
-
-        prevBtn.style.display = track.scrollLeft > 10 ? 'flex' : 'none';
-        const isAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 10;
-        nextBtn.style.display = isAtEnd ? 'none' : 'flex';
-    }
-
-    function scrollCategorySlider(sliderId, direction) {
-        const track = document.getElementById(sliderId);
-        if (!track) return;
-        const card = track.querySelector('.event-card');
-        const step = card ? (card.offsetWidth + 20) * 4 : track.clientWidth * 0.85;
-        track.scrollBy({
-            left: direction * step,
-            behavior: 'smooth'
-        });
-    }
-
-    function initAllCategorySliders() {
-        document.querySelectorAll('.cat-event-slider').forEach(track => {
-            updateCategorySliderArrows(track.id);
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', initAllCategorySliders);
-    window.addEventListener('resize', initAllCategorySliders);
-</script>
 
 <?php include '../templates/footer.php'; ?>

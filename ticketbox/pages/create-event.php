@@ -5,7 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
-
 // 1. KIỂM TRA ĐĂNG NHẬP
 if (empty($_SESSION['user']) && empty($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -31,7 +30,6 @@ $userAvatar = (!empty($loggedUser['avatar']) && file_exists(__DIR__ . '/' . $log
     ? $loggedUser['avatar']
     : '../assets/images/default-avatar.png';
 
-// Hàm xử lý upload ảnh an toàn
 function handleEventImageUpload(string $fieldName, string $prefix, int $userId): ?string
 {
     if (!isset($_FILES[$fieldName]) || $_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
@@ -57,7 +55,6 @@ function handleEventImageUpload(string $fieldName, string $prefix, int $userId):
     return '../assets/uploads/events/' . $fileName;
 }
 
-// Xác định đúng tên bảng danh mục trong CSDL (danh_muc hoặc danhmuc)
 function getDanhMucTable(PDO $pdo): string
 {
     static $table = null;
@@ -72,8 +69,6 @@ function getDanhMucTable(PDO $pdo): string
     $table = 'danhmuc';
     return $table;
 }
-
-// Lấy tên cột hiển thị của bảng danh_muc (ten_danh_muc / ten / name)
 function getDanhMucNameCol(PDO $pdo): string
 {
     static $col = null;
@@ -92,7 +87,7 @@ function getDanhMucNameCol(PDO $pdo): string
     return $col;
 }
 
-// Lấy toàn bộ danh mục từ CSDL
+
 function getDanhMucList(PDO $pdo): array
 {
     try {
@@ -105,7 +100,6 @@ function getDanhMucList(PDO $pdo): array
     }
 }
 
-// Chuyển giá trị chọn từ form (ID hoặc tên danh mục) thành danh_muc_id hợp lệ trong bảng danh_muc
 function resolveDanhMucId(PDO $pdo, string $categoryInput): ?int
 {
     $categoryInput = trim($categoryInput);
@@ -131,7 +125,6 @@ function resolveDanhMucId(PDO $pdo, string $categoryInput): ?int
         return (int)$foundId;
     }
 
-    // Tự thêm vào bảng danh_muc nếu chưa tồn tại
     $cols = $pdo->query("SHOW COLUMNS FROM `{$table}`")->fetchAll(PDO::FETCH_COLUMN);
     if (in_array('slug', $cols, true)) {
         $ascii = function_exists('iconv') ? @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $categoryInput) : false;
@@ -147,10 +140,7 @@ function resolveDanhMucId(PDO $pdo, string $categoryInput): ?int
     }
     return (int)$pdo->lastInsertId();
 }
-
-// =========================================================================
 // 2. XỬ LÝ API AJAX LƯU TỪNG BƯỚC & XUẤT BẢN SỰ KIỆN
-// =========================================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     header('Content-Type: application/json; charset=utf-8');
 
@@ -163,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     $eventId = (int)($_POST['event_id'] ?? 0);
 
     try {
-        // --- LƯU BƯỚC 1: THÔNG TIN CƠ BẢN & ĐỊA ĐIỂM ---
+        // LƯU BƯỚC 1: THÔNG TIN CƠ BẢN & ĐỊA ĐIỂM 
         if ($action === 'save_step_1') {
             $tenSuKien = trim($_POST['event_name'] ?? '');
             $moTa      = trim($_POST['event_description'] ?? '');
@@ -284,7 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             exit;
         }
 
-        // --- LƯU BƯỚC 2: THỜI GIAN & LOẠI VÉ ---
+        // LƯU BƯỚC 2: THỜI GIAN & LOẠI VÉ 
         if ($action === 'save_step_2') {
             if ($eventId <= 0) {
                 throw new RuntimeException('Vui lòng lưu thông tin Bước 1 trước.');
@@ -362,7 +352,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             exit;
         }
 
-        // --- LƯU BƯỚC 3: CÀI ĐẶT HIỂN THỊ ---
+        // LƯU BƯỚC 3: CÀI ĐẶT HIỂN THỊ 
         if ($action === 'save_step_3') {
             if ($eventId <= 0) {
                 throw new RuntimeException('Không tìm thấy sự kiện để lưu cài đặt.');
@@ -392,7 +382,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             exit;
         }
 
-        // --- LƯU BƯỚC 4 & XUẤT BẢN SỰ KIỆN ---
+        // LƯU BƯỚC 4 & XUẤT BẢN SỰ KIỆN 
         if ($action === 'publish_event') {
             if ($eventId <= 0) {
                 throw new RuntimeException('Vui lòng hoàn thành các bước trước khi xuất bản.');
@@ -435,7 +425,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             exit;
         }
 
-        // --- XÓA SỰ KIỆN ---
+        // XÓA SỰ KIỆN 
         if ($action === 'delete_event') {
             if ($eventId > 0) {
                 $pdo->prepare("DELETE FROM loaive WHERE su_kien_id = :id")->execute(['id' => $eventId]);
@@ -454,10 +444,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     }
 }
 
-// =========================================================================
-// 3. NẠP DỮ LIỆU CHỈNH SỬA (NẾU CÓ ?edit_id=...) HOẶC DANH SÁCH SỰ KIỆN ĐÃ TẠO
-// =========================================================================
-$viewMode       = $_GET['view'] ?? 'wizard'; // 'wizard' | 'my-events' | 'reports' | 'terms'
+// 3. NẠP DỮ LIỆU CHỈNH SỬA HOẶC DANH SÁCH SỰ KIỆN ĐÃ TẠO
+$viewMode       = $_GET['view'] ?? 'wizard'; 
 $editEventId    = (int)($_GET['edit_id'] ?? 0);
 $editingEvent   = null;
 $editingTickets = [];
@@ -555,10 +543,7 @@ if (isset($pdo) && $loggedUserId > 0) {
         </div>
     </div>
 
-    <!-- NỘI DUNG CHÍNH -->
     <div class="main-content">
-
-        <!-- TOP HEADER -->
         <div class="top-header">
             <a href="home.php" class="back-home-link">
                 <i class="fa-solid fa-arrow-left"></i> Quay lại trang mua vé Ticketbox
@@ -575,7 +560,7 @@ if (isset($pdo) && $loggedUserId > 0) {
         </div>
 
         <?php if ($viewMode === 'my-events'): ?>
-            <!-- ==================== GIAO DIỆN: SỰ KIỆN CỦA TÔI ==================== -->
+            <!--SỰ KIỆN CỦA TÔI-->
             <div class="form-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <h2 style="font-size: 22px;">Sự kiện của tôi (<?php echo count($organizerEvents); ?>)</h2>
@@ -632,7 +617,7 @@ if (isset($pdo) && $loggedUserId > 0) {
             </div>
 
         <?php elseif ($viewMode === 'reports'): ?>
-            <!-- ==================== GIAO DIỆN: QUẢN LÝ BÁO CÁO ==================== -->
+            <!--QUẢN LÝ BÁO CÁO-->
             <div class="form-container">
                 <h2 style="font-size: 22px; margin-bottom: 24px;">Báo cáo doanh thu & Vé bán</h2>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
@@ -652,24 +637,34 @@ if (isset($pdo) && $loggedUserId > 0) {
             </div>
 
         <?php elseif ($viewMode === 'terms'): ?>
-            <!-- ==================== GIAO DIỆN: ĐIỀU KHOẢN BAN TỔ CHỨC ==================== -->
+     <!--ĐIỀU KHOẢN BAN TỔ CHỨC-->
+            <?php
+            $btc_pdf_rel  = '../assets/docs/dieu-khoan-ban-to-chuc.pdf';
+            $btc_pdf_path = __DIR__ . '/' . $btc_pdf_rel;
+            ?>
             <div class="form-container">
                 <div class="form-section">
-                    <h2 style="font-size: 20px; margin-bottom: 16px; color: #26c973;">Điều khoản & Quy định dành cho Ban tổ chức</h2>
-                    <p style="color: #d1d5db; line-height: 1.8; font-size: 14px; margin-bottom: 12px;">
-                        1. Ban tổ chức chịu trách nhiệm hoàn toàn về tính hợp pháp, giấy phép biểu diễn và bản quyền nội dung của sự kiện đăng tải trên Ticketbox.
-                    </p>
-                    <p style="color: #d1d5db; line-height: 1.8; font-size: 14px; margin-bottom: 12px;">
-                        2. Thông tin thời gian, địa điểm, sơ đồ hạng vé và chính sách hoàn/hủy vé phải được công bố minh bạch trước khi mở bán.
-                    </p>
-                    <p style="color: #d1d5db; line-height: 1.8; font-size: 14px;">
-                        3. Doanh thu bán vé sẽ được đối soát và chuyển khoản về tài khoản ngân hàng đã đăng ký tại Bước 4 trong vòng 03 - 05 ngày làm việc sau khi sự kiện kết thúc.
-                    </p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+                        <h2 style="font-size: 20px; margin: 0; color: #26c973;">Điều khoản &amp; Quy định dành cho Ban tổ chức</h2>
+                        <a href="terms.php?type=ban-to-chuc" target="_blank" style="color: #26c973; font-size: 13.5px; font-weight: 600; text-decoration: none;">
+                            <i class="fa-solid fa-up-right-from-square"></i> Mở trang điều khoản
+                        </a>
+                    </div>
+
+                    <?php if (file_exists($btc_pdf_path)): ?>
+                        <div style="border: 1px solid #34374c; border-radius: 10px; overflow: hidden; background: #181a20;">
+                            <iframe
+                                src="<?php echo htmlspecialchars($btc_pdf_rel); ?>#zoom=100&toolbar=1"
+                                style="width: 100%; height: 520px; border: none; display: block;"
+                                type="application/pdf">
+                            </iframe>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
         <?php else: ?>
-            <!-- ==================== GIAO DIỆN: WIZARD 4 BƯỚC TẠO / SỬA SỰ KIỆN ==================== -->
+            <!-- 4 BƯỚC TẠO / SỬA SỰ KIỆN-->
             <div class="step-indicator">
                 <div class="step active" data-step="1" onclick="goToStep(1)">
                     <div class="step-number">1</div>
@@ -698,7 +693,7 @@ if (isset($pdo) && $loggedUserId > 0) {
             <div class="form-container">
                 <input type="hidden" id="currentEventId" value="<?php echo $editingEvent ? (int)$editingEvent['id'] : 0; ?>">
 
-                <!-- ==================== BƯỚC 1: THÔNG TIN SỰ KIỆN ==================== -->
+                <!--BƯỚC 1: THÔNG TIN SỰ KIỆN-->
                 <div class="step-panel active" id="stepPanel1">
                     <div class="form-section">
                         <div class="section-title">
@@ -850,7 +845,7 @@ if (isset($pdo) && $loggedUserId > 0) {
                     </div>
                 </div>
 
-                <!-- ==================== BƯỚC 2: THỜI GIAN & LOẠI VÉ ==================== -->
+                <!--BƯỚC 2: THỜI GIAN & LOẠI VÉ-->
                 <div class="step-panel" id="stepPanel2">
                     <div class="form-section">
                         <div class="section-title">
@@ -886,7 +881,7 @@ if (isset($pdo) && $loggedUserId > 0) {
                     </div>
                 </div>
 
-                <!-- ==================== BƯỚC 3: CÀI ĐẶT ==================== -->
+                <!--BƯỚC 3: CÀI ĐẶT-->
                 <div class="step-panel" id="stepPanel3">
                     <div class="form-section">
                         <div class="section-title">
@@ -930,7 +925,7 @@ if (isset($pdo) && $loggedUserId > 0) {
                     </div>
                 </div>
 
-                <!-- ==================== BƯỚC 4: THÔNG TIN THANH TOÁN ==================== -->
+                <!--BƯỚC 4: THÔNG TIN THANH TOÁN-->
                 <div class="step-panel" id="stepPanel4">
                     <div class="form-section">
                         <div class="section-title">

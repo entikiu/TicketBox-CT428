@@ -3,13 +3,11 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
-// 1. Lấy các tham số bộ lọc từ URL
 $selected_cat      = trim((string)($_GET['cat'] ?? $_GET['danh_muc_id'] ?? ''));
 $selected_location = trim((string)($_GET['location'] ?? $_GET['city'] ?? ''));
 $selected_sort     = trim((string)($_GET['sort'] ?? ''));
 $search_query      = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keyword'] ?? ''));
 
-// 2. Xây dựng câu truy vấn SQL động
 $sql = "SELECT s.*, dm.ten_danh_muc, dm.slug AS danh_muc_slug 
         FROM sukien s 
         LEFT JOIN danh_muc dm ON s.danh_muc_id = dm.id 
@@ -17,7 +15,7 @@ $sql = "SELECT s.*, dm.ten_danh_muc, dm.slug AS danh_muc_slug
 $params = [];
 $page_title = 'Tất cả sự kiện';
 
-// Lọc theo từ khóa tìm kiếm
+// Lọc theo từ khóa
 if ($search_query !== '') {
     $sql .= " AND (s.ten_su_kien LIKE :q1 OR s.dia_diem LIKE :q2 OR s.ten_ban_to_chuc LIKE :q3)";
     $kwLike       = '%' . $search_query . '%';
@@ -119,7 +117,7 @@ if ($selected_cat !== '' && $selected_cat !== 'all' && $selected_cat !== 'tat-ca
     }
 }
 
-// Sắp xếp theo giá nếu người dùng chọn
+// Sắp xếp theo giá 
 if ($selected_sort === 'price-asc') {
     $sql .= " ORDER BY s.gia_thap_nhat ASC, s.id ASC";
 } elseif ($selected_sort === 'price-desc') {
@@ -132,7 +130,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 3. Phân tách thành 2 nhóm: Chưa/Đang diễn ra vs Đã diễn ra
+// Chưa/Đang diễn ra vs Đã diễn ra
 $upcoming_events = [];
 $past_events     = [];
 $todayStartTs    = strtotime(date('Y-m-d 00:00:00'));
@@ -163,7 +161,6 @@ foreach ($rows as $row) {
     }
 }
 
-// Với danh sách "Đã diễn ra", khi sắp xếp mặc định thì sự kiện mới diễn ra gần nhất lên đầu
 if ($selected_sort === '' && !empty($past_events)) {
     usort($past_events, function ($a, $b) {
         if ($a['timestamp'] === $b['timestamp']) {
@@ -202,7 +199,6 @@ include '../templates/header.php';
         border-top: 1px solid #2d2d35;
     }
 
-    /* Kích thước 2 cột & 3 cột (576px - 1129.98px): ẩn sẵn từ thẻ thứ 7 (hiển thị 6 thẻ) */
     @media (min-width: 576px) and (max-width: 1129.98px) {
         .event-grid:not(.is-expanded) > .upcoming-event-item:nth-child(n+7),
         .event-grid:not(.is-expanded) > .past-event-item:nth-child(n+7) {
@@ -210,7 +206,6 @@ include '../templates/header.php';
         }
     }
 
-    /* Kích thước 1 cột (<= 575.98px): ẩn sẵn từ thẻ thứ 5 (hiển thị 4 thẻ) */
     @media (max-width: 575.98px) {
         .event-grid:not(.is-expanded) > .upcoming-event-item:nth-child(n+5),
         .event-grid:not(.is-expanded) > .past-event-item:nth-child(n+5) {
@@ -227,7 +222,7 @@ include '../templates/header.php';
         </h2>
 
         <!-- Form Bộ lọc tự động submit khi thay đổi lựa chọn -->
-        <form method="GET" action="events.php" style="display: flex; gap: 10px;">
+        <form method="GET" action="events.php" id="eventsSortForm" style="display: flex; gap: 10px;">
             <?php if (!empty($selected_cat)): ?>
                 <input type="hidden" name="cat" value="<?php echo htmlspecialchars($selected_cat); ?>">
             <?php endif; ?>
@@ -238,7 +233,7 @@ include '../templates/header.php';
                 <input type="hidden" name="q" value="<?php echo htmlspecialchars($search_query); ?>">
             <?php endif; ?>
 
-            <select name="sort" onchange="this.form.submit()" class="category-btn" style="background: var(--card-bg); color: #fff; border: 1px solid var(--border-color); padding: 8px 15px; outline: none; cursor: pointer;">
+            <select name="sort" id="eventsSortSelect" class="category-btn" style="background: var(--card-bg); color: #fff; border: 1px solid var(--border-color); padding: 8px 15px; outline: none; cursor: pointer;">
                 <option value="">Sắp xếp: Mới nhất</option>
                 <option value="price-asc" <?php echo $selected_sort === 'price-asc' ? 'selected' : ''; ?>>Giá: Thấp đến Cao</option>
                 <option value="price-desc" <?php echo $selected_sort === 'price-desc' ? 'selected' : ''; ?>>Giá: Cao đến Thấp</option>
@@ -274,7 +269,9 @@ include '../templates/header.php';
                     <div class="load-more-wrapper" id="loadMoreUpcomingWrapper">
                         <button type="button"
                             class="btn-load-more"
-                            onclick="loadMoreSectionEvents('upcomingEventsGrid', 'upcoming-event-item', 'loadMoreUpcomingWrapper')">
+                            data-grid="upcomingEventsGrid"
+                            data-item="upcoming-event-item"
+                            data-wrapper="loadMoreUpcomingWrapper">
                             Xem thêm sự kiện sắp diễn ra <i class="fa-solid fa-chevron-down"></i>
                         </button>
                     </div>
@@ -286,7 +283,7 @@ include '../templates/header.php';
             </p>
         <?php endif; ?>
 
-        <!-- 2. MỤC SỰ KIỆN ĐÃ DIỄN RA (HIỂN THỊ KHI KÉO XUỐNG) -->
+        <!-- 2. MỤC SỰ KIỆN ĐÃ DIỄN RA-->
         <?php if (!empty($past_events)): ?>
             <section class="past-events-section">
                 <h3 class="section-title" style="font-size: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
@@ -312,7 +309,9 @@ include '../templates/header.php';
                     <div class="load-more-wrapper" id="loadMorePastWrapper">
                         <button type="button"
                             class="btn-load-more"
-                            onclick="loadMoreSectionEvents('pastEventsGrid', 'past-event-item', 'loadMorePastWrapper')">
+                            data-grid="pastEventsGrid"
+                            data-item="past-event-item"
+                            data-wrapper="loadMorePastWrapper">
                             Xem thêm sự kiện đã diễn ra <i class="fa-solid fa-chevron-down"></i>
                         </button>
                     </div>
@@ -323,62 +322,5 @@ include '../templates/header.php';
     <?php endif; ?>
 </main>
 
-<script>
-    // 4 cột -> 8 sự kiện | 2 hoặc 3 cột -> 6 sự kiện | 1 cột -> 4 sự kiện
-    function getGridBatchSize(gridEl) {
-        if (!gridEl) return 8;
-        const cols = window.getComputedStyle(gridEl).gridTemplateColumns.trim().split(/\s+/).length;
-        if (cols === 1) return 4;
-        if (cols === 2 || cols === 3) return 6;
-        return 8;
-    }
-
-    function syncInitialSectionEvents(gridId, itemClass, wrapperId) {
-        const gridEl = document.getElementById(gridId);
-        if (!gridEl || gridEl.classList.contains('is-expanded')) return;
-
-        const items = Array.from(gridEl.querySelectorAll('.' + itemClass));
-        const limit = getGridBatchSize(gridEl);
-
-        items.forEach((el, idx) => {
-            el.style.display = idx < limit ? '' : 'none';
-        });
-
-        const wrapper = document.getElementById(wrapperId);
-        if (wrapper) {
-            wrapper.style.display = items.length > limit ? '' : 'none';
-        }
-    }
-
-    function loadMoreSectionEvents(gridId, itemClass, wrapperId) {
-        const gridEl = document.getElementById(gridId);
-        if (!gridEl) return;
-
-        gridEl.classList.add('is-expanded');
-        const batchSize = getGridBatchSize(gridEl);
-
-        const hiddenItems = Array.from(gridEl.querySelectorAll('.' + itemClass))
-            .filter(el => el.style.display === 'none');
-
-        hiddenItems.slice(0, batchSize).forEach(el => {
-            el.style.display = '';
-        });
-
-        const remaining = Array.from(gridEl.querySelectorAll('.' + itemClass))
-            .filter(el => el.style.display === 'none');
-        if (remaining.length === 0) {
-            const wrapper = document.getElementById(wrapperId);
-            if (wrapper) wrapper.style.display = 'none';
-        }
-    }
-
-    function initAllEventGrids() {
-        syncInitialSectionEvents('upcomingEventsGrid', 'upcoming-event-item', 'loadMoreUpcomingWrapper');
-        syncInitialSectionEvents('pastEventsGrid', 'past-event-item', 'loadMorePastWrapper');
-    }
-
-    document.addEventListener('DOMContentLoaded', initAllEventGrids);
-    window.addEventListener('resize', initAllEventGrids);
-</script>
-
+<script src="../assets/js/events.js"></script>
 <?php include '../templates/footer.php'; ?>
