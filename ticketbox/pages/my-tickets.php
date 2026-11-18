@@ -25,6 +25,31 @@ if ($user_id > 0 && isset($pdo)) {
         $stmtUser->execute(['id' => $user_id]);
         $dbUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
+        // Session cũ (ID không còn trong CSDL, ví dụ sau khi import lại database):
+        // thử xác định lại tài khoản theo email; nếu không được thì buộc đăng nhập lại.
+        if (!$dbUser) {
+            $sessEmail = (string)($_SESSION['user']['email'] ?? '');
+            if ($sessEmail !== '') {
+                $stmtUserByEmail = $pdo->prepare("SELECT * FROM nguoidung WHERE email = :email LIMIT 1");
+                $stmtUserByEmail->execute(['email' => $sessEmail]);
+                $dbUser = $stmtUserByEmail->fetch(PDO::FETCH_ASSOC);
+            }
+
+            if (!$dbUser) {
+                $_SESSION = [];
+                session_destroy();
+                header('Location: login.php');
+                exit;
+            }
+
+            // Đồng bộ lại ID tài khoản và xóa dữ liệu vé tạm thời không còn hợp lệ
+            $user_id                  = (int)$dbUser['id'];
+            $_SESSION['user_id']      = $user_id;
+            $_SESSION['user_role']    = (string)($dbUser['vai_tro'] ?? $_SESSION['user_role'] ?? '');
+            $_SESSION['user']['vai_tro'] = $_SESSION['user_role'];
+            unset($_SESSION['my_tickets']);
+        }
+
         if ($dbUser) {
             $_SESSION['user']['id']     = (int)$dbUser['id'];
             $_SESSION['user']['ho_ten'] = $dbUser['ho_ten'] ?? $_SESSION['user']['ho_ten'] ?? '';
@@ -177,25 +202,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // B. Thao tác Hủy vé
-    elseif ($action === 'cancel_ticket') {
-        $ticket_db_id = $_POST['ticket_db_id'] ?? null;
-        $ticket_index = $_POST['ticket_index'] ?? null;
+    // B. Thao tác Hủy vé: đã chuyển sang AJAX (assets/js/registrations.js -> api/registrations/cancel.php)
 
-        if ($ticket_db_id && isset($pdo) && $user_id > 0) {
-            try {
-                $stmtCancel = $pdo->prepare("UPDATE ve SET trang_thai = 'da-huy' WHERE id = :ticket_id AND nguoi_dung_id = :user_id");
-                $stmtCancel->execute(['ticket_id' => $ticket_db_id, 'user_id' => $user_id]);
-                $success_msg = 'Hủy vé thành công!';
-            } catch (PDOException $e) {
-                $errors['general'] = 'Không thể hủy vé: ' . $e->getMessage();
-            }
-        } elseif ($ticket_index !== null && isset($_SESSION['my_tickets'][$ticket_index])) {
-            $_SESSION['my_tickets'][$ticket_index]['status'] = 'da-huy';
-            $success_msg = 'Hủy vé thành công!';
-        }
-    }
-// C. Thao tác Bỏ theo dõi Star / Ban tổ chức
+    // C. Thao tác Bỏ theo dõi Star / Ban tổ chức
     elseif ($action === 'unfollow_star') {
         $star_id = (int)($_POST['star_id'] ?? 0);
         if ($star_id > 0 && isset($pdo) && $user_id > 0) {
@@ -216,6 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // 4. LẤY DANH SÁCH VÉ TỪ CSDL MYSQL
 $my_tickets = [];
+$tickets_db_ok = false;
 
 if (isset($pdo) && $user_id > 0) {
     try {
@@ -236,12 +246,17 @@ if (isset($pdo) && $user_id > 0) {
         $stmtT = $pdo->prepare($sqlTickets);
         $stmtT->execute(['user_id' => $user_id]);
         $my_tickets = $stmtT->fetchAll(PDO::FETCH_ASSOC);
+        $tickets_db_ok = true;
     } catch (PDOException $e) {
         $my_tickets = [];
     }
 }
 
-if (empty($my_tickets)) {
+// CSDL là nguồn dữ liệu chính. Chỉ dùng vé lưu tạm trong session khi KHÔNG truy vấn được CSDL;
+// nếu CSDL truy vấn thành công thì xóa vé tạm để tránh hiển thị vé "ma" không tồn tại.
+if ($tickets_db_ok) {
+    unset($_SESSION['my_tickets']);
+} elseif (empty($my_tickets)) {
     $my_tickets = $_SESSION['my_tickets'] ?? [];
 }
 
@@ -606,7 +621,7 @@ include '../templates/header.php';
                                             <p style="font-size: 13px; color: #a0a3bd; margin: 2px 0;"><i class="fa-regular fa-calendar"></i> <?php echo htmlspecialchars($ticket['date'] ?? 'Đang cập nhật'); ?></p>
                                         </div>
                                         
-                                        <?php if ($t_status !== 'da-huy' && !$t_is_ended): ?>
+                                        <?php if ($t_status !== 'da-huy' && (int)$t_db_id > 0): ?>
                                             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 10px;">
                                                 <!-- Nút Xem mã QR -->
                                                 <a href="ticket-qr.php?id=<?php echo (int) $t_db_id; ?>" 
@@ -614,17 +629,12 @@ include '../templates/header.php';
                                                     <i class="fa-solid fa-qrcode"></i> Xem mã QR
                                                 </a>
 
-                                                <!-- Form Hủy vé riêng biệt -->
-                                                <form method="POST" action="my-tickets.php?tab=tickets" style="display: inline-block; margin: 0;"
-                                                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?');">
-                                                    <input type="hidden" name="action" value="cancel_ticket">
-                                                    <input type="hidden" name="ticket_db_id" value="<?php echo htmlspecialchars((string) $t_db_id); ?>">
-                                                    <input type="hidden" name="ticket_index" value="<?php echo (int) $t_orig_index; ?>">
-                                                    <button type="submit"
-                                                        style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                                                        <i class="fa-solid fa-ban"></i> Hủy vé
-                                                    </button>
-                                                </form>
+                                                <!-- Nút Hủy vé (AJAX) -->
+                                                <?php if ($t_status !== 'da-checkin' && !$t_is_ended): ?>
+                                                <button type="button" onclick="cancelTicket(<?php echo (int)$t_db_id; ?>, this)" style="background: transparent; color: #ff4d4f; border: 1px solid #ff4d4f; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                                    <i class="fa-solid fa-ban"></i> Hủy vé
+                                                </button>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -638,5 +648,8 @@ include '../templates/header.php';
 
     </div>
 </main>
+
+<!-- Script xử lý Hủy vé qua AJAX -->
+<script src="../assets/js/registrations.js?v=<?php echo filemtime(__DIR__ . '/../assets/js/registrations.js'); ?>"></script>
 
 <?php include '../templates/footer.php'; ?>

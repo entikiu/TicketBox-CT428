@@ -192,11 +192,11 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                                 <i class="fa-regular fa-calendar-check"></i> Sự kiện của tôi
                             </a>
 
-                            <a href="my-tickets.php?tab=profile">
+                            <a href="profile.php">
                                 <i class="fa-regular fa-circle-user"></i> Trang cá nhân
                             </a>
 
-                            <a href="my-tickets.php?tab=profile-edit">
+                            <a href="edit-profile.php">
                                 <i class="fa-solid fa-gear"></i> Cài đặt tài khoản
                             </a>
 

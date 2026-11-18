@@ -13,7 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
-    $stmt = $pdo->query('SELECT id, ten_danh_muc, slug FROM danh_muc ORDER BY id ASC');
+    $stmt = $pdo->prepare('SELECT id, ten_danh_muc, slug FROM danh_muc ORDER BY id ASC');
+    $stmt->execute();
     $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     api_response(200, [
