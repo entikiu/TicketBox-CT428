@@ -101,7 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // -------------------- LẤY DỮ LIỆU SỰ KIỆN --------------------
 try {
-    $stmt = $pdo->query("SELECT * FROM sukien ORDER BY id DESC");
+    $stmt = $pdo->query("
+    SELECT s.*,
+        COALESCE(v.da_dat, 0) AS so_ve_da_dat,
+        COALESCE(v.da_checkin, 0) AS so_ve_checkin
+    FROM sukien s
+    LEFT JOIN (
+        SELECT su_kien_id,
+            SUM(CASE WHEN trang_thai IN ('thanh-cong', 'da-checkin') THEN 1 ELSE 0 END) AS da_dat,
+            SUM(CASE WHEN trang_thai = 'da-checkin' THEN 1 ELSE 0 END) AS da_checkin
+        FROM ve
+        GROUP BY su_kien_id
+    ) v ON v.su_kien_id = s.id
+    ORDER BY s.id DESC
+");
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $events = [];
@@ -109,6 +122,7 @@ try {
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -117,6 +131,7 @@ try {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
+
 <body>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="admin-sidebar" id="adminSidebar">
@@ -156,7 +171,10 @@ try {
                     <div class="form-group"><label>Tên sự kiện</label><input type="text" name="ten_su_kien" required value="<?php echo htmlspecialchars($editEvent['ten_su_kien'] ?? ''); ?>"></div>
                     <div class="form-group"><label>Mô tả</label><textarea name="mo_ta"><?php echo htmlspecialchars($editEvent['mo_ta'] ?? ''); ?></textarea></div>
                     <div class="form-group"><label>Địa điểm</label><input type="text" name="dia_diem" value="<?php echo htmlspecialchars($editEvent['dia_diem'] ?? ''); ?>"></div>
-                    <div class="form-group"><label>Hình thức</label><select name="hinh_thuc"><option value="offline" <?php echo (isset($editEvent['hinh_thuc']) && $editEvent['hinh_thuc'] === 'offline') ? 'selected' : ''; ?>>Offline</option><option value="online" <?php echo (isset($editEvent['hinh_thuc']) && $editEvent['hinh_thuc'] === 'online') ? 'selected' : ''; ?>>Online</option></select></div>
+                    <div class="form-group"><label>Hình thức</label><select name="hinh_thuc">
+                            <option value="offline" <?php echo (isset($editEvent['hinh_thuc']) && $editEvent['hinh_thuc'] === 'offline') ? 'selected' : ''; ?>>Offline</option>
+                            <option value="online" <?php echo (isset($editEvent['hinh_thuc']) && $editEvent['hinh_thuc'] === 'online') ? 'selected' : ''; ?>>Online</option>
+                        </select></div>
                     <div class="form-group"><label>Link online (nếu có)</label><input type="url" name="link_online" value="<?php echo htmlspecialchars($editEvent['link_online'] ?? ''); ?>"></div>
                     <div class="form-group"><label>Giá tối thiểu</label><input type="number" name="gia_thap_nhat" min="0" value="<?php echo $editEvent['gia_thap_nhat'] ?? 0; ?>"></div>
                     <div class="form-group"><label>Thời gian (datetime-local)</label><input type="datetime-local" name="thoi_gian" value="<?php echo $editEvent['thoi_gian'] ? date('Y-m-d\TH:i', strtotime($editEvent['thoi_gian'])) : ''; ?>"></div>
@@ -166,7 +184,11 @@ try {
                     <div class="form-group"><label>Tên ban tổ chức</label><input type="text" name="ten_ban_to_chuc" value="<?php echo htmlspecialchars($editEvent['ten_ban_to_chuc'] ?? ''); ?>"></div>
                     <div class="form-group"><label>Mô tả ban tổ chức</label><textarea name="mo_ta_ban_to_chuc"><?php echo htmlspecialchars($editEvent['mo_ta_ban_to_chuc'] ?? ''); ?></textarea></div>
                     <div class="form-group"><label>Danh mục ID</label><input type="number" name="danh_muc_id" min="1" value="<?php echo $editEvent['danh_muc_id'] ?? 1; ?>"></div>
-                    <div class="form-group"><label>Trạng thái</label><select name="trang_thai"><option value="cong_khai" <?php echo (isset($editEvent['trang_thai']) && $editEvent['trang_thai'] === 'cong_khai') ? 'selected' : ''; ?>>Công khai</option><option value="nhap" <?php echo (isset($editEvent['trang_thai']) && $editEvent['trang_thai'] === 'nhap') ? 'selected' : ''; ?>>Nháp</option><option value="da_huy" <?php echo (isset($editEvent['trang_thai']) && $editEvent['trang_thai'] === 'da_huy') ? 'selected' : ''; ?>>Đã hủy</option></select></div>
+                    <div class="form-group"><label>Trạng thái</label><select name="trang_thai">
+                            <option value="cong_khai" <?php echo (isset($editEvent['trang_thai']) && $editEvent['trang_thai'] === 'cong_khai') ? 'selected' : ''; ?>>Công khai</option>
+                            <option value="nhap" <?php echo (isset($editEvent['trang_thai']) && $editEvent['trang_thai'] === 'nhap') ? 'selected' : ''; ?>>Nháp</option>
+                            <option value="da_huy" <?php echo (isset($editEvent['trang_thai']) && $editEvent['trang_thai'] === 'da_huy') ? 'selected' : ''; ?>>Đã hủy</option>
+                        </select></div>
                     <button type="submit" class="btn-submit"><?php echo $editEvent ? 'Cập nhật' : 'Thêm mới'; ?></button>
                 </form>
             </div>
@@ -195,10 +217,18 @@ try {
                                         <a href="events.php?action=edit&id=<?php echo $ev['id']; ?>" class="btn-action btn-edit"><i class="fa-solid fa-pen"></i> Sửa</a>
                                         <a href="events.php?action=delete&id=<?php echo $ev['id']; ?>" class="btn-action btn-delete" data-confirm="Bạn có chắc chắn muốn xóa sự kiện này?"><i class="fa-solid fa-trash-can"></i> Xóa</a>
                                     </td>
+                                    <td>
+                                        <a href="orders.php?su_kien_id=<?php echo (int)$ev['id']; ?>#danh-sach-ve">
+                                            <strong><?php echo (int)$ev['so_ve_da_dat']; ?></strong> / <?php echo (int)$ev['so_luong_toi_da']; ?>
+                                        </a>
+                                        <br><small>Check-in: <?php echo (int)$ev['so_ve_checkin']; ?></small>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="5" class="empty-row">Chưa có sự kiện nào được tạo.</td></tr>
+                            <tr>
+                                <td colspan="5" class="empty-row">Chưa có sự kiện nào được tạo.</td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -207,4 +237,5 @@ try {
     </div>
     <script src="../assets/js/admin.js"></script>
 </body>
+
 </html>

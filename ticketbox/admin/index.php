@@ -10,24 +10,31 @@ if (!isset($_SESSION['admin'])) {
 }
 
 // Lấy thống kê nhanh từ CSDL
-$total_users = 0;
-$total_events = 0;
-$total_tickets = 0;
+$total_users    = 0;
+$total_events   = 0;
+$total_tickets  = 0;
+$total_checkins = 0;
 
 try {
-    // Đếm số lượng người dùng
-    $stmt = $pdo->query("SELECT COUNT(*) FROM nguoidung");
-    $total_users = $stmt->fetchColumn();
+    $total_users = (int)$pdo->query("SELECT COUNT(*) FROM nguoidung")->fetchColumn();
+    $total_events = (int)$pdo->query("SELECT COUNT(*) FROM sukien")->fetchColumn();
 
-    // Đếm số lượng sự kiện (giả định bảng sự kiện là 'sukien' hoặc 'events')
-    $stmt = $pdo->query("SELECT COUNT(*) FROM sukien");
-    $total_events = $stmt->fetchColumn();
+    $ticketStats = $pdo->query("
+        SELECT 
+            SUM(CASE WHEN trang_thai IN ('thanh-cong', 'da-checkin') THEN 1 ELSE 0 END) AS sold,
+            SUM(CASE WHEN trang_thai = 'da-checkin' THEN 1 ELSE 0 END) AS checked_in
+        FROM ve
+    ")->fetch(PDO::FETCH_ASSOC);
+
+    $total_tickets  = (int)($ticketStats['sold'] ?? 0);
+    $total_checkins = (int)($ticketStats['checked_in'] ?? 0);
 } catch (PDOException $e) {
     // Bỏ qua nếu chưa có bảng tương ứng
 }
 ?>
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,6 +43,7 @@ try {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
+
 <body>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -86,7 +94,7 @@ try {
                 <div class="card-stat">
                     <div class="card-stat-icon icon-amber"><i class="fa-solid fa-ticket-simple"></i></div>
                     <div class="card-stat-info">
-                        <h3>0</h3>
+                        <h3><?php echo $total_tickets; ?> <small style="font-size:13px;font-weight:normal;">(<?php echo $total_checkins; ?> check-in)</small></h3>
                         <p>Vé đã bán ra</p>
                     </div>
                 </div>
@@ -102,4 +110,5 @@ try {
 
     <script src="../assets/js/admin.js"></script>
 </body>
+
 </html>

@@ -170,6 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             }
 
             $diaDiem    = '';
+            $tenDiaDiem = null; // [1] Khai báo thêm biến lưu tên địa điểm cụ thể
             $linkOnline = null;
 
             if ($hinhThuc === 'online') {
@@ -188,8 +189,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 if ($street === '' || $ward === '' || $district === '' || $city === '') {
                     throw new RuntimeException('Vui lòng điền đầy đủ địa chỉ tổ chức sự kiện.');
                 }
-                $parts   = array_filter([$venue, $street, $ward, $district, $city]);
-                $diaDiem = implode(', ', $parts);
+                $tenDiaDiem = ($venue !== '') ? $venue : null; // [1] Lấy tên tòa nhà / địa điểm cụ thể
+                $parts      = array_filter([$venue, $street, $ward, $district, $city]);
+                $diaDiem    = implode(', ', $parts);
             }
 
             $posterPath = handleEventImageUpload('poster', 'poster', $loggedUserId);
@@ -206,12 +208,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 $finalPoster = $posterPath ?? $oldRow['hinh_anh'];
                 $finalBanner = $bannerPath ?? $oldRow['banner'];
 
+                // [2] Cập nhật thêm cột ten_dia_diem khi sửa sự kiện
                 $sql = "UPDATE sukien SET 
                             ten_su_kien = :ten,
                             mo_ta = :mota,
                             danh_muc_id = :danh_muc_id,
                             ten_ban_to_chuc = :btc,
                             dia_diem = :diadiem,
+                            ten_dia_diem = :tendd,
                             hinh_thuc = :hinhthuc,
                             link_online = :link,
                             hinh_anh = :poster,
@@ -223,6 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                     'danh_muc_id' => $danhMucId,
                     'btc'         => $tenBtc,
                     'diadiem'     => $diaDiem,
+                    'tendd'       => $tenDiaDiem,
                     'hinhthuc'    => $hinhThuc,
                     'link'        => $linkOnline,
                     'poster'      => $finalPoster,
@@ -250,18 +255,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                     'banner'      => $finalBanner
                 ];
 
+                // [3] Thêm cột ten_dia_diem khi tạo mới sự kiện
+                if (in_array('ten_dia_diem', $sukienCols, true)) {
+                    $insertCols[]          = 'ten_dia_diem';
+                    $insertVals[]          = ':tendd';
+                    $insertParams['tendd'] = $tenDiaDiem;
+                }
                 if (in_array('nguoi_tao', $sukienCols, true)) {
-                    $insertCols[] = 'nguoi_tao';
-                    $insertVals[] = ':nguoi_tao';
+                    $insertCols[]              = 'nguoi_tao';
+                    $insertVals[]              = ':nguoi_tao';
                     $insertParams['nguoi_tao'] = $loggedUserId;
                 }
                 if (in_array('so_luong_toi_da', $sukienCols, true)) {
-                    $insertCols[] = 'so_luong_toi_da';
-                    $insertVals[] = ':so_luong_toi_da';
+                    $insertCols[]                    = 'so_luong_toi_da';
+                    $insertVals[]                    = ':so_luong_toi_da';
                     $insertParams['so_luong_toi_da'] = 0;
                 }
 
-        $sql = "INSERT INTO sukien (" . implode(', ', $insertCols) . ") VALUES (" . implode(', ', $insertVals) . ")";
+                $sql = "INSERT INTO sukien (" . implode(', ', $insertCols) . ") VALUES (" . implode(', ', $insertVals) . ")";
                 $pdo->prepare($sql)->execute($insertParams);
                 $eventId = (int)$pdo->lastInsertId();
             }
@@ -273,7 +284,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             ]);
             exit;
         }
-
         // LƯU BƯỚC 2: THỜI GIAN & LOẠI VÉ 
         if ($action === 'save_step_2') {
             if ($eventId <= 0) {
@@ -287,7 +297,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             if ($startTime === '' || $endTime === '') {
                 throw new RuntimeException('Vui lòng chọn thời gian bắt đầu và kết thúc sự kiện.');
             }
-            if (strtotime($endTime) <= strtotime($startTime)) {
+
+            $startTs = strtotime($startTime);
+            $endTs   = strtotime($endTime);
+
+            if ($endTs <= $startTs) {
                 throw new RuntimeException('Thời gian kết thúc phải sau thời gian bắt đầu.');
             }
             if (!is_array($tickets) || count($tickets) === 0) {
@@ -295,9 +309,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             }
 
             $minPrice = null;
+            $totalQty = 0;
             foreach ($tickets as $t) {
-                $tName = trim($t['name'] ?? '');
-                $tQty  = (int)($t['qty'] ?? 0);
+                $tName  = trim($t['name'] ?? '');
+                $tQty   = (int)($t['qty'] ?? 0);
                 $tPrice = max(0, (int)($t['price'] ?? 0));
                 if ($tName === '' || $tQty <= 0) {
                     throw new RuntimeException('Tên loại vé không được trống và số lượng vé phải lớn hơn 0.');
@@ -305,21 +320,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 if ($minPrice === null || $tPrice < $minPrice) {
                     $minPrice = $tPrice;
                 }
+                $totalQty += $tQty;
+            }
+
+            // Tạo chuỗi thoi_gian_hien_thi (hỗ trợ cả sự kiện trong ngày và nhiều ngày)
+            if (date('Y-m-d', $startTs) === date('Y-m-d', $endTs)) {
+                $thoiGianHienThi = date('H:i', $startTs) . ' - ' . date('H:i, d', $endTs)
+                    . ' Tháng ' . date('m, Y', $endTs);
+            } else {
+                $thoiGianHienThi = date('H:i, d', $startTs) . ' Tháng ' . date('m', $startTs)
+                    . ' - ' . date('H:i, d', $endTs) . ' Tháng ' . date('m, Y', $endTs);
             }
 
             $pdo->beginTransaction();
 
             $stmtUpdEvt = $pdo->prepare("
                 UPDATE sukien 
-                SET thoi_gian = :start_t, thoi_gian_ket_thuc = :end_t, gia_thap_nhat = :min_p 
+                SET thoi_gian = :start_t,
+                    thoi_gian_ket_thuc = :end_t,
+                    thoi_gian_hien_thi = :hien_thi,
+                    gia_thap_nhat = :min_p,
+                    so_luong_toi_da = :total_qty
                 WHERE id = :id AND nguoi_tao_id = :uid
             ");
             $stmtUpdEvt->execute([
-                'start_t' => date('Y-m-d H:i:s', strtotime($startTime)),
-                'end_t'   => date('Y-m-d H:i:s', strtotime($endTime)),
-                'min_p'   => (int)$minPrice,
-                'id'      => $eventId,
-                'uid'     => $loggedUserId
+                'start_t'   => date('Y-m-d H:i:s', $startTs),
+                'end_t'     => date('Y-m-d H:i:s', $endTs),
+                'hien_thi'  => $thoiGianHienThi,
+                'min_p'     => (int)$minPrice,
+                'total_qty' => $totalQty,
+                'id'        => $eventId,
+                'uid'       => $loggedUserId
             ]);
 
             // Làm mới danh sách hạng vé của sự kiện
@@ -445,7 +476,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 }
 
 // 3. NẠP DỮ LIỆU CHỈNH SỬA HOẶC DANH SÁCH SỰ KIỆN ĐÃ TẠO
-$viewMode       = $_GET['view'] ?? 'wizard'; 
+$viewMode       = $_GET['view'] ?? 'wizard';
 $editEventId    = (int)($_GET['edit_id'] ?? 0);
 $editingEvent   = null;
 $editingTickets = [];
@@ -637,7 +668,7 @@ if (isset($pdo) && $loggedUserId > 0) {
             </div>
 
         <?php elseif ($viewMode === 'terms'): ?>
-     <!--ĐIỀU KHOẢN BAN TỔ CHỨC-->
+            <!--ĐIỀU KHOẢN BAN TỔ CHỨC-->
             <?php
             $btc_pdf_rel  = '../assets/docs/dieu-khoan-ban-to-chuc.pdf';
             $btc_pdf_path = __DIR__ . '/' . $btc_pdf_rel;
@@ -803,7 +834,7 @@ if (isset($pdo) && $loggedUserId > 0) {
                             <?php else: ?>
                                 <div class="form-group">
                                     <label>Tên tòa nhà / Địa điểm cụ thể</label>
-                                    <input type="text" class="form-control" id="venueName" placeholder="Ví dụ: Hội trường A - Trường Đại học Cần Thơ" value="<?php echo htmlspecialchars($editingEvent['dia_diem'] ?? ''); ?>">
+                                    <input type="text" class="form-control" id="venueName" placeholder="Ví dụ: Hội trường A - Trường Đại học Cần Thơ" value="<?php echo htmlspecialchars($editingEvent['ten_dia_diem'] ?? ''); ?>">
                                 </div>
                                 <div class="form-row-2">
                                     <div class="form-group">

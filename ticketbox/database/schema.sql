@@ -7,17 +7,25 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-
+DROP TABLE IF EXISTS `ve`;
+DROP TABLE IF EXISTS `ticketstar_theodoi`;
+DROP TABLE IF EXISTS `ticketstar_sukien`;
+DROP TABLE IF EXISTS `ticketstars`;
+DROP TABLE IF EXISTS `the_thanh_vien_nguoidung`;
+DROP TABLE IF EXISTS `loaive`;
+DROP TABLE IF EXISTS `sukien`;
+DROP TABLE IF EXISTS `the_thanh_vien`;
+DROP TABLE IF EXISTS `nguoidung`;
+DROP TABLE IF EXISTS `danh_muc`;
 -- --------------------------------------------------------
 -- 1. Bảng `danh_muc`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `danh_muc` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ten_danh_muc` varchar(100) NOT NULL,
   `slug` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `danh_muc` (`id`, `ten_danh_muc`, `slug`) VALUES
 (1, 'Concert & Âm nhạc', 'concert-am-nhac'),
@@ -28,12 +36,9 @@ ON DUPLICATE KEY UPDATE
   `ten_danh_muc` = VALUES(`ten_danh_muc`),
   `slug` = VALUES(`slug`);
 
-ALTER TABLE `danh_muc` AUTO_INCREMENT = 5;
-
 -- --------------------------------------------------------
 -- 2. Bảng `nguoidung`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `nguoidung` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ho_ten` varchar(100) NOT NULL,
@@ -43,11 +48,11 @@ CREATE TABLE IF NOT EXISTS `nguoidung` (
   `gender` varchar(10) NOT NULL DEFAULT 'nam',
   `avatar` varchar(255) DEFAULT NULL,
   `mat_khau` varchar(255) NOT NULL,
-  `vai_tro` enum('Attendee','Organizer','Admin') NOT NULL DEFAULT 'Attendee',
+  `vai_tro` enum('User','Attendee','Organizer','Admin') NOT NULL DEFAULT 'User',
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `nguoidung` (`id`, `ho_ten`, `email`, `phone`, `dob`, `gender`, `avatar`, `mat_khau`, `vai_tro`, `ngay_tao`) VALUES
 (1, 'Nguyen Van A', 'a@example.com', NULL, NULL, 'nam', NULL, '$2y$10$IYnOfBN19s5Bi2G5kiLGN.ikXMNpdE5JPkYWlVqKe/Q2Mn6PerUaC', 'User', '2026-10-23 06:34:03'),
@@ -64,12 +69,9 @@ ON DUPLICATE KEY UPDATE
   `vai_tro` = VALUES(`vai_tro`),
   `ngay_tao` = VALUES(`ngay_tao`);
 
-ALTER TABLE `nguoidung` AUTO_INCREMENT = 5;
-
 -- --------------------------------------------------------
 -- 3. Bảng `the_thanh_vien`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `the_thanh_vien` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ten_the` varchar(150) NOT NULL,
@@ -81,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `the_thanh_vien` (
   `quyen_loi` text DEFAULT NULL,
   `dieu_khoan` text DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `the_thanh_vien` (`id`, `ten_the`, `nghe_si`, `gia`, `thoi_han_thang`, `hinh_anh`, `trang_thai`, `quyen_loi`, `dieu_khoan`) VALUES
 (1, 'TIỂU NƠ', 'Ngọc Thanh Tâm', 499000, 12, '../assets/images/memberships/tieu-no.jpg', 'dang-ban', 'Ưu tiên mua vé sớm qua Presale trước khi mở bán công khai (tùy chương trình)\nƯu tiên nhận vé các sự kiện của Ngọc Thanh Tâm tham gia (tùy chương trình)\nSở hữu thẻ Membership vật lý độc quyền\nGiảm giá 5% khi mua Merchandise của Ngọc Thanh Tâm\nQuà tặng cuối năm từ Ngọc Thanh Tâm\n100 bạn mua sớm nhất nhận quà đặc biệt từ Ngọc Thanh Tâm', 'Thẻ TIỂU NƠ Membership là thẻ thành viên, không phải vé tham dự sự kiện và không đảm bảo quyền tham dự bất kỳ chương trình nào của nghệ sĩ.\nThẻ có giá trị 12 tháng kể từ ngày kích hoạt. Các quyền lợi đi kèm chỉ có hiệu lực trong thời hạn Membership.\nMỗi tài khoản được sở hữu tối đa 01 Membership và không được chuyển nhượng/chia sẻ cho tài khoản khác.\nThành viên có trách nhiệm bảo mật tài khoản và thông tin Membership của mình.\nMột số quyền lợi có thể giới hạn số lượng, áp dụng theo từng sự kiện/chương trình và theo nguyên tắc được BTC công bố tại từng thời điểm.\nQuyền lợi Membership không có giá trị quy đổi thành tiền mặt và không được hoàn phí sau khi đã kích hoạt, trừ trường hợp BTC có thông báo khác.\nBTC có quyền cập nhật cách thức triển khai quyền lợi nhưng không làm ảnh hưởng đến các quyền lợi đã được thành viên xác nhận/nhận trước thời điểm cập nhật.\nÁp dụng cho khách hàng từ đủ 16 tuổi.\nTrong trường hợp phát sinh tranh chấp liên quan đến việc áp dụng quyền lợi, quyết định của BTC được đưa ra căn cứ trên thể lệ đã công bố và quy định pháp luật hiện hành.\nĐối với các Thẻ đặt trước ngày 30/11/2026. Ticketbox sẽ bắt đầu giao đến Khách hàng từ ngày 15/12/2026'),
@@ -101,12 +103,9 @@ ON DUPLICATE KEY UPDATE
   `quyen_loi` = VALUES(`quyen_loi`),
   `dieu_khoan` = VALUES(`dieu_khoan`);
 
-ALTER TABLE `the_thanh_vien` AUTO_INCREMENT = 8;
-
 -- --------------------------------------------------------
 -- 4. Bảng `sukien`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `sukien` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nguoi_tao_id` int(11) DEFAULT NULL,
@@ -138,7 +137,7 @@ CREATE TABLE IF NOT EXISTS `sukien` (
   KEY `fk_sukien_danhmuc` (`danh_muc_id`),
   CONSTRAINT `fk_sukien_danhmuc` FOREIGN KEY (`danh_muc_id`) REFERENCES `danh_muc` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_sukien_nguoidung` FOREIGN KEY (`nguoi_tao`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DELETE FROM `sukien` WHERE `id` IN (55, 57, 58, 59, 60, 61, 62, 63, 64);
 
@@ -296,12 +295,9 @@ ON DUPLICATE KEY UPDATE
   `loi_nhan_cam_on` = VALUES(`loi_nhan_cam_on`),
   `thong_tin_thanh_toan` = VALUES(`thong_tin_thanh_toan`);
 
-ALTER TABLE `sukien` AUTO_INCREMENT = 142;
-
 -- --------------------------------------------------------
 -- 5. Bảng `loaive`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `loaive` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `su_kien_id` int(11) NOT NULL,
@@ -315,7 +311,7 @@ CREATE TABLE IF NOT EXISTS `loaive` (
   PRIMARY KEY (`id`),
   KEY `fk_loaive_sukien` (`su_kien_id`),
   CONSTRAINT `fk_loaive_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=196 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DELETE FROM `loaive` WHERE `id` IN (103, 105, 106, 107, 108, 109, 111, 112, 188);
 
@@ -503,12 +499,9 @@ ON DUPLICATE KEY UPDATE
   `bat_dau_ban` = VALUES(`bat_dau_ban`),
   `ket_thuc_ban` = VALUES(`ket_thuc_ban`);
 
-ALTER TABLE `loaive` AUTO_INCREMENT = 192;
-
 -- --------------------------------------------------------
 -- 6. Bảng `the_thanh_vien_nguoidung`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `the_thanh_vien_nguoidung` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ma_the` varchar(50) NOT NULL,
@@ -523,7 +516,7 @@ CREATE TABLE IF NOT EXISTS `the_thanh_vien_nguoidung` (
   KEY `fk_ttv_nguoidung` (`nguoi_dung_id`),
   CONSTRAINT `fk_ttv_nguoidung` FOREIGN KEY (`nguoi_dung_id`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ttv_the` FOREIGN KEY (`the_id`) REFERENCES `the_thanh_vien` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `the_thanh_vien_nguoidung` (`id`, `ma_the`, `the_id`, `nguoi_dung_id`, `ngay_kich_hoat`, `ngay_het_han`, `trang_thai`) VALUES
 (1, 'MB-20261112-6157', 3, 2, '2026-11-12 21:53:20', '2027-05-12 15:53:20', 'dang-hoat-dong'),
@@ -536,12 +529,9 @@ ON DUPLICATE KEY UPDATE
   `ngay_het_han` = VALUES(`ngay_het_han`),
   `trang_thai` = VALUES(`trang_thai`);
 
-ALTER TABLE `the_thanh_vien_nguoidung` AUTO_INCREMENT = 3;
-
 -- --------------------------------------------------------
 -- 7. Bảng `ticketstars`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `ticketstars` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `slug` varchar(120) NOT NULL,
@@ -563,7 +553,7 @@ CREATE TABLE IF NOT EXISTS `ticketstars` (
   UNIQUE KEY `slug` (`slug`),
   KEY `fk_ticketstars_sukien_noibat` (`su_kien_noi_bat_id`),
   CONSTRAINT `fk_ticketstars_sukien_noibat` FOREIGN KEY (`su_kien_noi_bat_id`) REFERENCES `sukien` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `ticketstars` (`id`, `slug`, `ten_hien_thi`, `loai`, `avatar`, `banner`, `banner_star`, `anh_bia`, `mo_ta`, `thong_bao`, `luot_theo_doi`, `tu_khoa_su_kien`, `su_kien_noi_bat_id`, `nghe_si_membership`, `da_xac_minh`, `thu_tu`) VALUES
 (1, 'yeah1-family', 'YeaH1 Family', 'BanToChuc', '../assets/images/stars/yeah1.jpg', '../assets/images/stars/banners/yeah1-family.jpg', '../assets/images/stars/banners/yeah1-family.jpg', '../assets/images/events/banner-anh-trai.jpg', 'Tập đoàn giải trí & nhà sản xuất chuỗi concert quy mô lớn Anh Trai Vượt Ngàn Chông Gai, GAI MEET, UPRIZE.', 'Lịch mở bán vé các đêm diễn tiếp theo của chuỗi concert sẽ được cập nhật trực tiếp tại mục Lịch hoạt động.', 58420, 'Anh Trai Vượt Ngàn Chông Gai|GAI MEET|UPRIZE|YeaH1', NULL, NULL, 1, 1),
@@ -611,12 +601,9 @@ ON DUPLICATE KEY UPDATE
   `da_xac_minh` = VALUES(`da_xac_minh`),
   `thu_tu` = VALUES(`thu_tu`);
 
-ALTER TABLE `ticketstars` AUTO_INCREMENT = 29;
-
 -- --------------------------------------------------------
 -- 8. Bảng `ticketstar_sukien`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `ticketstar_sukien` (
   `star_id` int(11) NOT NULL,
   `su_kien_id` int(11) NOT NULL,
@@ -666,7 +653,6 @@ ON DUPLICATE KEY UPDATE
 -- --------------------------------------------------------
 -- 9. Bảng `ticketstar_theodoi`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `ticketstar_theodoi` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nguoi_dung_id` int(11) NOT NULL,
@@ -676,7 +662,7 @@ CREATE TABLE IF NOT EXISTS `ticketstar_theodoi` (
   UNIQUE KEY `uniq_user_star` (`nguoi_dung_id`,`star_id`),
   KEY `idx_user_id` (`nguoi_dung_id`),
   KEY `idx_star_id` (`star_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `ticketstar_theodoi` (`id`, `nguoi_dung_id`, `star_id`, `ngay_theo_doi`) VALUES
 (1, 4, 8, '2026-11-17 22:09:48')
@@ -685,12 +671,9 @@ ON DUPLICATE KEY UPDATE
   `star_id` = VALUES(`star_id`),
   `ngay_theo_doi` = VALUES(`ngay_theo_doi`);
 
-ALTER TABLE `ticketstar_theodoi` AUTO_INCREMENT = 2;
-
 -- --------------------------------------------------------
 -- 10. Bảng `ve`
 -- --------------------------------------------------------
-
 CREATE TABLE IF NOT EXISTS `ve` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `ma_ve` varchar(100) NOT NULL,
@@ -706,7 +689,7 @@ CREATE TABLE IF NOT EXISTS `ve` (
   KEY `fk_ve_nguoidung` (`nguoi_dung_id`),
   CONSTRAINT `fk_ve_nguoidung` FOREIGN KEY (`nguoi_dung_id`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ve_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `ve` (`id`, `ma_ve`, `su_kien_id`, `nguoi_dung_id`, `loai_ve`, `gia_ve`, `trang_thai`, `ngay_dat`) VALUES
 (1, 'TKB-2026-52313', 2, 2, 'VÉ BƯỚC THONG RONG (GA)', '499.000 đ', 'thanh-cong', '2026-11-11 13:49:02'),
@@ -740,188 +723,9 @@ ON DUPLICATE KEY UPDATE
   `trang_thai` = VALUES(`trang_thai`),
   `ngay_dat` = VALUES(`ngay_dat`);
 
-ALTER TABLE `ve` AUTO_INCREMENT = 28;
-
 SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;
 
--- Indexes for table `danh_muc`
---
-ALTER TABLE `danh_muc`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `loaive`
---
-ALTER TABLE `loaive`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_loaive_sukien` (`su_kien_id`);
-
---
--- Indexes for table `nguoidung`
---
-ALTER TABLE `nguoidung`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
-
---
--- Indexes for table `sukien`
---
-ALTER TABLE `sukien`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_sukien_nguoidung` (`nguoi_tao`),
-  ADD KEY `fk_sukien_danhmuc` (`danh_muc_id`);
-
---
--- Indexes for table `the_thanh_vien`
---
-ALTER TABLE `the_thanh_vien`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `the_thanh_vien_nguoidung`
---
-ALTER TABLE `the_thanh_vien_nguoidung`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `ma_the` (`ma_the`),
-  ADD KEY `fk_ttv_the` (`the_id`),
-  ADD KEY `fk_ttv_nguoidung` (`nguoi_dung_id`);
-
---
--- Indexes for table `ticketstars`
---
-ALTER TABLE `ticketstars`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `slug` (`slug`),
-  ADD KEY `fk_ticketstars_sukien_noibat` (`su_kien_noi_bat_id`);
-
---
--- Indexes for table `ticketstar_sukien`
---
-ALTER TABLE `ticketstar_sukien`
-  ADD PRIMARY KEY (`star_id`,`su_kien_id`),
-  ADD KEY `fk_tss_sukien` (`su_kien_id`);
-
---
--- Indexes for table `ticketstar_theodoi`
---
-ALTER TABLE `ticketstar_theodoi`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_user_star` (`nguoi_dung_id`,`star_id`),
-  ADD KEY `idx_user_id` (`nguoi_dung_id`),
-  ADD KEY `idx_star_id` (`star_id`);
-
---
--- Indexes for table `ve`
---
-ALTER TABLE `ve`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `ma_ve` (`ma_ve`),
-  ADD KEY `fk_ve_sukien` (`su_kien_id`),
-  ADD KEY `fk_ve_nguoidung` (`nguoi_dung_id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `danh_muc`
---
-ALTER TABLE `danh_muc`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `loaive`
---
-ALTER TABLE `loaive`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=196;
-
---
--- AUTO_INCREMENT for table `nguoidung`
---
-ALTER TABLE `nguoidung`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `sukien`
---
-ALTER TABLE `sukien`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
-
---
--- AUTO_INCREMENT for table `the_thanh_vien`
---
-ALTER TABLE `the_thanh_vien`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `the_thanh_vien_nguoidung`
---
-ALTER TABLE `the_thanh_vien_nguoidung`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `ticketstars`
---
-ALTER TABLE `ticketstars`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
-
---
--- AUTO_INCREMENT for table `ticketstar_theodoi`
---
-ALTER TABLE `ticketstar_theodoi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `ve`
---
-ALTER TABLE `ve`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `loaive`
---
-ALTER TABLE `loaive`
-  ADD CONSTRAINT `fk_loaive_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `sukien`
---
-ALTER TABLE `sukien`
-  ADD CONSTRAINT `fk_sukien_danhmuc` FOREIGN KEY (`danh_muc_id`) REFERENCES `danh_muc` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_sukien_nguoidung` FOREIGN KEY (`nguoi_tao`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `the_thanh_vien_nguoidung`
---
-ALTER TABLE `the_thanh_vien_nguoidung`
-  ADD CONSTRAINT `fk_ttv_nguoidung` FOREIGN KEY (`nguoi_dung_id`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_ttv_the` FOREIGN KEY (`the_id`) REFERENCES `the_thanh_vien` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `ticketstars`
---
-ALTER TABLE `ticketstars`
-  ADD CONSTRAINT `fk_ticketstars_sukien_noibat` FOREIGN KEY (`su_kien_noi_bat_id`) REFERENCES `sukien` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `ticketstar_sukien`
---
-ALTER TABLE `ticketstar_sukien`
-  ADD CONSTRAINT `fk_tss_star` FOREIGN KEY (`star_id`) REFERENCES `ticketstars` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_tss_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `ve`
---
-ALTER TABLE `ve`
-  ADD CONSTRAINT `fk_ve_nguoidung` FOREIGN KEY (`nguoi_dung_id`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_ve_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE;
-COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
