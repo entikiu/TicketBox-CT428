@@ -185,7 +185,6 @@ if (isset($_SESSION['user']) && isset($_SESSION['user']['id']) && isset($pdo)) {
             $_SESSION['user']['avatar'] = $dbUserSync['avatar'] ?? '';
         }
     } catch (PDOException $e) {
-
     }
 }
 
@@ -239,13 +238,10 @@ $current_search_q  = trim((string)($_GET['q'] ?? $_GET['search'] ?? $_GET['keywo
                 <div class="tb-search-dropdown" id="tbSearchDropdown">
                     <!-- 1. Từ khóa xu hướng -->
                     <div class="tb-trending-list" id="tbTrendingSection">
-                        <button type="button" class="tb-trending-item" data-keyword="tinh hà say hi">
+
+                        <button type="button" class="tb-trending-item" data-keyword="những thành phố">
                             <i class="fa-solid fa-arrow-trend-up"></i>
-                            <span>tinh hà say hi</span>
-                        </button>
-                        <button type="button" class="tb-trending-item" data-keyword="những thành phố mộng mơ">
-                            <i class="fa-solid fa-arrow-trend-up"></i>
-                            <span>những thành phố mộng mơ</span>
+                            <span>những thành phố</span>
                         </button>
                         <button type="button" class="tb-trending-item" data-keyword="skynote">
                             <i class="fa-solid fa-arrow-trend-up"></i>
