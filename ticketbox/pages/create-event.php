@@ -14,19 +14,29 @@ if (empty($_SESSION['user']) && empty($_SESSION['user_id'])) {
 $loggedUser   = $_SESSION['user'] ?? [];
 $loggedUserId = (int)($loggedUser['id'] ?? $_SESSION['user_id'] ?? 0);
 
-if ($loggedUserId <= 0 && !empty($loggedUser['email']) && isset($pdo)) {
-    $stmtU = $pdo->prepare("SELECT * FROM nguoidung WHERE email = :email LIMIT 1");
-    $stmtU->execute(['email' => $loggedUser['email']]);
-    $dbU = $stmtU->fetch(PDO::FETCH_ASSOC);
-    if ($dbU) {
-        $loggedUserId = (int)$dbU['id'];
-        $_SESSION['user'] = array_merge($loggedUser, $dbU);
-        $loggedUser = $_SESSION['user'];
+if (isset($pdo)) {
+    if ($loggedUserId > 0) {
+        $stmtU = $pdo->prepare("SELECT * FROM nguoidung WHERE id = :id LIMIT 1");
+        $stmtU->execute(['id' => $loggedUserId]);
+        $dbU = $stmtU->fetch(PDO::FETCH_ASSOC);
+        if ($dbU) {
+            $_SESSION['user'] = array_merge($loggedUser, $dbU);
+            $loggedUser = $_SESSION['user'];
+        }
+    } elseif (!empty($loggedUser['email'])) {
+        $stmtU = $pdo->prepare("SELECT * FROM nguoidung WHERE email = :email LIMIT 1");
+        $stmtU->execute(['email' => $loggedUser['email']]);
+        $dbU = $stmtU->fetch(PDO::FETCH_ASSOC);
+        if ($dbU) {
+            $loggedUserId = (int)$dbU['id'];
+            $_SESSION['user'] = array_merge($loggedUser, $dbU);
+            $loggedUser = $_SESSION['user'];
+        }
     }
 }
 
 $userName   = $loggedUser['ho_ten'] ?? $loggedUser['name'] ?? 'Ban tổ chức';
-$userAvatar = (!empty($loggedUser['avatar']) && file_exists(__DIR__ . '/' . $loggedUser['avatar']))
+$userAvatar = (!empty($loggedUser['avatar']) && (preg_match('#^https?://#i', $loggedUser['avatar']) || file_exists(__DIR__ . '/' . $loggedUser['avatar'])))
     ? $loggedUser['avatar']
     : '../assets/images/default-avatar.png';
 
@@ -208,12 +218,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 $finalPoster = $posterPath ?? $oldRow['hinh_anh'];
                 $finalBanner = $bannerPath ?? $oldRow['banner'];
 
-                // [2] Cập nhật thêm cột ten_dia_diem khi sửa sự kiện
+                // [2] Cập nhật thêm cột ten_dia_diem và mo_ta_ban_to_chuc khi sửa sự kiện
                 $sql = "UPDATE sukien SET 
                             ten_su_kien = :ten,
                             mo_ta = :mota,
                             danh_muc_id = :danh_muc_id,
                             ten_ban_to_chuc = :btc,
+                            mo_ta_ban_to_chuc = :mota_btc,
                             dia_diem = :diadiem,
                             ten_dia_diem = :tendd,
                             hinh_thuc = :hinhthuc,
@@ -226,6 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                     'mota'        => $moTa,
                     'danh_muc_id' => $danhMucId,
                     'btc'         => $tenBtc,
+                    'mota_btc'    => $moTaBtc !== '' ? $moTaBtc : null,
                     'diadiem'     => $diaDiem,
                     'tendd'       => $tenDiaDiem,
                     'hinhthuc'    => $hinhThuc,
@@ -255,7 +267,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                     'banner'      => $finalBanner
                 ];
 
-                // [3] Thêm cột ten_dia_diem khi tạo mới sự kiện
+                // [3] Thêm cột ten_dia_diem và mo_ta_ban_to_chuc khi tạo mới sự kiện
+                if (in_array('mo_ta_ban_to_chuc', $sukienCols, true)) {
+                    $insertCols[]             = 'mo_ta_ban_to_chuc';
+                    $insertVals[]             = ':mota_btc';
+                    $insertParams['mota_btc'] = $moTaBtc !== '' ? $moTaBtc : null;
+                }
                 if (in_array('ten_dia_diem', $sukienCols, true)) {
                     $insertCols[]          = 'ten_dia_diem';
                     $insertVals[]          = ':tendd';
@@ -288,6 +305,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         if ($action === 'save_step_2') {
             if ($eventId <= 0) {
                 throw new RuntimeException('Vui lòng lưu thông tin Bước 1 trước.');
+            }
+
+            $stmtOwn = $pdo->prepare("SELECT id FROM sukien WHERE id = :id AND nguoi_tao_id = :uid LIMIT 1");
+            $stmtOwn->execute(['id' => $eventId, 'uid' => $loggedUserId]);
+            if (!$stmtOwn->fetchColumn()) {
+                throw new RuntimeException('Không tìm thấy sự kiện hoặc bạn không có quyền chỉnh sửa.');
             }
 
             $startTime = trim($_POST['start_time'] ?? '');
@@ -458,11 +481,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 
         // XÓA SỰ KIỆN 
         if ($action === 'delete_event') {
-            if ($eventId > 0) {
-                $pdo->prepare("DELETE FROM loaive WHERE su_kien_id = :id")->execute(['id' => $eventId]);
-                $pdo->prepare("DELETE FROM sukien WHERE id = :id AND nguoi_tao_id = :uid")
-                    ->execute(['id' => $eventId, 'uid' => $loggedUserId]);
+            if ($eventId <= 0) {
+                throw new RuntimeException('ID sự kiện không hợp lệ.');
             }
+
+            $stmtOwner = $pdo->prepare("SELECT id FROM sukien WHERE id = :id AND nguoi_tao_id = :uid LIMIT 1");
+            $stmtOwner->execute(['id' => $eventId, 'uid' => $loggedUserId]);
+            if (!$stmtOwner->fetchColumn()) {
+                throw new RuntimeException('Không tìm thấy sự kiện hoặc bạn không có quyền xóa sự kiện này.');
+            }
+
+            $stmtCheckSold = $pdo->prepare("SELECT COUNT(*) FROM ve WHERE su_kien_id = :id AND trang_thai != 'da-huy'");
+            $stmtCheckSold->execute(['id' => $eventId]);
+            $soldCount = (int)$stmtCheckSold->fetchColumn();
+            if ($soldCount > 0) {
+                throw new RuntimeException('Không thể xóa sự kiện đã có khách đặt vé (' . $soldCount . ' vé).');
+            }
+
+            $pdo->prepare("DELETE FROM loaive WHERE su_kien_id = :id")->execute(['id' => $eventId]);
+            $pdo->prepare("DELETE FROM sukien WHERE id = :id AND nguoi_tao_id = :uid")
+                ->execute(['id' => $eventId, 'uid' => $loggedUserId]);
+
             echo json_encode(['status' => 'success', 'message' => 'Đã xóa sự kiện.']);
             exit;
         }
@@ -831,29 +870,57 @@ if (isset($pdo) && $loggedUserId > 0) {
                                     <label><span>*</span> Đường dẫn sự kiện trực tuyến (Zoom, Google Meet, Microsoft Teams,...)</label>
                                     <input type="url" class="form-control" id="onlineUrl" placeholder="https://..." value="<?php echo htmlspecialchars($editingEvent['link_online'] ?? ''); ?>">
                                 </div>
-                            <?php else: ?>
+                            <?php else:
+                                $editVenue    = trim((string)($editingEvent['ten_dia_diem'] ?? ''));
+                                $editStreet   = '';
+                                $editWard     = '';
+                                $editDistrict = '';
+                                $editCity     = '';
+                                if (!empty($editingEvent['dia_diem'])) {
+                                    $rawAddr = trim((string)$editingEvent['dia_diem']);
+                                    if ($editVenue !== '' && mb_stripos($rawAddr, $editVenue . ',', 0, 'UTF-8') === 0) {
+                                        $rawAddr = trim(mb_substr($rawAddr, mb_strlen($editVenue, 'UTF-8') + 1, null, 'UTF-8'));
+                                    }
+                                    $addrParts = array_values(array_filter(array_map('trim', explode(',', $rawAddr)), 'strlen'));
+                                    if (count($addrParts) >= 4) {
+                                        $editCity     = array_pop($addrParts);
+                                        $editDistrict = array_pop($addrParts);
+                                        $editWard     = array_pop($addrParts);
+                                        $editStreet   = implode(', ', $addrParts);
+                                    } elseif (count($addrParts) === 3) {
+                                        $editCity     = $addrParts[2];
+                                        $editDistrict = $addrParts[1];
+                                        $editStreet   = $addrParts[0];
+                                    } elseif (count($addrParts) === 2) {
+                                        $editCity     = $addrParts[1];
+                                        $editDistrict = $addrParts[0];
+                                    } elseif (count($addrParts) === 1) {
+                                        $editStreet   = $addrParts[0];
+                                    }
+                                }
+                            ?>
                                 <div class="form-group">
                                     <label>Tên tòa nhà / Địa điểm cụ thể</label>
-                                    <input type="text" class="form-control" id="venueName" placeholder="Ví dụ: Hội trường A - Trường Đại học Cần Thơ" value="<?php echo htmlspecialchars($editingEvent['ten_dia_diem'] ?? ''); ?>">
+                                    <input type="text" class="form-control" id="venueName" placeholder="Ví dụ: Hội trường A - Trường Đại học Cần Thơ" value="<?php echo htmlspecialchars($editVenue); ?>">
                                 </div>
                                 <div class="form-row-2">
                                     <div class="form-group">
                                         <label><span>*</span> Số nhà, tên đường</label>
-                                        <input type="text" class="form-control" id="streetAddress" placeholder="Ví dụ: Số 3 đường 3/2">
+                                        <input type="text" class="form-control" id="streetAddress" placeholder="Ví dụ: Số 3 đường 3/2" value="<?php echo htmlspecialchars($editStreet); ?>">
                                     </div>
                                     <div class="form-group">
                                         <label><span>*</span> Phường / Xã</label>
-                                        <input type="text" class="form-control" id="wardInput" placeholder="Ví dụ: Phường Xuân Khánh">
+                                        <input type="text" class="form-control" id="wardInput" placeholder="Ví dụ: Phường Xuân Khánh" value="<?php echo htmlspecialchars($editWard); ?>">
                                     </div>
                                 </div>
                                 <div class="form-row-2">
                                     <div class="form-group">
                                         <label><span>*</span> Quận / Huyện</label>
-                                        <input type="text" class="form-control" id="districtInput" placeholder="Ví dụ: Quận Ninh Kiều">
+                                        <input type="text" class="form-control" id="districtInput" placeholder="Ví dụ: Quận Ninh Kiều" value="<?php echo htmlspecialchars($editDistrict); ?>">
                                     </div>
                                     <div class="form-group">
                                         <label><span>*</span> Tỉnh / Thành phố</label>
-                                        <input type="text" class="form-control" id="cityInput" placeholder="Ví dụ: Thành phố Cần Thơ">
+                                        <input type="text" class="form-control" id="cityInput" placeholder="Ví dụ: Thành phố Cần Thơ" value="<?php echo htmlspecialchars($editCity); ?>">
                                     </div>
                                 </div>
                             <?php endif; ?>
@@ -871,7 +938,7 @@ if (isset($pdo) && $loggedUserId > 0) {
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label>Giới thiệu Ban tổ chức</label>
-                            <textarea class="form-control" id="organizerInfo" rows="3" placeholder="Thông tin giới thiệu ngắn về đơn vị tổ chức..."></textarea>
+                            <textarea class="form-control" id="organizerInfo" rows="3" placeholder="Thông tin giới thiệu ngắn về đơn vị tổ chức..."><?php echo htmlspecialchars($editingEvent['mo_ta_ban_to_chuc'] ?? ''); ?></textarea>
                         </div>
                     </div>
                 </div>

@@ -7,7 +7,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 
 
-if (!isset($_SESSION['user'])) {
+if (empty($_SESSION['user']) && empty($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
@@ -16,7 +16,7 @@ $current_tab = $_GET['tab'] ?? 'tickets';
 if ($current_tab === 'edit-profile') {
     $current_tab = 'profile-edit';
 }
-$user_id     = (int)($_SESSION['user']['id'] ?? 0);
+$user_id     = (int)($_SESSION['user']['id'] ?? $_SESSION['user_id'] ?? 0);
 
 $errors = [];
 $success_msg = '';
@@ -289,6 +289,7 @@ if (isset($pdo) && $user_id > 0) {
                         v.gia_ve AS price,
                         s.ten_su_kien AS event_title,
                         s.thoi_gian AS date,
+                        s.thoi_gian_ket_thuc AS end_date,
                         s.dia_diem AS location,
                         s.hinh_anh AS image
                     FROM ve v
@@ -329,7 +330,7 @@ foreach ($my_tickets as $item) {
 $filtered_tickets = [];
 foreach ($my_tickets as $index => $ticket) {
     $st = $ticket['status'] ?? 'thanh-cong';
-    $event_date_str = $ticket['date'] ?? '';
+    $event_date_str = !empty($ticket['end_date']) ? $ticket['end_date'] : ($ticket['date'] ?? '');
     $computed_timeline = $ticket['timeline'] ?? getEventTimelineStatus($event_date_str);
 
     $match_status   = ($filter_status === 'all') || ($st === $filter_status);
@@ -736,7 +737,7 @@ include '../templates/header.php';
 
                             $sqlCreated = "SELECT s.*,
                                                   dm.`{$dmCol}` AS ten_danh_muc,
-                                                  (SELECT COUNT(*) FROM ve v WHERE v.su_kien_id = s.id AND v.trang_thai != 'da-huy') AS so_ve_da_ban,
+                                                  (SELECT COUNT(*) FROM ve v WHERE v.su_kien_id = s.id AND v.trang_thai = 'thanh-cong') AS so_ve_da_ban,
                                                   (SELECT COALESCE(SUM(CAST(REPLACE(REPLACE(v.gia_ve, '.', ''), ' đ', '') AS UNSIGNED)), 0)
                                                    FROM ve v WHERE v.su_kien_id = s.id AND v.trang_thai = 'thanh-cong') AS doanh_thu
                                            FROM sukien s
@@ -759,18 +760,22 @@ include '../templates/header.php';
                     $filtered_created  = [];
 
                     foreach ($created_events as $ev) {
-                        $tl      = getEventTimelineStatus($ev['thoi_gian'] ?? '');
+                        $tlDate  = !empty($ev['thoi_gian_ket_thuc']) ? $ev['thoi_gian_ket_thuc'] : ($ev['thoi_gian'] ?? '');
+                        $tl      = getEventTimelineStatus($tlDate);
                         $pubStat = $ev['trang_thai'] ?? 'cong_khai';
 
-                        if ($pubStat === 'nhap') $ev_count_draft++;
-                        else $ev_count_public++;
-
-                        if ($tl === 'da-ket-thuc') $ev_count_ended++;
+                        if ($pubStat === 'nhap') {
+                            $ev_count_draft++;
+                        } elseif ($tl === 'da-ket-thuc') {
+                            $ev_count_ended++;
+                        } else {
+                            $ev_count_public++;
+                        }
 
                         $match = ($ev_filter === 'all')
-                              || ($ev_filter === 'cong_khai' && $pubStat !== 'nhap')
+                              || ($ev_filter === 'cong_khai' && $pubStat !== 'nhap' && $tl !== 'da-ket-thuc')
                               || ($ev_filter === 'nhap' && $pubStat === 'nhap')
-                              || ($ev_filter === 'da-ket-thuc' && $tl === 'da-ket-thuc');
+                              || ($ev_filter === 'da-ket-thuc' && $pubStat !== 'nhap' && $tl === 'da-ket-thuc');
 
                         if ($match) {
                             $ev['computed_timeline'] = $tl;
