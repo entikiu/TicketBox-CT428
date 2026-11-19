@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require_once __DIR__ . '/../../../config/database.php'; // adjust path as needed
+require_once __DIR__ . '/../../../config/database.php';
 
 header('Content-Type: application/json');
 
@@ -45,7 +45,6 @@ try {
         $stmtPwd->execute([':hash' => $hash, ':id' => $user_id]);
     }
     $pdo->commit();
-    // refresh session
     $_SESSION['user']['ho_ten'] = $ho_ten;
     $_SESSION['user']['email'] = $email;
     $_SESSION['user']['phone'] = $phone;
@@ -54,4 +53,3 @@ try {
     $pdo->rollBack();
     echo json_encode(['error' => $e->getMessage()]);
 }
-?>
