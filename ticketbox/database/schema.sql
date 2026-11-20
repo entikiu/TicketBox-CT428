@@ -7,16 +7,6 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-DROP TABLE IF EXISTS `ve`;
-DROP TABLE IF EXISTS `ticketstar_theodoi`;
-DROP TABLE IF EXISTS `ticketstar_sukien`;
-DROP TABLE IF EXISTS `ticketstars`;
-DROP TABLE IF EXISTS `the_thanh_vien_nguoidung`;
-DROP TABLE IF EXISTS `loaive`;
-DROP TABLE IF EXISTS `sukien`;
-DROP TABLE IF EXISTS `the_thanh_vien`;
-DROP TABLE IF EXISTS `nguoidung`;
-DROP TABLE IF EXISTS `danh_muc`;
 -- --------------------------------------------------------
 -- 1. Bảng `danh_muc`
 -- --------------------------------------------------------
