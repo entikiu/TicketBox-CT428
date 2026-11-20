@@ -7,6 +7,18 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
+
+DROP TABLE IF EXISTS `ve`;
+DROP TABLE IF EXISTS `ticketstar_theodoi`;
+DROP TABLE IF EXISTS `ticketstar_sukien`;
+DROP TABLE IF EXISTS `ticketstars`;
+DROP TABLE IF EXISTS `the_thanh_vien_nguoidung`;
+DROP TABLE IF EXISTS `loaive`;
+DROP TABLE IF EXISTS `sukien`;
+DROP TABLE IF EXISTS `the_thanh_vien`;
+DROP TABLE IF EXISTS `nguoidung`;
+DROP TABLE IF EXISTS `danh_muc`;
+
 -- --------------------------------------------------------
 -- 1. Bảng `danh_muc`
 -- --------------------------------------------------------
@@ -47,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `nguoidung` (
 INSERT INTO `nguoidung` (`id`, `ho_ten`, `email`, `phone`, `dob`, `gender`, `avatar`, `mat_khau`, `vai_tro`, `ngay_tao`) VALUES
 (1, 'Nguyen Van A', 'a@example.com', NULL, NULL, 'nam', NULL, '$2y$10$IYnOfBN19s5Bi2G5kiLGN.ikXMNpdE5JPkYWlVqKe/Q2Mn6PerUaC', 'User', '2026-10-23 06:34:03'),
 (2, 'Nguyen Thanh Huy', 'huyb2407528@student.ctu.edu.vn', '0123456789', '21/11/2004', 'nam', '../assets/uploads/avatars/avatar_2_1794239731.jpg', '$2y$10$dAhv67SOY/RydNTGk/gJNeTFDl7KjRrb1Wn0lxco1XQqx6UYSIg0i', 'User', '2026-11-01 13:17:10'),
-(4, 'Kim JiWon', 'nguyenhuynth2910@gmail.com', '0987654321', '21/11/2004', 'nam', '../assets/uploads/avatars/avatar_4_1794728506.jpg', '$2y$10$IMWgWlBW.S4AHbgmfRxG1.It20GNdVrUoGpfEtbXE/eVhtRaIekni', 'Admin', '2026-11-02 15:45:56')
+(4, 'Kim JiWon', 'nguyenhuynth2910@gmail.com', '0987654321', '2000-11-20', 'nam', '../assets/uploads/avatars/avatar_4_1795162957.jpg', '$2y$10$IMWgWlBW.S4AHbgmfRxG1.It20GNdVrUoGpfEtbXE/eVhtRaIekni', 'Admin', '2026-11-02 15:45:56')
 ON DUPLICATE KEY UPDATE
   `ho_ten` = VALUES(`ho_ten`),
   `email` = VALUES(`email`),
@@ -127,9 +139,7 @@ CREATE TABLE IF NOT EXISTS `sukien` (
   KEY `fk_sukien_danhmuc` (`danh_muc_id`),
   CONSTRAINT `fk_sukien_danhmuc` FOREIGN KEY (`danh_muc_id`) REFERENCES `danh_muc` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_sukien_nguoidung` FOREIGN KEY (`nguoi_tao`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-DELETE FROM `sukien` WHERE `id` IN (55, 57, 58, 59, 60, 61, 62, 63, 64);
+) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `sukien` (`id`, `nguoi_tao_id`, `ten_su_kien`, `mo_ta`, `dia_diem`, `hinh_thuc`, `link_online`, `gia_thap_nhat`, `thoi_gian`, `thoi_gian_ket_thuc`, `thoi_gian_hien_thi`, `ten_dia_diem`, `so_luong_toi_da`, `nguoi_tao`, `ngay_tao`, `hinh_anh`, `banner`, `ten_ban_to_chuc`, `mo_ta_ban_to_chuc`, `danh_muc_id`, `trang_thai`, `url_tuy_chinh`, `quyen_rieng_tu`, `loi_nhan_cam_on`, `thong_tin_thanh_toan`) VALUES
 (1, NULL, 'LIVE CONCERT - SKYNOTE THE REFLECTION DAY 2 - QUỐC THIÊN', NULL, 'Phạm Hùng, Mễ Trì, Nam Từ Liêm, Hà Nội', 'offline', NULL, 880000, '2026-11-29 19:30:00', NULL, '19:30 - 23:00, 29 Tháng 11, 2026', 'Trung tâm Hội nghị Quốc gia', 1000, 2, '2026-11-11 13:47:35', '../assets/images/events/banner-skynote.jpg', NULL, 'SKYNOTE Entertainment', 'Đơn vị sản xuất & Tổ chức đêm nhạc', 1, 'cong_khai', NULL, 'public', NULL, NULL),
@@ -258,7 +268,8 @@ INSERT INTO `sukien` (`id`, `nguoi_tao_id`, `ten_su_kien`, `mo_ta`, `dia_diem`, 
 (137, NULL, 'LOALOA SHOW: VIỆT NAM BỪNG SÁNG', NULL, 'Quận 1, TP. Hồ Chí Minh', 'offline', NULL, 1600000, '2026-11-15 19:30:00', NULL, '19:30 - 21:30, 15 Tháng 11, 2026', 'Nhà hát Thành phố', 400, 2, '2026-11-15 10:50:42', '../assets/images/events/banner-loaloa-viet-nam-bung-sang.jpg', NULL, 'LOALOA SHOW', 'Chương trình nghệ thuật thực cảnh & ẩm thực di sản', 4, 'cong_khai', NULL, 'public', NULL, NULL),
 (138, NULL, '[Hài kịch trinh thám] BÓNG MA RẠP HÁT LỆ HOA - SÂN KHẤU MỚI', NULL, 'Quận 10, TP. Hồ Chí Minh', 'offline', NULL, 250000, '2026-11-22 19:30:00', NULL, '19:30 - 22:30, 22 Tháng 11, 2026', 'Sân Khấu Mới', 350, 2, '2026-11-15 11:13:19', '../assets/images/events/banner-skm-bong-ma.jpg', NULL, 'Sân Khấu Mới', 'Sân khấu hài kịch & chính kịch TP.HCM', 4, 'cong_khai', NULL, 'public', NULL, NULL),
 (139, NULL, 'SKNT TRƯƠNG HÙNG MINH : NGĂN LẠNH SỐ 44', NULL, '22 Vĩnh Viễn, Quận 10, TP. Hồ Chí Minh', 'offline', NULL, 300000, '2026-11-15 20:00:00', NULL, '20:00 - 23:00, 15 Tháng 11, 2026', 'Sân khấu Nghệ thuật Trương Hùng Minh', 350, 2, '2026-11-15 11:36:15', '../assets/images/events/banner-thm-ngan-lanh.jpg', NULL, 'SÂN KHẤU NGHỆ THUẬT TRƯƠNG HÙNG MINH', 'Sân khấu kịch nghệ thuật Trương Hùng Minh', 4, 'cong_khai', NULL, 'public', NULL, NULL),
-(140, 4, 'QUYET CHIEN SHIBUYA', '<p>CUOC CHIEN CUA 2 KE MANH NHAT</p>', 'CTU, SO 3 DUONG 3/2, XUAN KHANH, NINH KIEU, CAN THO', 'offline', NULL, 999999, '2026-11-30 00:10:00', '2026-12-17 23:52:00', NULL, NULL, 0, 4, '2026-11-17 16:52:25', '../assets/uploads/events/poster_4_1794934345_b3f604.jpg', '../assets/uploads/events/banner_4_1794934345_0cb5d9.jpg', 'Kim JiWon', NULL, 2, 'cong_khai', 'shibuya', 'public', 'Thank you so much!!!', '{\"account_holder\":\"Kim Ji Wonm\",\"account_number\":\"012345678987654321\",\"bank_name\":\"MB Bank\",\"bank_branch\":\"Can Tho\",\"business_type\":\"Cá nhân\",\"tax_code\":\"0987654321\"}')
+(140, 4, 'QUYẾT CHIẾN SHYBUDA', '<p>CUỘC CHIẾN CỦA 2 KẺ MẠNH NHẤT</p>', 'TRƯỜNG CNTT & TT, ĐƯỜNG 3/2, PHƯỜNG HƯNG LỢI, QUẬN NINH KIỀU, THÀNH PHỐ CẦN THƠ', 'offline', NULL, 999999, '2026-11-30 00:10:00', '2026-12-17 23:52:00', '00:10, 30 Tháng 11 - 23:52, 17 Tháng 12, 2026', 'TRƯỜNG CNTT & TT', 100, 4, '2026-11-17 16:52:25', '../assets/uploads/events/poster_4_1795099494_aaf17f.jpg', '../assets/uploads/events/banner_4_1795099494_b39f13.jpg', 'Kim JiWon', NULL, 2, 'cong_khai', 'shibuya', 'public', 'Thank you so much!!!', '{\"account_holder\":\"Kim Ji Wonm\",\"account_number\":\"012345678987654321\",\"bank_name\":\"MB Bank\",\"bank_branch\":\"Can Tho\",\"business_type\":\"Cá nhân\",\"tax_code\":\"0987654321\"}'),
+(145, 1, 'QUYẾT CHIẾN SHYBUDA', '<p>addd</p>', 'TRƯỜNG CNTT & TT, A, PHƯỜNG HƯNG LỢI, QUẬN NINH KIỀU, THÀNH PHỐ CẦN THƠ', 'offline', NULL, 4000, '2026-11-21 00:36:00', '2026-11-28 00:36:00', '00:36, 21 Tháng 11 - 00:36, 28 Tháng 11, 2026', 'TRƯỜNG CNTT & TT', 101, 1, '2026-11-19 17:36:33', '../assets/uploads/events/poster_1_1795109793_a5aff6.jpg', '../assets/uploads/events/banner_1_1795109793_24ceae.jpg', 'Nguyen Van A', NULL, 1, 'cong_khai', 'tensukien', 'public', '', '{\"account_holder\":\"thanh\",\"account_number\":\"123\",\"bank_name\":\"tec\",\"bank_branch\":\"ct\",\"business_type\":\"Cá nhân\",\"tax_code\":\"\"}')
 ON DUPLICATE KEY UPDATE
   `nguoi_tao_id` = VALUES(`nguoi_tao_id`),
   `ten_su_kien` = VALUES(`ten_su_kien`),
@@ -301,9 +312,7 @@ CREATE TABLE IF NOT EXISTS `loaive` (
   PRIMARY KEY (`id`),
   KEY `fk_loaive_sukien` (`su_kien_id`),
   CONSTRAINT `fk_loaive_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=196 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-DELETE FROM `loaive` WHERE `id` IN (103, 105, 106, 107, 108, 109, 111, 112, 188);
+) ENGINE=InnoDB AUTO_INCREMENT=201 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `loaive` (`id`, `su_kien_id`, `ten_loai_ve`, `gia_ve`, `da_het_ve`, `so_luong`, `mo_ta`, `bat_dau_ban`, `ket_thuc_ban`) VALUES
 (1, 1, 'SKY LOUNGE', 8800000, 0, 100, NULL, NULL, NULL),
@@ -478,7 +487,8 @@ INSERT INTO `loaive` (`id`, `su_kien_id`, `ten_loai_ve`, `gia_ve`, `da_het_ve`, 
 (185, 137, 'VÉ VIỆT NAM BỪNG SÁNG', 1600000, 0, 100, NULL, NULL, NULL),
 (186, 138, 'VÉ SÂN KHẤU MỚI', 250000, 0, 100, NULL, NULL, NULL),
 (187, 139, 'VÉ SÂN KHẤU THM', 300000, 0, 100, NULL, NULL, NULL),
-(190, 140, 'BANH TRUONG LANH DIA', 999999, 0, 100, 'BUOC VAO CUOC CHIEN', '2026-11-17 23:53:00', '2026-12-12 23:53:00')
+(199, 140, 'BANH TRUONG LANH DIA', 999999, 0, 100, 'BUOC VAO CUOC CHIEN', '2026-11-17 23:53:00', '2026-12-12 23:53:00'),
+(200, 145, 'vip', 4000, 0, 101, '', '2026-11-28 00:36:00', '2026-11-28 00:36:00')
 ON DUPLICATE KEY UPDATE
   `su_kien_id` = VALUES(`su_kien_id`),
   `ten_loai_ve` = VALUES(`ten_loai_ve`),
@@ -551,7 +561,7 @@ INSERT INTO `ticketstars` (`id`, `slug`, `ten_hien_thi`, `loai`, `avatar`, `bann
 (3, 'ss-label', 'SS Label', 'BanToChuc', '../assets/images/stars/sslabel.jpg', '../assets/images/stars/banners/ss-label.jpg', '../assets/images/stars/banners/ss-label.jpg', '../assets/images/memberships/spacespeakers.jpg', 'Hãng thu âm & công ty quản lý nghệ sĩ trực thuộc SpaceSpeakers Group.', 'Chào mừng bạn đến với kênh chính thức của SS Label trên Ticketbox! Theo dõi ngay để nhận thông báo mở bán vé Presale sớm nhất.', 41200, 'Mắt Nhắm Mắt Mở|SpaceSpeakers', 89, 'SpaceSpeakers', 1, 3),
 (4, 'gai-meet', 'GAI MEET', 'BanToChuc', '../assets/images/stars/gaimeet.jpg', '../assets/images/stars/banners/gai-meet.jpg', '../assets/images/stars/banners/gai-meet.jpg', '../assets/images/events/banner-nha-ruc-ro.jpg', 'Chuỗi sự kiện giao lưu âm nhạc & Fan Meeting độc quyền đồng sản xuất bởi YEAH1 x 1PRODUCTION.', NULL, 29800, 'GAI MEET', NULL, NULL, 1, 4),
 (5, 'quoc-thien', 'Quốc Thiên', 'NgheSi', '../assets/images/stars/quocthien.jpg', '../assets/images/stars/banners/quoc-thien.jpg', '../assets/images/stars/banners/quoc-thien.jpg', '../assets/images/events/banner-skynote.jpg', 'Ca sĩ Quốc Thiên - Chủ nhân chuỗi Live Concert SKYNOTE và gói hội viên SKYNOTE Membership.', 'Hội viên SKYNOTE Membership được ưu tiên đặt vé sớm trước giờ mở bán công khai.', 36500, 'SKYNOTE|Quốc Thiên', NULL, 'Quốc Thiên', 1, 5),
-(6, 'ngoc-thanh-tam', 'Ngọc Thanh Tâm', 'NgheSi', '../assets/images/stars/ngocthanhtam.jpg', '../assets/images/stars/banners/ngoc-thanh-tam.jpg', '../assets/images/stars/banners/ngoc-thanh-tam.jpg', '../assets/images/memberships/tieu-no.jpg', 'Diễn viên Ngọc Thanh Tâm - Cộng đồng thành viên TIỂU NƠ Membership độc quyền trên Ticketbox.', NULL, 21400, 'Ngọc Thanh Tâm|TIỂU NƠ', NULL, 'Ngọc Thanh Tâm', 1, 6),
+(6, 'ngoc-thanh-tam', 'Ngọc Thanh Tâm', 'NgheSi', '../assets/images/stars/ngocthanhtam.jpg', '../assets/images/stars/banners/ngoc-thanh-tam.jpg', '../assets/images/stars/banners/ngoc-thanh-tam.jpg', '../assets/images/memberships/tieu-no.jpg', 'Diễn viên Ngọc Thanh Tâm - Cộng đồng thành viên TIỂU NƠ Membership độc quyền trên Ticketbox.', NULL, 21401, 'Ngọc Thanh Tâm|TIỂU NƠ', NULL, 'Ngọc Thanh Tâm', 1, 6),
 (7, 'dinh-manh-ninh', 'Đinh Mạnh Ninh', 'NgheSi', '../assets/images/stars/dinhmanhninh.jpg', '../assets/images/stars/banners/dinh-manh-ninh.jpg', '../assets/images/stars/banners/dinh-manh-ninh.jpg', '../assets/images/events/banner-skynote.jpg', 'Ca sĩ - Nhạc sĩ Đinh Mạnh Ninh với các đêm nhạc Acoustic và bộ sưu tập Official Merchandise.', NULL, 18750, 'Đinh Mạnh Ninh', 72, NULL, 1, 7),
 (8, 'phung-khanh-linh', 'Phùng Khánh Linh', 'NgheSi', '../assets/images/stars/phungkhanhlinh.jpg', '../assets/images/stars/banners/phung-khanh-linh.jpg', '../assets/images/stars/banners/phung-khanh-linh.jpg', '../assets/images/events/banner-ntpmm.jpg', 'Ca sĩ - Nhạc sĩ dòng nhạc Indie Pop / City Pop với chuỗi tour diễn và album được yêu thích.', NULL, 24902, 'Phùng Khánh Linh|Những Thành Phố Mộng Mơ', NULL, NULL, 1, 8),
 (9, 'nhung-thanh-pho-mong-mo', 'Những Thành Phố Mơ Màng', 'BanToChuc', '../assets/images/stars/ntpmm.jpg', '../assets/images/stars/banners/nhung-thanh-pho-mong-mo.jpg', '../assets/images/stars/banners/nhung-thanh-pho-mong-mo.jpg', '../assets/images/events/banner-ntpmm.jpg', 'Lễ hội âm nhạc Indie thường niên quy tụ dàn nghệ sĩ trẻ đình đám tại Hà Nội & TP. Hồ Chí Minh.', NULL, 55301, 'Những Thành Phố Mơ Màng|Những Thành Phố Mộng Mơ', NULL, 'Những Thành Phố Mộng Mơ', 1, 9),
@@ -603,11 +613,6 @@ CREATE TABLE IF NOT EXISTS `ticketstar_sukien` (
   CONSTRAINT `fk_tss_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DELETE FROM `ticketstar_sukien`
-WHERE (`star_id` = 19 AND `su_kien_id` = 61)
-   OR (`star_id` = 22 AND `su_kien_id` = 62)
-   OR (`star_id` = 25 AND `su_kien_id` = 64);
-
 INSERT INTO `ticketstar_sukien` (`star_id`, `su_kien_id`) VALUES
 (1, 6), (1, 9), (1, 10), (1, 53), (1, 90),
 (2, 3), (2, 4), (2, 91), (2, 92),
@@ -652,10 +657,11 @@ CREATE TABLE IF NOT EXISTS `ticketstar_theodoi` (
   UNIQUE KEY `uniq_user_star` (`nguoi_dung_id`,`star_id`),
   KEY `idx_user_id` (`nguoi_dung_id`),
   KEY `idx_star_id` (`star_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `ticketstar_theodoi` (`id`, `nguoi_dung_id`, `star_id`, `ngay_theo_doi`) VALUES
-(1, 4, 8, '2026-11-17 22:09:48')
+(1, 4, 8, '2026-11-17 22:09:48'),
+(3, 4, 6, '2026-11-19 02:52:29')
 ON DUPLICATE KEY UPDATE
   `nguoi_dung_id` = VALUES(`nguoi_dung_id`),
   `star_id` = VALUES(`star_id`),
@@ -679,7 +685,7 @@ CREATE TABLE IF NOT EXISTS `ve` (
   KEY `fk_ve_nguoidung` (`nguoi_dung_id`),
   CONSTRAINT `fk_ve_nguoidung` FOREIGN KEY (`nguoi_dung_id`) REFERENCES `nguoidung` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ve_sukien` FOREIGN KEY (`su_kien_id`) REFERENCES `sukien` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `ve` (`id`, `ma_ve`, `su_kien_id`, `nguoi_dung_id`, `loai_ve`, `gia_ve`, `trang_thai`, `ngay_dat`) VALUES
 (1, 'TKB-2026-52313', 2, 2, 'VÉ BƯỚC THONG RONG (GA)', '499.000 đ', 'thanh-cong', '2026-11-11 13:49:02'),
@@ -703,7 +709,13 @@ INSERT INTO `ve` (`id`, `ma_ve`, `su_kien_id`, `nguoi_dung_id`, `loai_ve`, `gia_
 (20, 'TKB-20261112-1250', 4, 2, 'GA RỰC RỠ', '1.500.000 đ', 'thanh-cong', '2026-11-12 13:15:08'),
 (21, 'TKB-20261112-2954', 4, 2, 'GA RỰC RỠ', '1.500.000 đ', 'thanh-cong', '2026-11-12 13:15:21'),
 (26, 'TKB-20261112-8027', 7, 2, 'VÉ DỊ KIỀU', '1.450.000 đ', 'thanh-cong', '2026-11-12 14:04:48'),
-(27, 'TKB-20261115-1975', 1, 4, 'SKY LOUNGE', '8.800.000 đ', 'thanh-cong', '2026-11-15 08:11:31')
+(27, 'TKB-20261115-1975', 1, 4, 'SKY LOUNGE', '8.800.000 đ', 'thanh-cong', '2026-11-15 08:11:31'),
+(29, 'TKB-20261118-7327', 2, 4, 'VÉ MỘNG MƠ (SVIP)', '1.200.000 đ', 'thanh-cong', '2026-11-18 19:53:26'),
+(30, 'TKB-20261118-8310', 36, 4, 'VÉ TRỌN GÓI BẮN SÚNG & BIỂN TIÊN ĐỒNG', '350.000 đ', 'thanh-cong', '2026-11-18 19:55:15'),
+(31, 'TKB-20261119-4707', 140, 1, 'BANH TRUONG LANH DIA', '999.999 đ', 'thanh-cong', '2026-11-19 18:32:23'),
+(32, 'TKB-20261119-9029', 140, 1, 'BANH TRUONG LANH DIA', '999.999 đ', 'thanh-cong', '2026-11-19 18:32:36'),
+(33, 'TKB-20261119-6205', 140, 1, 'BANH TRUONG LANH DIA', '999.999 đ', 'thanh-cong', '2026-11-19 18:32:50'),
+(34, 'TKB-20261119-2504', 140, 1, 'BANH TRUONG LANH DIA', '999.999 đ', 'thanh-cong', '2026-11-19 18:33:02')
 ON DUPLICATE KEY UPDATE
   `ma_ve` = VALUES(`ma_ve`),
   `su_kien_id` = VALUES(`su_kien_id`),
